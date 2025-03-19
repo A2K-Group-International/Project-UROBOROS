@@ -21,6 +21,8 @@ const VolunteerSelect = ({
   oldVolunteerId,
   volunteers,
   eventId,
+  eventVisibility,
+  ministryVolunteer,
   admins,
   replaced,
   newreplacement_id,
@@ -30,7 +32,7 @@ const VolunteerSelect = ({
   const [error, setError] = useState("");
   const queryClient = useQueryClient();
 
-  const volunteersWithAdmin = [...admins || [],...volunteers || []]
+  const volunteersWithAdmin = [...(admins || []), ...(volunteers || [])];
 
   const previousVolunteerIds = new Set(
     // Create a set of volunteer IDs that have already been replaced
@@ -38,14 +40,14 @@ const VolunteerSelect = ({
       .filter((volunteer) => volunteer.replaced) // Filter for volunteers that have been replaced
       .map((volunteer) => volunteer.volunteer_id) // Extract the volunteer_id for those replaced volunteers
   );
-  
+
   const replacementVolunteerIds = new Set(
     // Create a set of volunteer IDs that are replacements (i.e., volunteers who replaced someone)
     assignedVolunteers
       .filter((volunteer) => volunteer.replaced) // Filter for volunteers that have been replaced
       .map((volunteer) => volunteer.replacedby_id) // Extract the replacedby_id (the ID of the replacement volunteer)
   );
-  
+
   // Filter the volunteers list to exclude already assigned or replaced volunteers
   const filteredVolunteers = volunteersWithAdmin?.filter(
     (volunteer) =>
@@ -114,19 +116,21 @@ const VolunteerSelect = ({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit Assigned Volunteer</DialogTitle>
-          <DialogDescription>
-            Select a volunteer to replace.
-          </DialogDescription>
+          <DialogDescription>Select a volunteer to replace.</DialogDescription>
         </DialogHeader>
         <div>
           <CustomReactSelect
-          isMulti={false}
-            options={volunteerOptions}
+            isMulti={false}
+            options={
+              eventVisibility === "public"
+                ? volunteerOptions
+                : ministryVolunteer
+            }
             value={selectedVolunteer}
             onChange={setSelectedVolunteer}
             placeholder="Select a Volunteer"
             isClearable
-        />
+          />
           {error && (
             <div className="mt-2 text-sm font-semibold text-red-500">
               {error}
@@ -160,7 +164,7 @@ VolunteerSelect.propTypes = {
       last_name: PropTypes.string.isRequired,
     })
   ).isRequired,
-  admins:PropTypes.arrayOf(
+  admins: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.string.isRequired,
       first_name: PropTypes.string.isRequired,
@@ -170,6 +174,13 @@ VolunteerSelect.propTypes = {
   eventId: PropTypes.string.isRequired,
   replaced: PropTypes.bool.isRequired,
   newreplacement_id: PropTypes.string,
+  eventVisibility: PropTypes.string.isRequired,
+  ministryVolunteer: PropTypes.arrayOf(
+    PropTypes.shape({
+      value: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+    })
+  ),
 };
 
 export default VolunteerSelect;

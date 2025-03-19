@@ -25,11 +25,15 @@ import {
   FormMessage,
 } from "../ui/form";
 import { coordinatorSchema } from "@/zodSchema/CreateMinistrySchema";
-import { addCoordinators } from "@/services/ministryService";
+import {
+  addCoordinators,
+  getMinistryCoordinators,
+} from "@/services/ministryService";
 import { toast } from "@/hooks/use-toast";
 import { ROLES } from "@/constants/roles";
 import { getUsersByRole } from "@/services/userService";
 import PropTypes from "prop-types";
+import { useMemo } from "react";
 
 const AddCoordinators = ({ ministryId }) => {
   const { data: coordinators, isLoading: coordinatorLoading } = useQuery({
@@ -42,12 +46,35 @@ const AddCoordinators = ({ ministryId }) => {
     queryFn: async () => getUsersByRole(ROLES[1]),
   });
 
+  // Query to fetch existing ministry coordinators
+  const { data: existingCoordinators } = useQuery({
+    queryKey: ["ministryCoordinators", ministryId],
+    queryFn: async () => {
+      const response = await getMinistryCoordinators(ministryId);
+      return response;
+    },
+    enabled: !!ministryId,
+  });
+
   const adminsCoordinators = [...(volunteers ?? []), ...(coordinators ?? [])];
 
-  const coordinatorOptions = adminsCoordinators?.map((coordinator) => ({
-    value: coordinator.id,
-    label: `${coordinator.first_name} ${coordinator.last_name}`,
-  }));
+  // Unique Set of existing coordinator IDs
+  const existingCoordinatorIds = useMemo(() => {
+    if (!existingCoordinators) return new Set();
+    return new Set(
+      existingCoordinators?.map((coordinator) => coordinator?.users?.id)
+    );
+  }, [existingCoordinators]);
+
+  // Filter coordinators to exclude those already assigned to this ministry
+  const filteredCoordinatorOptions = useMemo(() => {
+    return adminsCoordinators
+      .filter((coordinator) => !existingCoordinatorIds.has(coordinator.id))
+      .map((coordinator) => ({
+        value: coordinator.id,
+        label: `${coordinator.first_name} ${coordinator.last_name}`,
+      }));
+  }, [adminsCoordinators, existingCoordinatorIds]);
 
   const form = useForm({
     resolver: zodResolver(coordinatorSchema),
@@ -61,7 +88,7 @@ const AddCoordinators = ({ ministryId }) => {
     onSuccess: () => {
       toast({
         title: "Success",
-        description: "Coordinators added",
+        description: "Coordinators Successfully added",
       });
     },
     onMutate: () => {
@@ -97,7 +124,7 @@ const AddCoordinators = ({ ministryId }) => {
       <AlertDialogTrigger asChild>
         <Button
           variant="outline"
-          className="rounded-2xl border-none bg-primary/50 hover:bg-primary"
+          className="rounded-lg border-none bg-primary-outline/35 text-accent hover:bg-primary"
         >
           Add Coordinators
         </Button>
@@ -122,8 +149,8 @@ const AddCoordinators = ({ ministryId }) => {
                     <FormControl>
                       <CustomReactSelect
                         isLoading={coordinatorLoading || volunteersLoading}
-                        options={coordinatorOptions}
-                        value={coordinatorOptions.filter((option) =>
+                        options={filteredCoordinatorOptions}
+                        value={filteredCoordinatorOptions.filter((option) =>
                           field.value?.includes(option.value)
                         )}
                         onChange={(selectedOptions) =>

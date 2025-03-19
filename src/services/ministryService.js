@@ -1,5 +1,16 @@
 import { supabase } from "./supabaseClient";
 
+export const getOneMinistryGroup = async (ministryId) => {
+  const { data, error } = await supabase
+    .from("groups")
+    .select("id, name, description, ministry_id")
+    .eq("ministry_id", ministryId);
+
+  if (error) throw new Error();
+
+  return data;
+};
+
 export const getMinistryVolunteers = async (ministryId) => {
   const { data: getGroup, error: groupError } = await supabase
     .from("groups")
@@ -42,6 +53,13 @@ export const getAllMinistries = async () => {
     throw new Error(error.message);
   }
 
+  data.map((ministry) => {
+    const url = supabase.storage
+      .from("Uroboros")
+      .getPublicUrl(ministry.image_url);
+    ministry.image_url = url.data.publicUrl;
+  });
+
   return data;
 };
 
@@ -54,7 +72,23 @@ export const getAssignedMinistries = async (userId) => {
   if (error) {
     throw new Error(error.message);
   }
-  const arrangedData = data.map((data) => data.ministries);
+
+  // Process each ministry to get the proper image URL
+  const arrangedData = data.map((item) => {
+    // Get the ministry object
+    const ministry = item.ministries;
+
+    // Only process image URL if it exists
+    if (ministry && ministry.image_url) {
+      const { data: urlData } = supabase.storage
+        .from("Uroboros")
+        .getPublicUrl(ministry.image_url);
+
+      ministry.image_url = urlData.publicUrl;
+    }
+
+    return ministry;
+  });
 
   return arrangedData;
 };
@@ -71,7 +105,7 @@ export const getMinistryGroups = async (userId) => {
       .select(
         `id, 
          joined_at, 
-         groups(id, name, description, ministry_id, ministry:ministries(id, ministry_name)), 
+         groups(id, name, description, ministry_id, ministry:ministries(id, ministry_name, image_url)), 
          users(id)`
       )
       .eq("user_id", userId);
@@ -85,11 +119,22 @@ export const getMinistryGroups = async (userId) => {
     const groupedData = data.reduce((acc, item) => {
       const ministryId = item.groups.ministry.id;
       const ministryName = item.groups.ministry.ministry_name;
+      const imageUrl = item.groups.ministry.image_url;
+
+      // Get the public URL properly
+      let publicUrl = null;
+      if (imageUrl) {
+        const { data: urlData } = supabase.storage
+          .from("Uroboros")
+          .getPublicUrl(imageUrl);
+        publicUrl = urlData.publicUrl;
+      }
 
       if (!acc[ministryId]) {
         acc[ministryId] = {
           ministry_id: ministryId,
           ministry_name: ministryName,
+          image_url: publicUrl,
           groups: [],
         };
       }
@@ -177,134 +222,251 @@ export const removeCoordinator = async ({ ministryId, coordinator_id }) => {
     throw new Error(error.message);
   }
 };
+/**
+ * Delete an image from storage
+ * @param {string} path - Storage path to the image
+ * @returns {Promise<Object>} Response containing data or error.
+ */
+export const deleteImageFromStorage = async (path) => {
+  if (!path) return { data: null, error: null };
+
+  const { data, error } = await supabase.storage
+    .from("Uroboros")
+    .remove([path]);
+
+  if (error) {
+    console.error("Error deleting image:", error.message);
+  }
+
+  return { data, error };
+};
 
 /**
  * Create a new ministry.
- * @param {Object} ministry - The ministry object (name and description).
+ * @param {Object} params - The ministry object with all required data.
  * @returns {Promise<Object>} Response containing data or error.
  */
-
 export const createMinistry = async ({
   coordinators,
   ministry_name,
   ministry_description,
+  ministry_image,
 }) => {
-  const { data, error } = await supabase
-    .from("ministries")
-    .insert([
-      {
-        ministry_name,
-        ministry_description,
-      },
-    ])
-    .select("id")
-    .single();
+  try {
+    //  Upload the image (if provided)
+    let imagePath = null;
+    if (ministry_image) {
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("Uroboros")
+        .upload(
+          `ministry_images/${ministry_name}_${Date.now()}`,
+          ministry_image
+        );
 
-  if (error) {
-    throw new Error(error.message);
+      if (uploadError) {
+        throw new Error(`Image upload failed: ${uploadError.message}`);
+      }
+
+      imagePath = uploadData.path;
+    }
+
+    //  Insert ministry data with the image path
+    const { data, error } = await supabase
+      .from("ministries")
+      .insert([
+        {
+          ministry_name,
+          ministry_description,
+          image_url: imagePath,
+        },
+      ])
+      .select("id")
+      .single();
+
+    if (error) {
+      // If DB insertion fails, clean up the uploaded image
+      if (imagePath) {
+        await deleteImageFromStorage(imagePath);
+      }
+      throw new Error(`Ministry creation failed: ${error.message}`);
+    }
+
+    //  Add coordinators if provided
+    if (coordinators && coordinators.length > 0) {
+      const coordinatorsData = coordinators.map((coordinator) => ({
+        ministry_id: data.id,
+        coordinator_id: coordinator,
+      }));
+
+      await addCoordinators({ ministryId: data.id, coordinatorsData });
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error in createMinistry:", error);
+    throw error;
   }
-  // return data;
-
-  const coordinatorsData = coordinators.map((coordinator) => ({
-    ministry_id: data.id,
-    coordinator_id: coordinator,
-  }));
-
-  addCoordinators({ ministryId: data.id, coordinatorsData });
 };
 
 /**
  * Update a ministry by its ID.
- * @param {string} id - UUID of the ministry.
- * @param {Object} updates - Object containing the updated fields.
+ * @param {Object} params - Object containing the updated fields.
  * @returns {Promise<Object>} Response containing data or error.
  */
-export const editMinistry = async (updatedValues) => {
-  // Destructure the updatedValues object to extract necessary fields
-  const { coordinators, ministryId } = updatedValues;
-  // Perform the update query using destructured values
-  // const { data, error } = await supabase
-  //   .from("ministries")
-  //   .update({
-  //     ministry_name, // Update ministry_name field
-  //     ministry_description, // Update ministry_description field
-  //   })
-  //   .eq("id", ministryId); // Use ministryId as the primary key for the update
+export const editMinistry = async ({
+  ministryId,
+  ministry_name,
+  ministry_description,
+  ministry_image,
+}) => {
+  try {
+    //  Update basic ministry details if provided
+    if (ministry_name || ministry_description) {
+      const updateData = {};
+      if (ministry_name) updateData.ministry_name = ministry_name;
+      if (ministry_description)
+        updateData.ministry_description = ministry_description;
 
-  // if (error) {
-  //   console.error("Error updating ministry:", error.message);
-  //   throw new Error(error.message); // Handle the error appropriately
-  // }
+      const { error } = await supabase
+        .from("ministries")
+        .update(updateData)
+        .eq("id", ministryId);
 
-  const { error: deleteCoordinatorError } = await supabase
-    .from("ministry_coordinators")
-    .delete()
-    .eq("ministry_id", ministryId);
+      if (error) {
+        throw new Error(`Failed to update ministry details: ${error.message}`);
+      }
+    }
 
-  if (deleteCoordinatorError) {
-    throw new Error(
-      "Error deleting coordinators!",
-      deleteCoordinatorError.message
-    );
+    //  Update image if a new one is provided
+    if (ministry_image instanceof File) {
+      // Get current image URL to delete later
+      const { data: currentMinistry, error: fetchError } = await supabase
+        .from("ministries")
+        .select("image_url")
+        .eq("id", ministryId)
+        .single();
+
+      if (fetchError) {
+        throw new Error(
+          `Error fetching current ministry: ${fetchError.message}`
+        );
+      }
+
+      // Generate a unique file name to prevent conflicts
+      const fileName = `ministry_images/${ministry_name || "ministry"}_${Date.now()}`;
+
+      // Upload new image
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("Uroboros")
+        .upload(fileName, ministry_image);
+
+      if (uploadError) {
+        throw new Error(`Error uploading new image: ${uploadError.message}`);
+      }
+
+      // Update ministry with new image URL
+      const { error: updateError } = await supabase
+        .from("ministries")
+        .update({ image_url: uploadData.path })
+        .eq("id", ministryId);
+
+      if (updateError) {
+        // If update fails, remove the uploaded image
+        await deleteImageFromStorage(uploadData.path);
+        throw new Error(
+          `Error updating ministry image: ${updateError.message}`
+        );
+      }
+
+      // Delete old image if exists and is different
+      if (
+        currentMinistry?.image_url &&
+        currentMinistry.image_url !== uploadData.path
+      ) {
+        await deleteImageFromStorage(currentMinistry.image_url);
+      }
+    }
+
+    // Return the updated ministry with public URL for image
+    const { data, error } = await supabase
+      .from("ministries")
+      .select("*")
+      .eq("id", ministryId)
+      .single();
+
+    if (error) {
+      throw new Error(`Error fetching updated ministry: ${error.message}`);
+    }
+
+    // Transform the image URL to a public URL
+    if (data.image_url) {
+      const { data: urlData } = supabase.storage
+        .from("Uroboros")
+        .getPublicUrl(data.image_url);
+
+      data.image_url = urlData.publicUrl;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error in editMinistry:", error);
+    throw error;
   }
-  const coordinatorInsert = coordinators.map((coordinator) => ({
-    ministry_id: ministryId,
-    coordinator_id: coordinator,
-  }));
-
-  const { error: coordinatorError } = await supabase
-    .from("ministry_coordinators")
-    .insert(coordinatorInsert);
-
-  if (coordinatorError) {
-    throw new Error(coordinatorError.message);
-  }
-};
-
-export const updateMinistry = async (updatedValues) => {
-  // Destructure the updatedValues object to extract necessary fields
-  const { ministryId, ministry_name, ministry_description } = updatedValues;
-
-  if (!ministryId) {
-    throw new Error("Ministry ID is required");
-  }
-
-  // Create an update object with only the fields that are provided
-  const updateData = {};
-  if (ministry_name !== undefined) updateData.ministry_name = ministry_name;
-  if (ministry_description !== undefined)
-    updateData.ministry_description = ministry_description;
-
-  // Only perform the update if there are fields to update
-  if (Object.keys(updateData).length === 0) {
-    return null;
-  }
-
-  // Perform the update query
-  const { data, error } = await supabase
-    .from("ministries")
-    .update(updateData)
-    .eq("id", ministryId)
-    .select();
-
-  if (error) {
-    console.error("Error updating ministry:", error.message);
-    throw new Error(error.message);
-  }
-
-  return data;
 };
 
 /**
  * Delete a ministry by its ID.
  * @param {string} id - UUID of the ministry.
- * @returns {Promise<Object>} Response containing data or error.
+ * @returns {Promise<Object>} Response containing success status or error.
  */
 export const deleteMinistry = async (id) => {
-  const { error } = await supabase.from("ministries").delete().eq("id", id);
+  if (!id) {
+    throw new Error("Ministry ID is required");
+  }
 
-  if (error) {
-    throw new Error("Error Deleting Ministry", error);
+  try {
+    //  Get the ministry's image URL
+    const { data, error: findError } = await supabase
+      .from("ministries")
+      .select("image_url")
+      .eq("id", id)
+      .single();
+
+    if (findError) {
+      throw new Error(`Error fetching ministry image: ${findError.message}`);
+    }
+
+    const imageUrl = data.image_url;
+
+    //  Delete the ministry record
+    const { error } = await supabase.from("ministries").delete().eq("id", id);
+
+    if (error) {
+      return {
+        success: false,
+        error: `Error deleting ministry: ${error.message}`,
+        imageUrl,
+      };
+    }
+
+    //  Delete the image if it exists
+    if (imageUrl) {
+      const { error: deleteImageError } =
+        await deleteImageFromStorage(imageUrl);
+
+      if (deleteImageError) {
+        return {
+          success: true,
+          warning: `Ministry deleted but image removal failed: ${deleteImageError.message}`,
+          imageUrl,
+        };
+      }
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error in deleteMinistry:", error);
+    return { success: false, error: error.message };
   }
 };
 

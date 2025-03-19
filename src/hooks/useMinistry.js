@@ -2,14 +2,13 @@ import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "./use-toast";
 import {
   createMinistry,
-  editMinistry,
   getAllMinistries,
   deleteMinistry,
   removeMinistryVolunteer,
   fetchMinistryAssignedUsers,
   assignNewVolunteers,
   getMinistryCoordinators,
-  updateMinistry,
+  editMinistry,
   // getAssignedMinistries,
 } from "@/services/ministryService";
 // import { ROLES } from "@/constants/roles";
@@ -29,17 +28,9 @@ const useMinistry = ({ ministryId }) => {
     enabled: !!ministryId,
   });
 
-  // Fetch all ministries or assigned ministries depending on role and user
   const { data: ministries, isLoading: ministryLoading } = useQuery({
     queryKey: ["ministries"],
     queryFn: async () => {
-      // if (temporaryRole === ROLES[4]) {
-      //   // Admin or higher role, fetch all ministries
-      //   return getAllMinistries();
-      // } else {
-      //   // Other roles, fetch only assigned ministries for the user
-      //   return getAssignedMinistries(userId);
-      // }
       return getAllMinistries();
     },
   });
@@ -70,29 +61,9 @@ const useMinistry = ({ ministryId }) => {
     },
   });
 
-  // Mutation for editing a ministry
-  const editMutation = useMutation({
-    mutationFn: async (values) => editMinistry(values),
-    onSuccess: () => {
-      queryClient.invalidateQueries(["ministries", ministryId]);
-      toast({
-        title: "Ministry Updated",
-        description: "Ministry has been updated successfully!",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error Updating Ministry",
-        description:
-          error?.message || "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
   // Create the edit mutation
   const updateMinistryMutation = useMutation({
-    mutationFn: updateMinistry,
+    mutationFn: editMinistry,
     onSuccess: () => {
       queryClient.invalidateQueries(["ministries", ministryId]);
       toast({
@@ -155,7 +126,7 @@ const useMinistry = ({ ministryId }) => {
 
   const AssignMinistryVolunteerMutation = useMutation({
     mutationFn: ({ ministryId, newMembers }) =>
-      assignNewVolunteers(ministryId, newMembers), // Destructure values correctly
+      assignNewVolunteers(ministryId, newMembers),
     onSuccess: () => {
       queryClient.invalidateQueries(["ministries"]);
       queryClient.invalidateQueries(["ministryMembers"]);
@@ -174,7 +145,6 @@ const useMinistry = ({ ministryId }) => {
     error,
     coordinators,
     createMutation,
-    editMutation,
     updateMinistryMutation,
     deleteMutation,
     removeMinistryVolunteerMutation,

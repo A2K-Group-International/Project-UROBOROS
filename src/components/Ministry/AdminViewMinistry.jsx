@@ -3,19 +3,27 @@ import CreateMinistry from "@/components/Ministry/CreateMinistry";
 import MinistryCard from "@/components/Ministry/MinistryCard";
 import { Description, Title } from "@/components/Title";
 import useMinistry from "@/hooks/useMinistry";
+import { Button } from "../ui/button";
 
 const AdminViewMinistry = () => {
   const { ministries, ministryLoading } = useMinistry({});
-
   return (
-    <div className="relative flex h-full flex-col gap-y-5 p-0">
-      <div className="items-center justify-between space-y-2 border-b border-primary-outline p-6 md:flex">
+    <div className="relative flex h-full flex-col p-0">
+      <div className="flex items-center justify-between border-b border-primary-outline pb-4 lg:pb-[20px] lg:pl-[42px] lg:pr-[48px] lg:pt-[25px]">
         <div>
           <Title>Ministry Management</Title>
           <Description>Manage your ministry.</Description>
         </div>
         <div>
-          <CreateMinistry />
+          <CreateMinistry>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="rounded-lg bg-primary px-4 py-2 text-primary-text"
+            >
+              Create Ministry
+            </Button>
+          </CreateMinistry>
         </div>
       </div>
 
@@ -23,7 +31,7 @@ const AdminViewMinistry = () => {
       {ministryLoading ? (
         <Loading />
       ) : (
-        <div className="no-scrollbar grid h-full w-full gap-4 overflow-scroll px-6 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+        <div className="no-scrollbar h-auto w-full gap-6 space-y-2 overflow-scroll py-6 sm:grid sm:grid-cols-2 md:space-y-0 lg:px-[42px] xl:grid-cols-3 2xl:grid-cols-4">
           {/* Check if ministries exist after loading */}
           {ministries?.length === 0 ? (
             <p>No ministry have been created yet.</p>
@@ -39,6 +47,7 @@ const AdminViewMinistry = () => {
                 coordinators={ministry.ministry_coordinators}
                 ministryId={ministry.id}
                 title={ministry.ministry_name}
+                image={ministry.image_url}
                 description={ministry.ministry_description}
                 createdDate={ministry.created_at}
               />

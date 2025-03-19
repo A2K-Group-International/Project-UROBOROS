@@ -19,11 +19,25 @@ const customStyles = {
   }),
   placeholder: (styles) => ({
     ...styles,
-    color:"#663F30",
-    fontSize:"14px"
-
+    color: "#663F30",
+    fontSize: "14px",
   }),
-  
+  option: (styles, { isDisabled, isFocused, isSelected }) => ({
+    ...styles,
+    backgroundColor: isSelected ? "#663F30" : isFocused ? "#F6F0ED" : "white",
+    color: isSelected ? "white" : "#663F30",
+    cursor: isDisabled ? "not-allowed" : "default",
+    padding: "10px 15px",
+    ":active": {
+      backgroundColor: "#663F30",
+      color: "white",
+    },
+  }),
+  menu: (styles) => ({
+    ...styles,
+    borderRadius: "16px",
+    boxShadow: "0px 4px 12px rgba(102, 63, 48, 0.15)",
+  }),
 
   multiValue: (styles) => ({
     ...styles,
@@ -31,8 +45,8 @@ const customStyles = {
     paddingTop: "6px",
     paddingBottom: "6px",
     boxShadow: "0px 4px 5.5px 0px rgba(102, 63, 48, 0.06)",
-    paddingLeft:"10px",
-    paddingRight:"10px",
+    paddingLeft: "10px",
+    paddingRight: "10px",
     borderRadius: "5px",
   }),
 
@@ -61,7 +75,7 @@ const CustomMultiValue = (props) => {
 
   return (
     <components.MultiValue {...props} className="flex items-center gap-2">
-      <Avatar className="flex justify-center items-center h-4 w-4">
+      <Avatar className="flex h-4 w-4 items-center justify-center">
         <AvatarImage src={data.image || ""} alt={data.label} />
         <AvatarFallback className="bg-accent text-center text-2xs text-white">
           {initials}
@@ -73,14 +87,21 @@ const CustomMultiValue = (props) => {
 };
 
 // Main Component
-const CustomReactSelect = ({ isMulti=true, styles = customStyles, options, value, onChange, placeholder }) => {
+const CustomReactSelect = ({
+  isMulti = true,
+  styles = customStyles,
+  options,
+  value,
+  onChange,
+  placeholder,
+}) => {
   return (
     <ReactSelect
       isMulti={isMulti}
       styles={styles}
       components={{ MultiValue: CustomMultiValue }}
       options={options}
-      value={value}
+      value={value || undefined}
       onChange={onChange}
       placeholder={placeholder}
     />
@@ -89,12 +110,12 @@ const CustomReactSelect = ({ isMulti=true, styles = customStyles, options, value
 
 CustomReactSelect.propTypes = {
   isMulti: PropTypes.bool,
-  styles: PropTypes.object, 
+  styles: PropTypes.object,
   options: PropTypes.arrayOf(
     PropTypes.shape({
       value: PropTypes.string.isRequired,
       label: PropTypes.string.isRequired,
-      image: PropTypes.string, 
+      image: PropTypes.string,
     })
   ).isRequired,
   value: PropTypes.arrayOf(
@@ -104,7 +125,7 @@ CustomReactSelect.propTypes = {
       image: PropTypes.string,
     })
   ),
-  onChange: PropTypes.func.isRequired, 
+  onChange: PropTypes.func.isRequired,
   placeholder: PropTypes.string,
 };
 
@@ -114,6 +135,6 @@ CustomMultiValue.propTypes = {
     label: PropTypes.string.isRequired,
     image: PropTypes.string, // Optional image URL
   }).isRequired,
-}
+};
 
 export default CustomReactSelect;

@@ -47,7 +47,7 @@ CardTitle.propTypes = {
 const CardDescription = React.forwardRef(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("text-sm text-neutral-500 dark:text-neutral-400", className)}
+    className={cn("text-sm text-[#663F30]/60 dark:text-neutral-400", className)}
     {...props}
   />
 ));
