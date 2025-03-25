@@ -1,6 +1,5 @@
 import { EventIcon } from "@/assets/icons/icons";
 import { ROLES } from "@/constants/roles";
-import { useUser } from "@/context/useUser";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
 import ScheduleDetails from "./ScheduleDetails";
@@ -32,7 +31,6 @@ const ScheduleCards = ({
   i,
   j,
 }) => {
-  const { userData } = useUser();
   const { temporaryRole } = useRoleSwitcher();
   const [disableEdit, setDisabledEdit] = useState(false);
 
@@ -97,14 +95,14 @@ const ScheduleCards = ({
             </p>
           </div>
         </div>
-        {userData?.role === ROLES[0] && (
-          <Dialog
-            open={editDialogOpenIndex === `${i}-${j}`}
-            onOpenChange={(isOpen) =>
-              setEditDialogOpenIndex(isOpen ? `${i}-${j}` : null)
-            }
-          >
-            {!disableEdit && temporaryRole === ROLES[0] && (
+        {!disableEdit &&
+          (temporaryRole === ROLES[0] || temporaryRole === ROLES[4]) && (
+            <Dialog
+              open={editDialogOpenIndex === `${i}-${j}`}
+              onOpenChange={(isOpen) =>
+                setEditDialogOpenIndex(isOpen ? `${i}-${j}` : null)
+              }
+            >
               <DialogTrigger asChild>
                 <Button
                   variant="ghost"
@@ -113,41 +111,41 @@ const ScheduleCards = ({
                   Edit
                 </Button>
               </DialogTrigger>
-            )}
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Edit Events</DialogTitle>
-                <DialogDescription>
-                  Schedule an upcoming events.
-                </DialogDescription>
-              </DialogHeader>
-              <CreateEvent
-                id="update-event"
-                eventData={{ ...event }}
-                setDialogOpen={(isOpen) => {
-                  setEditDialogOpenIndex(isOpen ? `${i}-${j}` : null);
-                }}
-                queryKey={[
-                  "schedules",
-                  filter,
-                  urlPrms.get("query")?.toString() || "",
-                ]}
-              />
-              {/* Dialog Footer */}
-              <DialogFooter>
-                <div className="flex justify-end gap-2">
-                  <DialogClose asChild>
-                    <Button variant="outline">Cancel</Button>
-                  </DialogClose>
 
-                  <Button type="submit" form="update-event">
-                    Edit
-                  </Button>
-                </div>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        )}
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Edit Events</DialogTitle>
+                  <DialogDescription>
+                    Schedule an upcoming events.
+                  </DialogDescription>
+                </DialogHeader>
+                <CreateEvent
+                  id="update-event"
+                  eventData={{ ...event }}
+                  setDialogOpen={(isOpen) => {
+                    setEditDialogOpenIndex(isOpen ? `${i}-${j}` : null);
+                  }}
+                  queryKey={[
+                    "schedules",
+                    filter,
+                    urlPrms.get("query")?.toString() || "",
+                  ]}
+                />
+                {/* Dialog Footer */}
+                <DialogFooter>
+                  <div className="flex justify-end gap-2">
+                    <DialogClose asChild>
+                      <Button variant="outline">Cancel</Button>
+                    </DialogClose>
+
+                    <Button type="submit" form="update-event">
+                      Update
+                    </Button>
+                  </div>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          )}
       </div>
 
       <div
@@ -203,16 +201,17 @@ const ScheduleCards = ({
             setSheetEditDialogOpenIndex(isOpen ? `${i}-${j}` : null)
           }
         >
-          {temporaryRole === ROLES[0] && !disableEdit && (
-            <DialogTrigger asChild>
-              <Button
-                variant="ghost"
-                className="-mt-3 p-0 font-semibold text-accent hover:underline"
-              >
-                Edit
-              </Button>
-            </DialogTrigger>
-          )}
+          {!disableEdit &&
+            (temporaryRole === ROLES[0] || temporaryRole === ROLES[4]) && (
+              <DialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="-mt-3 p-0 font-semibold text-accent hover:underline"
+                >
+                  Edit
+                </Button>
+              </DialogTrigger>
+            )}
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Edit Events</DialogTitle>

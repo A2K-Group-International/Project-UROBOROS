@@ -36,7 +36,7 @@ const ManualAttendEvents = ({ eventId, eventName, eventTime, eventDate }) => {
       <DialogTrigger asChild>
         <Button onClick={handleSelectEvent}>Manage Attendance</Button>
       </DialogTrigger>
-      <DialogContent className="no-scrollbar h-[37rem] overflow-scroll text-primary-text">
+      <DialogContent className="no-scrollbar h-auto max-h-[37rem] overflow-scroll text-primary-text">
         <DialogHeader className="font-bold">
           <DialogTitle className="text-xl">{`${eventName}`}</DialogTitle>
           <div className="flex items-center justify-center gap-x-1 sm:justify-start">

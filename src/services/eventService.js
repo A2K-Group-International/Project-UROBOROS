@@ -197,34 +197,6 @@ export const getEvents = async ({
         // If they haven't created any events, return empty results
         filters.id = []; // This ensures no events will be returned
       }
-
-      // Coordinators see:
-      // 1. All public events
-      // 2. Private events from ministries they coordinate
-      // const { data: coordinatorMinistries } = await supabase
-      //   .from("ministry_coordinators")
-      //   .select("ministry_id")
-      //   .eq("coordinator_id", userId);
-      // const ministryIds =
-      //   coordinatorMinistries?.map((item) => item.ministry_id) || [];
-      // // Adjust filters based on ministry access
-      // if (ministryIds.length > 0) {
-      //   // For coordinators with ministries, get all their ministry's events + public events
-      //   const ministryFilter = `ministry_id.in.(${ministryIds.join(",")})`;
-      //   const visibilityFilter = "event_visibility.eq.public";
-      //   // Get all events that match either condition
-      //   const { data: accessibleEvents } = await supabase
-      //     .from("events")
-      //     .select("id")
-      //     .or(`${ministryFilter},${visibilityFilter}`);
-      //   if (accessibleEvents?.length > 0) {
-      //     filters.id = accessibleEvents.map((event) => event.id);
-      //   } else {
-      //     filters.event_visibility = "public"; // Fallback to just public events
-      //   }
-      // } else {
-      //   filters.event_visibility = "public"; // If no ministries, only show public events
-      // }
     } else if (role === "parishioner" || role === "coparent") {
       // Parishioners/coparents see:
       // 1. Public events

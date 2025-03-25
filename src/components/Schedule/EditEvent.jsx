@@ -58,7 +58,7 @@ const EditEvent = ({
 
   const { toast } = useToast();
 
-  const { updateEventMutation,quickAccessEvents } = useEvent();
+  const { updateEventMutation, quickAccessEvents } = useEvent();
   const { data: volunteers } = useUsersByRole("volunteer");
 
   const eventForm = useForm({
@@ -67,7 +67,7 @@ const EditEvent = ({
       eventName: eventData?.event_name || "",
       eventCategory: eventData?.event_category || "",
       eventVisibility: eventData?.event_visibility || "",
-      ministry: eventData?.event_ministry || "",
+      ministry: eventData?.ministry_id || "",
       eventDate: eventData?.event_date
         ? new Date(`${eventData?.event_date}T${eventData?.event_time}`)
         : null,

@@ -73,7 +73,29 @@ import useRoleSwitcher from "@/hooks/useRoleSwitcher";
 import AddExistingRecord from "./AddExistingRecord";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import CustomReactSelect from "../CustomReactSelect";
-import { getMinistryVolunteers } from "@/services/ministryService";
+import {
+  fetchAllMinistryVolunteers,
+  getMinistryVolunteers,
+} from "@/services/ministryService";
+import { ROLES } from "@/constants/roles";
+
+//Fetch volunteer based on Ministry
+const useMinistryVolunteers = (ministryId) => {
+  return useQuery({
+    queryKey: ["ministry-volunteers", ministryId],
+    queryFn: () => getMinistryVolunteers(ministryId),
+    enabled: !!ministryId,
+  });
+};
+
+//Fetch all volunteer in all ministries coordinating by users
+const useFetchAllMinistryVolunteers = (userId) => {
+  return useQuery({
+    queryKey: ["user-group-members", userId],
+    queryFn: () => fetchAllMinistryVolunteers(userId),
+    enabled: !!userId,
+  });
+};
 
 const ScheduleDetails = () => {
   const [qrCode, setQRCode] = useState(null);
@@ -92,6 +114,7 @@ const ScheduleDetails = () => {
   // Fetch volunteers and admins for assigning volunteers
   const { data: volunteers } = useUsersByRole("volunteer");
   const { data: admins } = useUsersByRole("admin");
+  const { data: coordinators } = useUsersByRole("coordinator");
 
   // Fetch event base on eventId
   const fetchedEvent = useMemo(
@@ -107,17 +130,11 @@ const ScheduleDetails = () => {
   );
   const { data: event, isLoading } = useQuery(fetchedEvent);
 
-  //Fetch volunteer based on Ministry
-  const useMinistryVolunteers = (ministryId) => {
-    return useQuery({
-      queryKey: ["ministry-volunteers", ministryId],
-      queryFn: () => getMinistryVolunteers(ministryId),
-      enabled: !!ministryId,
-    });
-  };
-
   const { data: ministryVolunteers, isLoading: _ministryVolunteersLoading } =
     useMinistryVolunteers(event?.ministry_id);
+
+  const { data: allMinistryVolunteers, isLoading: _allMinistryVolunteers } =
+    useFetchAllMinistryVolunteers(userData?.id);
 
   const deleteMutation = useMutation({
     mutationFn: async () => await deleteEvent(eventId),
@@ -158,21 +175,29 @@ const ScheduleDetails = () => {
     enabled: !!eventId,
   });
 
-  const assignedUsers = [...(volunteers || []), ...(admins || [])];
+  const assignedUsers = [
+    ...(volunteers || []),
+    ...(admins || []),
+    ...(coordinators || []),
+  ];
 
-  const previousVolunteerIds = new Set(
-    // Create a set of volunteer IDs that have already been replaced
-    eventVolunteers
-      ?.filter((volunteer) => volunteer.replaced) // Filter for volunteers that have been replaced
-      .map((volunteer) => volunteer.volunteer_id) // Extract the volunteer_id for those replaced volunteers
-  );
+  // For tracking volunteers who have been replaced (original volunteers)
+  const previousVolunteerIds = useMemo(() => {
+    return new Set(
+      eventVolunteers
+        ?.filter((volunteer) => volunteer.replaced) // Filter for volunteers that have been replaced
+        .map((volunteer) => volunteer.volunteer_id) // Get IDs of original volunteers
+    );
+  }, [eventVolunteers]);
 
-  const replacementVolunteerIds = new Set(
-    // Create a set of volunteer IDs that are replacements (i.e., volunteers who replaced someone)
-    eventVolunteers
-      ?.filter((volunteer) => volunteer.replaced) // Filter for volunteers that have been replaced
-      .map((volunteer) => volunteer.replacedby_id) // Extract the replacedby_id (the ID of the replacement volunteer)
-  );
+  // For tracking volunteers who are acting as replacements
+  const replacementVolunteerIds = useMemo(() => {
+    return new Set(
+      eventVolunteers
+        ?.filter((volunteer) => volunteer.replacedby_id) // Filter volunteers that have a replacement
+        .map((volunteer) => volunteer.replacedby_id) // Get IDs of replacement volunteers
+    );
+  }, [eventVolunteers]);
 
   const filteredVolunteers = assignedUsers?.filter(
     (volunteer) =>
@@ -185,11 +210,41 @@ const ScheduleDetails = () => {
       !replacementVolunteerIds.has(volunteer.id)
   );
 
+  // Fetch all volunteers
   const volunteerOptions = filteredVolunteers?.map((volunteer) => ({
     value: volunteer.id,
     label: `${volunteer.first_name} ${volunteer.last_name}`,
   }));
 
+  // Fetch all volunteers on all ministry of user
+  const ministriesVolunteers = useMemo(() => {
+    if (!allMinistryVolunteers) return [];
+
+    // Filter out volunteers that are already assigned to the event
+    const filteredVolunteers = allMinistryVolunteers.filter(
+      (volunteer) =>
+        // Include users that are either not yet assigned or are previous replacements
+        (!eventVolunteers?.some(
+          (assignedVolunteer) => assignedVolunteer.volunteer_id === volunteer.id
+        ) ||
+          previousVolunteerIds.has(volunteer.id)) &&
+        // Exclude volunteers who are currently replacements
+        !replacementVolunteerIds.has(volunteer.id)
+    );
+
+    // Map the filtered volunteers to the options format
+    return filteredVolunteers.map((volunteer) => ({
+      value: volunteer.id,
+      label: `${volunteer.first_name} ${volunteer.last_name}`,
+    }));
+  }, [
+    allMinistryVolunteers,
+    eventVolunteers,
+    previousVolunteerIds,
+    replacementVolunteerIds,
+  ]);
+
+  // Fetch volunteers based on ministry
   const ministryVolunteerOptions = useMemo(() => {
     if (!ministryVolunteers || !Array.isArray(ministryVolunteers)) return [];
 
@@ -230,6 +285,23 @@ const ScheduleDetails = () => {
     previousVolunteerIds,
     replacementVolunteerIds,
   ]);
+
+  // Fetch volunteers in select
+  const getVolunteerOptionsForRole = () => {
+    //Admin Role
+    if (temporaryRole === ROLES[4]) {
+      return event?.event_visibility === "public"
+        ? volunteerOptions
+        : ministryVolunteerOptions;
+    }
+
+    //Coordinator role
+    if (temporaryRole === ROLES[0]) {
+      return event?.event_visibility === "public"
+        ? ministriesVolunteers
+        : ministryVolunteerOptions;
+    }
+  };
 
   const { data: attendance, isLoading: attendanceLoading } = useQuery({
     queryKey: ["attendance", eventId],
@@ -579,11 +651,7 @@ const ScheduleDetails = () => {
                         <FormLabel>Assign Volunteer</FormLabel>
                         <FormControl>
                           <CustomReactSelect
-                            options={
-                              event?.event_visibility === "public"
-                                ? volunteerOptions
-                                : ministryVolunteerOptions
-                            }
+                            options={getVolunteerOptionsForRole()}
                             onChange={(selectedOptions) => {
                               field.onChange(
                                 selectedOptions.map((option) => option.value)
@@ -631,7 +699,7 @@ const ScheduleDetails = () => {
                   eventId={eventId}
                   eventVisibility={event?.event_visibility}
                   volunteers={volunteers}
-                  ministryVolunteer={ministryVolunteerOptions || []}
+                  volunteerOptions={getVolunteerOptionsForRole()}
                   newreplacement_id={volunteer?.replacedby_id}
                   replaced={volunteer.replaced}
                   disableSchedule={disableSchedule}
@@ -651,7 +719,7 @@ const ScheduleDetails = () => {
                 <DialogContent aria-describedby="update-volunteer">
                   <DialogHeader>
                     <DialogTitle>
-                      Remove{" "}
+                      Remove
                       {!volunteer?.volunteer_replacement
                         ? `${volunteer.users.first_name.toFirstUpperCase()} ${volunteer.users.last_name.toFirstUpperCase()} `
                         : `${volunteer?.volunteer_replacement?.first_name.toFirstUpperCase()} ${volunteer?.volunteer_replacement?.last_name.toFirstUpperCase()}?`}

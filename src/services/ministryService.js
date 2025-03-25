@@ -470,6 +470,81 @@ export const deleteMinistry = async (id) => {
   }
 };
 
+export const fetchAllMinistryVolunteers = async (userId) => {
+  try {
+    // 1. Get all ministry IDs where the user is a coordinator
+    const { data: ministryCoordinators, error: ministriesError } =
+      await supabase
+        .from("ministry_coordinators") // Correct table name with plural
+        .select("ministry_id")
+        .eq("coordinator_id", userId);
+
+    if (ministriesError) {
+      console.error("Error fetching ministry coordinators:", ministriesError);
+      throw new Error(
+        ministriesError.message || "Failed to fetch ministry coordinators"
+      );
+    }
+
+    if (!ministryCoordinators || ministryCoordinators.length === 0) {
+      return []; // User is not a coordinator for any ministry
+    }
+
+    // 2. Extract ministry IDs from the results
+    const ministryIds = ministryCoordinators.map((coord) => coord.ministry_id);
+
+    // 3. Get all volunteer groups for these ministries
+    const { data: volunteerGroups, error: groupsError } = await supabase
+      .from("groups")
+      .select("id, ministry_id")
+      .in("ministry_id", ministryIds) // Filter for all ministries
+      .eq("name", "Volunteers"); // Only volunteer groups
+
+    if (groupsError) {
+      console.error("Error fetching volunteer groups:", groupsError);
+      throw new Error(
+        groupsError.message || "Failed to fetch volunteer groups"
+      );
+    }
+
+    if (!volunteerGroups || volunteerGroups.length === 0) {
+      return []; // No volunteer groups found
+    }
+
+    // 4. Extract group IDs
+    const groupIds = volunteerGroups.map((group) => group.id);
+
+    // 5. Get all members of these volunteer groups
+    const { data: members, error: memberError } = await supabase
+      .from("group_members")
+      .select("users(id, first_name, last_name)") // Correct syntax
+      .in("group_id", groupIds); // Query all groups at once
+
+    if (memberError) {
+      console.error("Error fetching group members:", memberError);
+      throw new Error(memberError.message || "Failed to fetch group members");
+    }
+
+    //Variable for storing unique users
+    const uniqueMembers = new Map();
+
+    //Extract user data
+    members?.forEach((member) => {
+      if (member.users && member.users.id) {
+        uniqueMembers.set(member.users.id, member.users);
+      }
+    });
+
+    // convert map values to array
+    const uniqueVolunteers = Array.from(uniqueMembers.values());
+
+    return uniqueVolunteers || [];
+  } catch (error) {
+    console.error("Error in fetchAllMinistryVolunteers:", error);
+    throw error;
+  }
+};
+
 export const fetchMinistryAssignedUsers = async (ministryId) => {
   let query = supabase
     .from("ministry_assignments")

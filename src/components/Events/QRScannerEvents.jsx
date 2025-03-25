@@ -13,7 +13,7 @@ import { Button } from "../ui/button";
 import { Icon } from "@iconify/react";
 
 import { useUser } from "@/context/useUser";
-import FamilyData from "./FamilyData";
+import QRScannedFamilyData from "./QRScannedFamilyData";
 
 const QrScannerEvents = ({ eventData }) => {
   const [isValidQr, setIsValidQr] = useState(null); // if the qr code is valid
@@ -97,7 +97,10 @@ const QrScannerEvents = ({ eventData }) => {
                 Choose who you would like to attend with.
               </div>
             </div>
-            <FamilyData userId={userId} selectedEvent={selectedEvent} />
+            <QRScannedFamilyData
+              userId={userId}
+              selectedEvent={selectedEvent}
+            />
           </>
         )}
       </DialogContent>

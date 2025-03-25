@@ -175,7 +175,19 @@ const MinistryGroups = ({
                       : "hover:bg-primary/5"
                   }`}
                 >
-                  {group.name}
+                  <div className="flex items-center gap-x-2">
+                    <Avatar>
+                      <AvatarImage
+                        className="h-10 w-10 rounded-[4px] object-cover"
+                        src={group.image_url}
+                        alt="profile picture"
+                      />
+                      <AvatarFallback>
+                        {group.name?.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <p>{group.name}</p>
+                  </div>
                 </SheetTrigger>
                 <SheetContent className="w-full">
                   <SheetHeader>
@@ -229,7 +241,19 @@ const MinistryGroups = ({
                     : ""
                 }
               >
-                {group.name}
+                <div className="flex items-center gap-x-2">
+                  <Avatar>
+                    <AvatarImage
+                      className="h-10 w-10 rounded-[4px] object-cover"
+                      src={group.image_url}
+                      alt="profile picture"
+                    />
+                    <AvatarFallback>
+                      {group.name?.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <p>{group.name}</p>
+                </div>
               </span>
             </div>
           </div>
@@ -276,6 +300,11 @@ const MemberMinistryItem = ({
         </div>
         <div className="mr-3">
           <Avatar>
+            <AvatarImage
+              className="h-10 w-10 rounded-[4px] object-cover"
+              src={ministry.image_url}
+              alt="profile picture"
+            />
             <AvatarFallback>
               {ministry.ministry_name?.substring(0, 2).toUpperCase() || "MN"}
             </AvatarFallback>
@@ -304,7 +333,19 @@ const MemberMinistryItem = ({
                           : "hover:bg-primary/5"
                       }`}
                     >
-                      {group.group_name}
+                      <div className="flex items-center gap-x-2">
+                        <Avatar>
+                          <AvatarImage
+                            className="h-10 w-10 rounded-[4px] object-cover"
+                            src={group.image_url}
+                            alt="profile picture"
+                          />
+                          <AvatarFallback>
+                            {group.group_name?.substring(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <p>{group.group_name}</p>
+                      </div>
                     </SheetTrigger>
                     <SheetContent className="w-full">
                       <SheetHeader>
@@ -361,7 +402,19 @@ const MemberMinistryItem = ({
                         : ""
                     }
                   >
-                    {group.group_name}
+                    <div className="flex items-center gap-x-2">
+                      <Avatar>
+                        <AvatarImage
+                          className="h-10 w-10 rounded-[4px] object-cover"
+                          src={group.image_url}
+                          alt="profile picture"
+                        />
+                        <AvatarFallback>
+                          {group.group_name?.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <p>{group.group_name}</p>
+                    </div>
                   </span>
                 </div>
               </div>
@@ -377,6 +430,7 @@ MemberMinistryItem.propTypes = {
   ministry: PropTypes.shape({
     ministry_id: PropTypes.string.isRequired,
     ministry_name: PropTypes.string.isRequired,
+    image_url: PropTypes.string,
     groups: PropTypes.arrayOf(
       PropTypes.shape({
         group_id: PropTypes.string.isRequired,
@@ -490,7 +544,7 @@ const CoordinatorViewMinistry = () => {
 
   return (
     <div className="flex h-full flex-col text-primary-text lg:flex-row">
-      <aside className="w-full overflow-y-auto border-primary-outline/50 lg:max-w-[25rem] lg:border-r">
+      <aside className="no-scrollbar w-full overflow-y-auto border-primary-outline/50 lg:max-w-[25rem] lg:border-r">
         <div className="mb-4">
           <div className="px-8 py-4">
             <Label className="text-[20px] font-bold">Your Ministries</Label>
@@ -577,9 +631,21 @@ const CoordinatorViewMinistry = () => {
           >
             <div className="flex justify-between border-b border-primary-outline/50 px-8 py-4">
               <div>
-                <Label className="text-lg font-bold">
-                  {selectedGroupDetails.name}
-                </Label>
+                <div className="flex items-center gap-x-2">
+                  <Avatar>
+                    <AvatarImage
+                      className="h-10 w-10 rounded-[4px] object-cover"
+                      src={selectedGroupDetails.image_url}
+                      alt="profile picture"
+                    />
+                    <AvatarFallback>
+                      {selectedGroupDetails.name?.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <Label className="text-lg font-bold">
+                    {selectedGroupDetails.name}
+                  </Label>
+                </div>
                 <p className="text-muted-foreground text-sm">
                   {selectedGroupDetails.description}
                 </p>
