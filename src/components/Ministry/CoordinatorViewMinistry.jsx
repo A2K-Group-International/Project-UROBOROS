@@ -25,6 +25,7 @@ import GroupAnnouncements from "./GroupAnnouncements";
 import GroupMembers from "./GroupMembers";
 import { getInitial } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import CartoonizedChurch from "@/assets/images/CartoonizedChurch.png";
 
 // Custom hook for ministries where user is a coordinator
 const useAssignedMinistries = (userId) => {
@@ -560,8 +561,8 @@ const CoordinatorViewMinistry = () => {
             !isLoadingMember &&
             assignedMinistries.length === 0 &&
             memberGroups.length === 0 && (
-              <div className="text-muted-foreground py-8 text-center">
-                No ministries or groups assigned yet.
+              <div className="py-8 text-center">
+                <p>No ministry or group assigned yet.</p>
               </div>
             )}
         </div>
@@ -607,16 +608,12 @@ const CoordinatorViewMinistry = () => {
             </TabsContent>
           </Tabs>
         ) : (
-          <div className="text-muted-foreground grid h-[90vh] place-content-center">
-            Select a group
+          <div className="grid h-[90dvh] place-content-center gap-y-2">
+            <img src={CartoonizedChurch} alt="Cartoonized Church" />
+            <p className="text-[20px] text-accent/30">OPEN A MINISTRY GROUP</p>
           </div>
         )}
       </main>
-
-      {/* On mobile, show a message to select a group if none selected */}
-      <div className="text-muted-foreground flex-1 py-8 text-center lg:hidden">
-        {!selectedGroup && "Select a ministry and group from above"}
-      </div>
     </div>
   );
 };

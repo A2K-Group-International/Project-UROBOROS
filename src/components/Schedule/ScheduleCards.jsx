@@ -33,9 +33,8 @@ const ScheduleCards = ({
   j,
 }) => {
   const { userData } = useUser();
-  const {temporaryRole} = useRoleSwitcher();
+  const { temporaryRole } = useRoleSwitcher();
   const [disableEdit, setDisabledEdit] = useState(false);
-
 
   useEffect(() => {
     if (event.event_date) {
@@ -81,6 +80,11 @@ const ScheduleCards = ({
             <p className="text-sm leading-tight text-primary-text">
               {event.event_category} - {event.event_visibility}
             </p>
+            {temporaryRole === ROLES[4] && (
+              <p className="text-sm text-primary-text">
+                {`Created by: ${event.creator_id.first_name} ${event.creator_id.last_name}`}
+              </p>
+            )}
             <p className="text-md font-bold leading-none text-primary-text">
               <span className="font-semibold">Date: </span>
               {new Date(
@@ -100,7 +104,7 @@ const ScheduleCards = ({
               setEditDialogOpenIndex(isOpen ? `${i}-${j}` : null)
             }
           >
-            {!disableEdit && temporaryRole === ROLES[0] &&  (
+            {!disableEdit && temporaryRole === ROLES[0] && (
               <DialogTrigger asChild>
                 <Button
                   variant="ghost"
@@ -165,6 +169,9 @@ const ScheduleCards = ({
                 <p className="text-sm leading-tight text-primary-text">
                   {event.event_category} - {event.event_visibility}
                 </p>
+                {temporaryRole === ROLES[4] && (
+                  <p className="text-sm text-primary-text">{`Created by: ${event.creator_id.first_name} ${event.creator_id.last_name}`}</p>
+                )}
                 <p className="text-md font-bold leading-none text-primary-text">
                   <span className="font-semibold">Date: </span>
                   {new Date(
@@ -196,14 +203,16 @@ const ScheduleCards = ({
             setSheetEditDialogOpenIndex(isOpen ? `${i}-${j}` : null)
           }
         >
-          {temporaryRole === ROLES[0] && !disableEdit  && <DialogTrigger asChild>
-            <Button
-              variant="ghost"
-              className="-mt-3 p-0 font-semibold text-accent hover:underline"
-            >
-              Edit
-            </Button>
-          </DialogTrigger>}
+          {temporaryRole === ROLES[0] && !disableEdit && (
+            <DialogTrigger asChild>
+              <Button
+                variant="ghost"
+                className="-mt-3 p-0 font-semibold text-accent hover:underline"
+              >
+                Edit
+              </Button>
+            </DialogTrigger>
+          )}
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Edit Events</DialogTitle>
@@ -249,6 +258,10 @@ ScheduleCards.propTypes = {
     event_time: PropTypes.string.isRequired,
     event_category: PropTypes.string,
     event_visibility: PropTypes.string,
+    creator_id: PropTypes.shape({
+      first_name: PropTypes.string,
+      last_name: PropTypes.string,
+    }),
     description: PropTypes.string,
   }).isRequired,
   onEventClick: PropTypes.func.isRequired,
