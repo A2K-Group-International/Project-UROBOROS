@@ -124,7 +124,7 @@ const EditMinistry = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Description{" "}
+                      Description
                       <span className="font-light italic">(optional)</span>
                     </FormLabel>
                     <FormControl>

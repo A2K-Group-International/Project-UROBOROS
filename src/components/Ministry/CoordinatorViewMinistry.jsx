@@ -101,6 +101,7 @@ const MinistryItem = ({
             ministryId={ministry.id}
             ministryName={ministry.ministry_name}
             ministryDescription={ministry.ministry_description}
+            ministryImage={ministry.image_url}
           />
         </div>
       </div>
@@ -269,12 +270,6 @@ MinistryGroups.propTypes = {
   onSelectGroup: PropTypes.func.isRequired,
   groups: PropTypes.array,
   isLoading: PropTypes.bool,
-};
-
-MinistryGroups.defaultProps = {
-  groups: [],
-  isLoading: false,
-  selectedGroup: null,
 };
 
 // Define MemberMinistryItem component for member groups

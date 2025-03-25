@@ -131,9 +131,13 @@ const CreateMinistry = ({
         ministry_description: values.ministryDescription,
       };
 
-      // Only add ministry_image if it's a File object (meaning a new image was selected)
+      // Handle all image scenarios:
       if (values.ministryImage instanceof File) {
+        // 1. New image selected
         updateData.ministry_image = values.ministryImage;
+      } else if (values.ministryImage === null && imagePreview === null) {
+        // 2. Image explicitly removed - the user clicked the X button
+        updateData.ministry_image = null; // Explicitly set to null to remove it
       }
 
       updateMinistryMutation.mutate(updateData, {
@@ -295,9 +299,9 @@ const CreateMinistry = ({
                       />
                     </FormControl>
                     {imagePreview ? (
-                      <div className="relative h-full min-h-[210px] w-full overflow-hidden rounded-lg">
+                      <div className="relative mx-auto w-40 overflow-hidden rounded-lg">
                         <img
-                          className="w-full"
+                          className="object-contain"
                           src={imagePreview}
                           alt="Ministry logo"
                         />
@@ -309,7 +313,7 @@ const CreateMinistry = ({
                               fileInputRef.current.value = ""; // Safely reset file input
                             }
                           }}
-                          className="absolute right-4 top-4 text-2xl text-accent hover:cursor-pointer hover:text-red-600"
+                          className="absolute right-0 top-0 text-2xl text-accent hover:cursor-pointer hover:text-red-600"
                           icon={"mingcute:close-circle-fill"}
                         />
                       </div>

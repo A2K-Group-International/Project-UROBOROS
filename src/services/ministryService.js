@@ -337,8 +337,40 @@ export const editMinistry = async ({
       }
     }
 
-    //  Update image if a new one is provided
-    if (ministry_image instanceof File) {
+    //Handle image update or removal
+    // Handle image update or removal
+    if (ministry_image === null) {
+      // Case: Image explicitly removed - set image_url to null
+      const { data: currentMinistry, error: fetchError } = await supabase
+        .from("ministries")
+        .select("image_url")
+        .eq("id", ministryId)
+        .single();
+
+      if (fetchError) {
+        throw new Error(
+          `Error fetching current ministry: ${fetchError.message}`
+        );
+      }
+
+      // Update ministry to remove image
+      const { error: updateError } = await supabase
+        .from("ministries")
+        .update({ image_url: null })
+        .eq("id", ministryId);
+
+      if (updateError) {
+        throw new Error(
+          `Error removing ministry image: ${updateError.message}`
+        );
+      }
+
+      // Delete old image if it exists
+      if (currentMinistry?.image_url) {
+        await deleteImageFromStorage(currentMinistry.image_url);
+      }
+    } else if (ministry_image instanceof File) {
+      //  Update image if a new one is provided
       // Get current image URL to delete later
       const { data: currentMinistry, error: fetchError } = await supabase
         .from("ministries")
