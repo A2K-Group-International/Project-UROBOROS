@@ -188,6 +188,11 @@ const AddGroupMembersForm = ({ ministryId, groupId }) => {
     queryFn: async () => getUsersByRole(ROLES[0]),
   });
 
+  const { data: admins = [], isLoading: adminsLoading } = useQuery({
+    queryKey: ["admin"],
+    queryFn: async () => getUsersByRole(ROLES[4]),
+  });
+
   // Get ministry coordinator IDs in a convenient format
   const ministryCoordinatorIds = useMemo(() => {
     if (
@@ -210,6 +215,7 @@ const AddGroupMembersForm = ({ ministryId, groupId }) => {
     parishionerLoading ||
     volunteersLoading ||
     coordinatorsLoading ||
+    adminsLoading ||
     ministryCoordinatorsQuery.isLoading;
 
   // Filter out users who are already coordinators in this ministry
@@ -220,6 +226,7 @@ const AddGroupMembersForm = ({ ministryId, groupId }) => {
       ...(volunteers || []),
       ...(parishioners || []),
       ...(coordinators || []),
+      ...(admins || []),
     ];
 
     // Filter out duplicates by ID (in case users appear in multiple role lists)

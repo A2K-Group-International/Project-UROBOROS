@@ -35,8 +35,20 @@ export const getMinistryVolunteers = async (ministryId) => {
     throw new Error(volunteerError.message);
   }
 
+  const { data: ministryCoordinators, error: ministryCoordinatorsError } =
+    await supabase
+      .from("ministry_coordinators")
+      .select(`users(id, first_name, last_name)`)
+      .eq("ministry_id", ministryId);
+
+  if (ministryCoordinatorsError) {
+    throw new Error(ministryCoordinatorsError.message);
+  }
+
+  const volunteers = [...volunteerList, ...ministryCoordinators];
+
   // Transform data to a more usable format
-  return volunteerList || [];
+  return volunteers || [];
 };
 
 /**
@@ -707,7 +719,7 @@ export const fetchUserMinistryIds = async (userId) => {
   }
 
   // Query to get all groups the user is a member of and their associated ministries
-  const { data: ministries, error } = await supabase
+  const { data: groupMembers, error } = await supabase
     .from("group_members")
     .select("groups(ministry_id)")
     .eq("user_id", userId);
@@ -716,12 +728,28 @@ export const fetchUserMinistryIds = async (userId) => {
     console.error("Error fetching user's ministries:", error.message);
     throw new Error(error.message);
   }
+  const { data: ministryCoordinator, error: ministryCoordinatorError } =
+    await supabase
+      .from("ministry_coordinators")
+      .select("ministry_id")
+      .eq("coordinator_id", userId);
+
+  if (ministryCoordinatorError) {
+    console.error(
+      "Error fetching coordinator",
+      ministryCoordinatorError.message
+    );
+    throw new Error(error.message);
+  }
 
   // Extract unique ministry IDs from the results
-  const ministryIds = ministries.map((item) => item.groups.ministry_id);
+  const groupMemberIds = groupMembers.map((item) => item.groups?.ministry_id);
+  const coordinatorIds = ministryCoordinator.map((item) => item.ministry_id);
+
+  const allUserIds = [...groupMemberIds, ...coordinatorIds];
 
   // Remove duplicates using Set
-  const uniqueMinistryIds = [...new Set(ministryIds)];
+  const uniqueMinistryIds = [...new Set(allUserIds)];
 
   return uniqueMinistryIds;
 };

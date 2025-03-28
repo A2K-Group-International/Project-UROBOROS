@@ -168,19 +168,34 @@ export const getEvents = async ({
     if (role === "admin") {
       // Admins can see all events - no additional filters needed
     } else if (role === "volunteer") {
-      // Volunteers see events they're assigned to
+      // Volunteers see events they're assigned to and haven't been replaced
       const { data: volunteerEvents } = await supabase
         .from("event_volunteers")
         .select("event_id")
-        .eq("volunteer_id", userId);
+        .eq("volunteer_id", userId)
+        .eq("replaced", false); // Only include assignments where the volunteer hasn't been replaced
 
       const volunteerEventIds =
         volunteerEvents?.map((event) => event.event_id) || [];
 
-      if (volunteerEventIds.length > 0) {
-        filters.id = volunteerEventIds;
+      // Also get events where this volunteer is a replacement
+      const { data: replacementEvents } = await supabase
+        .from("event_volunteers")
+        .select("event_id")
+        .eq("replacedby_id", userId);
+
+      const replacementEventIds =
+        replacementEvents?.map((event) => event.event_id) || [];
+
+      // Combine both sets of event IDs
+      const allEventIds = [
+        ...new Set([...volunteerEventIds, ...replacementEventIds]),
+      ];
+
+      if (allEventIds.length > 0) {
+        filters.id = allEventIds;
       } else {
-        filters.id = []; // No events found, return empty result
+        filters.id = [];
       }
     } else if (role === "coordinator") {
       // Coordinators only see events they created
