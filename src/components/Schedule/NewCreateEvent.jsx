@@ -43,6 +43,7 @@ import { convertTimeStringToDate, formatEventTime } from "@/lib/utils";
 import { getQuickAccessEvents } from "@/services/eventService";
 import useRoleSwitcher from "@/hooks/useRoleSwitcher";
 import {
+  fetchAllMinistryVolunteers,
   getAssignedMinistries,
   getMinistryVolunteers,
 } from "@/services/ministryService";
@@ -81,10 +82,17 @@ const useMinistryVolunteers = (groupId) => {
   });
 };
 
+const useFetchAllMinistryVolunteers = (userId) => {
+  return useQuery({
+    queryKey: ["user-group-members", userId],
+    queryFn: () => fetchAllMinistryVolunteers(userId),
+    enabled: !!userId,
+  });
+};
+
 const NewCreateEventForm = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedMinistry, setSelectedMinistry] = useState(null);
-  const [selectedGroup, setSelectedGroup] = useState(null);
   const [openCalendar, setOpenCalendar] = useState(false);
 
   const [imagePreview, setImagePreview] = useState(null);
@@ -123,7 +131,12 @@ const NewCreateEventForm = () => {
   const {
     data: ministryVolunteers = [],
     isLoading: ministryVolunteersLoading,
-  } = useMinistryVolunteers(selectedGroup);
+  } = useMinistryVolunteers(selectedMinistry);
+
+  const {
+    data: allMinistryVolunteers = [],
+    isLoading: allMinistryVolunteersLoading,
+  } = useFetchAllMinistryVolunteers(userData?.id);
 
   const { ministries } = useMinistry({
     ministryId: selectedMinistry,
@@ -135,7 +148,7 @@ const NewCreateEventForm = () => {
     defaultValues: {
       eventName: "",
       eventDescription: "",
-      eventVisibility: "",
+      eventVisibility: "public",
       eventObservation: false,
       eventTime: null,
       eventDate: null,
@@ -191,15 +204,29 @@ const NewCreateEventForm = () => {
   };
 
   const getVolunteerOptions = () => {
-    //For public visibility, return all volunteers
-    if (watchVisibility === "public") {
+    if (
+      allMinistryVolunteersLoading &&
+      watchVisibility === "public" &&
+      temporaryRole === ROLES[0]
+    ) {
+      return [{ value: "", label: "Loading volunteers...", isDisabled: true }];
+    }
+    // If event is public and role is coordinator
+    if (watchVisibility === "public" && temporaryRole === ROLES[0]) {
+      //For public visibility, return all volunteers
+      return allMinistryVolunteers?.map((volunteer) => ({
+        value: volunteer.id,
+        label: `${volunteer.first_name} ${volunteer.last_name}`,
+      }));
+    } else if (watchVisibility === "public") {
       return (
         publicVolunteers?.map((volunteer) => ({
           value: volunteer?.id || "",
-          label: `${volunteer?.first_name || ""} ${volunteer?.last_name || ""}`,
+          label: `${volunteer?.first_name} ${volunteer?.last_name}`,
         })) || []
       );
     }
+
     // For private visibility events with a selected ministry
     if (
       watchVisibility === "private" &&
@@ -209,7 +236,7 @@ const NewCreateEventForm = () => {
       return (
         ministryVolunteers?.map((volunteer) => ({
           value: volunteer?.users?.id || "",
-          label: `${volunteer?.users?.first_name || ""} ${volunteer?.users?.last_name || ""}`,
+          label: `${volunteer?.users?.first_name} ${volunteer?.users?.last_name}`,
         })) || []
       );
     }
@@ -228,7 +255,6 @@ const NewCreateEventForm = () => {
       resetField("ministry", { defaultValue: "" });
       resetField("assignVolunteer", { defaultValue: [] });
       setSelectedMinistry(null);
-      setSelectedGroup(null);
     } else if (watchVisibility === "private") {
       // Reset volunteer selections when switching to private
       resetField("assignVolunteer", { defaultValue: [] });
@@ -249,7 +275,6 @@ const NewCreateEventForm = () => {
     if (selectedMinistry && watchVisibility === "private") {
       // Reset dependent fields when ministry changes
       resetField("assignVolunteer", { defaultValue: [] });
-      setSelectedGroup(null);
     }
   }, [selectedMinistry, watchVisibility, form]);
 

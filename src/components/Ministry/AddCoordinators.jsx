@@ -36,15 +36,26 @@ import PropTypes from "prop-types";
 import { useMemo } from "react";
 
 const AddCoordinators = ({ ministryId }) => {
+  const queryClient = useQueryClient();
+
   const { data: coordinators, isLoading: coordinatorLoading } = useQuery({
     queryKey: ["coordinators"],
     queryFn: async () => getUsersByRole(ROLES[0]),
   });
-  const queryClient = useQueryClient();
+
   const { data: volunteers, isLoading: volunteersLoading } = useQuery({
     queryKey: ["volunteer"],
     queryFn: async () => getUsersByRole(ROLES[1]),
   });
+
+  const { data: admins, isLoading: adminsLoading } = useQuery({
+    queryKey: ["admin"],
+    queryFn: async () => getUsersByRole(ROLES[4]),
+  });
+
+  const adminsCoordinators = useMemo(() => {
+    return [...(volunteers ?? []), ...(coordinators ?? []), ...(admins ?? [])];
+  }, [volunteers, coordinators, admins]);
 
   // Query to fetch existing ministry coordinators
   const { data: existingCoordinators } = useQuery({
@@ -55,8 +66,6 @@ const AddCoordinators = ({ ministryId }) => {
     },
     enabled: !!ministryId,
   });
-
-  const adminsCoordinators = [...(volunteers ?? []), ...(coordinators ?? [])];
 
   // Unique Set of existing coordinator IDs
   const existingCoordinatorIds = useMemo(() => {
@@ -148,7 +157,11 @@ const AddCoordinators = ({ ministryId }) => {
                     <FormLabel className="font-bold">Name</FormLabel>
                     <FormControl>
                       <CustomReactSelect
-                        isLoading={coordinatorLoading || volunteersLoading}
+                        isLoading={
+                          coordinatorLoading ||
+                          volunteersLoading ||
+                          adminsLoading
+                        }
                         options={filteredCoordinatorOptions}
                         value={filteredCoordinatorOptions.filter((option) =>
                           field.value?.includes(option.value)

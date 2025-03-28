@@ -307,6 +307,15 @@ const ScheduleDetails = () => {
         ? ministriesVolunteers
         : ministryVolunteerOptions;
     }
+
+    //Volunteer role
+
+    //Admin Role
+    if (temporaryRole === ROLES[1]) {
+      return event?.event_visibility === "public"
+        ? volunteerOptions
+        : ministryVolunteerOptions;
+    }
   };
 
   const { data: attendance, isLoading: attendanceLoading } = useQuery({
@@ -620,7 +629,7 @@ const ScheduleDetails = () => {
             List of Assigned Volunteer(s)
           </Label>
           <Dialog aria-describedby="assign-volunteer">
-            {!disableSchedule && temporaryRole !== "volunteer" && (
+            {!disableSchedule && (
               <DialogTrigger asChild>
                 <Button className="h-5 w-5" size="icon">
                   <Icon className="text-white" icon="mingcute:add-fill"></Icon>
@@ -699,8 +708,7 @@ const ScheduleDetails = () => {
                 />
               )}
               <Dialog>
-                {((!disableSchedule && temporaryRole === "admin") ||
-                  (!disableSchedule && temporaryRole === "coordinator")) && (
+                {!disableSchedule && (
                   <DialogTrigger>
                     <Icon
                       className="h-5 w-5 text-red-500 hover:cursor-pointer"

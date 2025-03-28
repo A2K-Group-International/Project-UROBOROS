@@ -519,7 +519,7 @@ export const fetchAllMinistryVolunteers = async (userId) => {
     // 1. Get all ministry IDs where the user is a coordinator
     const { data: ministryCoordinators, error: ministriesError } =
       await supabase
-        .from("ministry_coordinators") // Correct table name with plural
+        .from("ministry_coordinators")
         .select("ministry_id")
         .eq("coordinator_id", userId);
 
@@ -537,52 +537,88 @@ export const fetchAllMinistryVolunteers = async (userId) => {
     // 2. Extract ministry IDs from the results
     const ministryIds = ministryCoordinators.map((coord) => coord.ministry_id);
 
-    // 3. Get all volunteer groups for these ministries
-    const { data: volunteerGroups, error: groupsError } = await supabase
-      .from("groups")
-      .select("id, ministry_id")
-      .in("ministry_id", ministryIds) // Filter for all ministries
-      .eq("name", "Volunteers"); // Only volunteer groups
+    // 3. Run two parallel queries:
+    // 3a. Get all volunteers from volunteer groups for these ministries
+    // 3b. Get all coordinators for these ministries
+    const [volunteerResults, coordinatorResults] = await Promise.all([
+      // Query for volunteer group members
+      (async () => {
+        // First get the volunteer groups
+        const { data: volunteerGroups, error: groupsError } = await supabase
+          .from("groups")
+          .select("id, ministry_id")
+          .in("ministry_id", ministryIds)
+          .eq("name", "Volunteers");
 
-    if (groupsError) {
-      console.error("Error fetching volunteer groups:", groupsError);
-      throw new Error(
-        groupsError.message || "Failed to fetch volunteer groups"
-      );
-    }
+        if (groupsError) {
+          console.error("Error fetching volunteer groups:", groupsError);
+          throw new Error(
+            groupsError.message || "Failed to fetch volunteer groups"
+          );
+        }
 
-    if (!volunteerGroups || volunteerGroups.length === 0) {
-      return []; // No volunteer groups found
-    }
+        if (!volunteerGroups || volunteerGroups.length === 0) {
+          return []; // No volunteer groups found
+        }
 
-    // 4. Extract group IDs
-    const groupIds = volunteerGroups.map((group) => group.id);
+        // Then get members of those groups
+        const groupIds = volunteerGroups.map((group) => group.id);
+        const { data: members, error: memberError } = await supabase
+          .from("group_members")
+          .select("users(id, first_name, last_name)")
+          .in("group_id", groupIds);
 
-    // 5. Get all members of these volunteer groups
-    const { data: members, error: memberError } = await supabase
-      .from("group_members")
-      .select("users(id, first_name, last_name)") // Correct syntax
-      .in("group_id", groupIds); // Query all groups at once
+        if (memberError) {
+          console.error("Error fetching group members:", memberError);
+          throw new Error(
+            memberError.message || "Failed to fetch group members"
+          );
+        }
 
-    if (memberError) {
-      console.error("Error fetching group members:", memberError);
-      throw new Error(memberError.message || "Failed to fetch group members");
-    }
+        // Extract user objects from the results
+        return members?.map((member) => member.users).filter(Boolean) || [];
+      })(),
 
-    //Variable for storing unique users
+      // Query for ministry coordinators
+      (async () => {
+        const { data: coordinators, error: coordError } = await supabase
+          .from("ministry_coordinators")
+          .select("users(id, first_name, last_name)")
+          .in("ministry_id", ministryIds);
+
+        if (coordError) {
+          console.error("Error fetching ministry coordinators:", coordError);
+          throw new Error(
+            coordError.message || "Failed to fetch ministry coordinators"
+          );
+        }
+
+        // Extract user objects from the results
+        return coordinators?.map((coord) => coord.users).filter(Boolean) || [];
+      })(),
+    ]);
+
+    // 4. Combine and deduplicate results
     const uniqueMembers = new Map();
 
-    //Extract user data
-    members?.forEach((member) => {
-      if (member.users && member.users.id) {
-        uniqueMembers.set(member.users.id, member.users);
+    // Add volunteers to the map
+    volunteerResults.forEach((user) => {
+      if (user && user.id) {
+        uniqueMembers.set(user.id, user);
       }
     });
 
-    // convert map values to array
-    const uniqueVolunteers = Array.from(uniqueMembers.values());
+    // Add coordinators to the map
+    coordinatorResults.forEach((user) => {
+      if (user && user.id) {
+        uniqueMembers.set(user.id, user);
+      }
+    });
 
-    return uniqueVolunteers || [];
+    // Convert map values to array for final result
+    const allUniqueMembers = Array.from(uniqueMembers.values());
+
+    return allUniqueMembers;
   } catch (error) {
     console.error("Error in fetchAllMinistryVolunteers:", error);
     throw error;

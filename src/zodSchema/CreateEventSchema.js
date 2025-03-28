@@ -62,7 +62,6 @@ export const createEventSchema = z
     eventObservation: z.boolean().default(false),
 
     ministry: z.string().optional(),
-    groups: z.string().optional(),
 
     assignVolunteer: z.array(z.string()).default([]),
 
@@ -101,13 +100,6 @@ export const createEventSchema = z
           code: z.ZodIssueCode.custom,
           message: "Required",
           path: ["ministry"],
-        });
-      }
-      if (!data.groups) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Required",
-          path: ["groups"],
         });
       }
     }
