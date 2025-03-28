@@ -2,20 +2,13 @@ import { z } from "zod";
 
 const allowedMimeTypes = ["image/jpeg", "image/png"];
 
-export const createEventSchema = z
+export const editEventSchema = z
   .object({
     eventName: z.string().min(2, {
       message: "Event name is required.",
     }),
 
     eventDescription: z.string().optional().default(""),
-    eventCategory: z
-      .string()
-      .min(1, {
-        message: "Event category is required.",
-      })
-      .optional()
-      .default("youth"),
 
     eventVisibility: z
       .string()
@@ -62,9 +55,6 @@ export const createEventSchema = z
     eventObservation: z.boolean().default(false),
 
     ministry: z.string().optional(),
-    groups: z.string().optional(),
-
-    assignVolunteer: z.array(z.string()).default([]),
 
     eventPosterImage: z
       .union([
@@ -103,13 +93,6 @@ export const createEventSchema = z
           path: ["ministry"],
         });
       }
-      if (!data.groups) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Required",
-          path: ["groups"],
-        });
-      }
     }
 
     // Validate time and volunteers for non-observation events
@@ -126,18 +109,6 @@ export const createEventSchema = z
           code: z.ZodIssueCode.custom,
           message: "Time is required.",
           path: ["eventTime"],
-        });
-      }
-
-      // Validate assignVolunteer (must have at least one volunteer when eventObservation is false)
-      const hasVolunteers =
-        Array.isArray(data.assignVolunteer) && data.assignVolunteer.length > 0;
-
-      if (!hasVolunteers) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "At least one volunteer must be assigned.",
-          path: ["assignVolunteer"],
         });
       }
     }

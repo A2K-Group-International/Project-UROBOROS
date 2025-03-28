@@ -94,6 +94,8 @@ const CustomReactSelect = ({
   value,
   onChange,
   placeholder,
+  disabled,
+  className = "",
 }) => {
   return (
     <ReactSelect
@@ -104,6 +106,8 @@ const CustomReactSelect = ({
       value={value || undefined}
       onChange={onChange}
       placeholder={placeholder}
+      isDisabled={disabled}
+      className={className}
     />
   );
 };
@@ -127,6 +131,8 @@ CustomReactSelect.propTypes = {
   ),
   onChange: PropTypes.func.isRequired,
   placeholder: PropTypes.string,
+  disabled: PropTypes.bool,
+  className: PropTypes.string,
 };
 
 CustomMultiValue.propTypes = {

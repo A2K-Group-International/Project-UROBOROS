@@ -1,36 +1,14 @@
 import { EventIcon } from "@/assets/icons/icons";
 import { ROLES } from "@/constants/roles";
-import { cn } from "@/lib/utils";
+import { cn, formatEventDate, formatEventTimeCompact } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
 import ScheduleDetails from "./ScheduleDetails";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "../ui/dialog";
-import { Button } from "../ui/button";
-import CreateEvent from "./CreateEvent";
 import { memo, useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import useRoleSwitcher from "@/hooks/useRoleSwitcher";
+import NewEditEvent from "./NewEditEvent";
 
-const ScheduleCards = ({
-  editDialogOpenIndex,
-  setEditDialogOpenIndex,
-  event,
-  onEventClick,
-  urlPrms,
-  filter,
-  sheetEditDialogOpenIndex,
-  setSheetEditDialogOpenIndex,
-  i,
-  j,
-}) => {
+const ScheduleCards = ({ event, onEventClick, urlPrms, filter }) => {
   const { temporaryRole } = useRoleSwitcher();
   const [disableEdit, setDisabledEdit] = useState(false);
 
@@ -62,17 +40,9 @@ const ScheduleCards = ({
           <EventIcon className="text-2xl text-accent" />
           <div>
             <p className="mb-[6px] text-base font-bold leading-none text-accent">
-              {`${event.event_name}, ${new Date(
-                `${event.event_date}T${event.event_time}`
-              )
-                .toLocaleTimeString("en-US", {
-                  hour: "numeric",
-                  minute: "numeric",
-                  hour12: true,
-                })
-                .replace(":", ".")
-                .replace(" ", "")
-                .toLowerCase()}`}
+              {event.requires_attendance
+                ? `${event?.event_name}, ${formatEventTimeCompact(event?.event_time)}`
+                : event.event_name}
             </p>
             <p className="text-sm text-primary-text">{event.description}</p>
             <p className="text-sm leading-tight text-primary-text">
@@ -85,66 +55,68 @@ const ScheduleCards = ({
             )}
             <p className="text-md font-bold leading-none text-primary-text">
               <span className="font-semibold">Date: </span>
-              {new Date(
-                `${event.event_date}T${event.event_time}`
-              ).toLocaleDateString("en-GB", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-              })}
+              {formatEventDate(event.event_date)}
             </p>
           </div>
         </div>
         {!disableEdit &&
           (temporaryRole === ROLES[0] || temporaryRole === ROLES[4]) && (
-            <Dialog
-              open={editDialogOpenIndex === `${i}-${j}`}
-              onOpenChange={(isOpen) =>
-                setEditDialogOpenIndex(isOpen ? `${i}-${j}` : null)
-              }
-            >
-              <DialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="-mt-3 p-0 font-semibold text-accent hover:underline"
-                >
-                  Edit
-                </Button>
-              </DialogTrigger>
+            <NewEditEvent
+              initialEventData={{ ...event }}
+              queryKey={[
+                "schedules",
+                filter,
+                urlPrms.get("query")?.toString() || "",
+              ]}
+            />
+            // <Dialog
+            //   open={editDialogOpenIndex === `${i}-${j}`}
+            //   onOpenChange={(isOpen) =>
+            //     setEditDialogOpenIndex(isOpen ? `${i}-${j}` : null)
+            //   }
+            // >
+            //   <DialogTrigger asChild>
+            //     <Button
+            //       variant="ghost"
+            //       className="-mt-3 p-0 font-semibold text-accent hover:underline"
+            //     >
+            //       Edit
+            //     </Button>
+            //   </DialogTrigger>
 
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Edit Events</DialogTitle>
-                  <DialogDescription>
-                    Schedule an upcoming events.
-                  </DialogDescription>
-                </DialogHeader>
-                <CreateEvent
-                  id="update-event"
-                  eventData={{ ...event }}
-                  setDialogOpen={(isOpen) => {
-                    setEditDialogOpenIndex(isOpen ? `${i}-${j}` : null);
-                  }}
-                  queryKey={[
-                    "schedules",
-                    filter,
-                    urlPrms.get("query")?.toString() || "",
-                  ]}
-                />
-                {/* Dialog Footer */}
-                <DialogFooter>
-                  <div className="flex justify-end gap-2">
-                    <DialogClose asChild>
-                      <Button variant="outline">Cancel</Button>
-                    </DialogClose>
+            //   <DialogContent>
+            //     <DialogHeader>
+            //       <DialogTitle>Edit Events</DialogTitle>
+            //       <DialogDescription>
+            //         Schedule an upcoming events.
+            //       </DialogDescription>
+            //     </DialogHeader>
+            //     <CreateEvent
+            //       id="update-event"
+            //       eventData={{ ...event }}
+            //       setDialogOpen={(isOpen) => {
+            //         setEditDialogOpenIndex(isOpen ? `${i}-${j}` : null);
+            //       }}
+            //       queryKey={[
+            //         "schedules",
+            //         filter,
+            //         urlPrms.get("query")?.toString() || "",
+            //       ]}
+            //     />
+            //     {/* Dialog Footer */}
+            //     <DialogFooter>
+            //       <div className="flex justify-end gap-2">
+            //         <DialogClose asChild>
+            //           <Button variant="outline">Cancel</Button>
+            //         </DialogClose>
 
-                    <Button type="submit" form="update-event">
-                      Update
-                    </Button>
-                  </div>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            //         <Button type="submit" form="update-event">
+            //           Update
+            //         </Button>
+            //       </div>
+            //     </DialogFooter>
+            //   </DialogContent>
+            // </Dialog>
           )}
       </div>
 
@@ -161,7 +133,9 @@ const ScheduleCards = ({
               <EventIcon className="text-2xl text-accent" />
               <div>
                 <p className="mb-[6px] text-base font-bold leading-none text-accent">
-                  {`${event.event_name}, ${new Date(`${event.event_date}T${event.event_time}`).toLocaleTimeString()}`}
+                  {event.requires_attendance
+                    ? `${event?.event_name}, ${formatEventTimeCompact(event?.event_time)}`
+                    : event.event_name}
                 </p>
                 <p className="text-sm text-primary-text">{event.description}</p>
                 <p className="text-sm leading-tight text-primary-text">
@@ -172,13 +146,7 @@ const ScheduleCards = ({
                 )}
                 <p className="text-md font-bold leading-none text-primary-text">
                   <span className="font-semibold">Date: </span>
-                  {new Date(
-                    `${event.event_date}T${event.event_time}`
-                  ).toLocaleDateString("en-GB", {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric",
-                  })}
+                  {formatEventDate(event.event_date)}
                 </p>
               </div>
             </div>
@@ -195,7 +163,15 @@ const ScheduleCards = ({
             )}
           </SheetContent>
         </Sheet>
-        <Dialog
+        <NewEditEvent
+          initialEventData={{ ...event }}
+          queryKey={[
+            "schedules",
+            filter,
+            urlPrms.get("query")?.toString() || "",
+          ]}
+        />
+        {/* <Dialog
           open={sheetEditDialogOpenIndex === `${i}-${j}`}
           onOpenChange={(isOpen) =>
             setSheetEditDialogOpenIndex(isOpen ? `${i}-${j}` : null)
@@ -242,7 +218,7 @@ const ScheduleCards = ({
               </div>
             </DialogFooter>
           </DialogContent>
-        </Dialog>
+        </Dialog> */}
       </div>
     </div>
   );
@@ -254,9 +230,10 @@ ScheduleCards.propTypes = {
     id: PropTypes.string.isRequired,
     event_name: PropTypes.string.isRequired,
     event_date: PropTypes.string.isRequired,
-    event_time: PropTypes.string.isRequired,
+    event_time: PropTypes.string,
     event_category: PropTypes.string,
     event_visibility: PropTypes.string,
+    requires_attendance: PropTypes.bool,
     creator_id: PropTypes.shape({
       first_name: PropTypes.string,
       last_name: PropTypes.string,
@@ -266,10 +243,6 @@ ScheduleCards.propTypes = {
   onEventClick: PropTypes.func.isRequired,
   urlPrms: PropTypes.object.isRequired,
   filter: PropTypes.string.isRequired,
-  sheetEditDialogOpenIndex: PropTypes.bool.isRequired,
-  setSheetEditDialogOpenIndex: PropTypes.func.isRequired,
-  i: PropTypes.number.isRequired,
-  j: PropTypes.number.isRequired,
 };
 
 export default memo(ScheduleCards);

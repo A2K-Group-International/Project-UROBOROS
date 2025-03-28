@@ -3,28 +3,15 @@ import { useSearchParams } from "react-router-dom";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Title, Description } from "@/components/Title";
 import { Input } from "@/components/ui/input";
-import CreateEvent from "@/components/Schedule/CreateEvent";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import CreateMeeting from "@/components/Schedule/CreateMeeting";
 import { Skeleton } from "@/components/ui/skeleton";
 import ScheduleDetails from "@/components/Schedule/ScheduleDetails";
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-
 import { getEvents } from "@/services/eventService";
 import { getMeetings } from "@/services/meetingService";
 import { useUser } from "@/context/useUser";
 
-import { Search, EventIcon } from "@/assets/icons/icons";
+import { Search } from "@/assets/icons/icons";
 import { ROLES } from "@/constants/roles";
 
 import MeetingDetails from "@/components/Schedule/MeetingDetails";
@@ -35,9 +22,9 @@ import { useDebounce } from "@/hooks/useDebounce";
 import ScheduleCards from "@/components/Schedule/ScheduleCards";
 import MeetingCards from "@/components/Schedule/MeetingCards";
 import useRoleSwitcher from "@/hooks/useRoleSwitcher";
+import NewCreateEventForm from "@/components/Schedule/NewCreateEvent";
 
 const Schedule = () => {
-  const [dialogOpen, setDialogOpen] = useState(false);
   const [sheetEditDialogOpenIndex, setSheetEditDialogOpenIndex] =
     useState(false);
   const [editDialogOpenIndex, setEditDialogOpenIndex] = useState(null);
@@ -158,31 +145,7 @@ const Schedule = () => {
         <div className="flex flex-col gap-3">
           {(temporaryRole === ROLES[0] || userData?.role === ROLES[4]) && (
             <div className="flex gap-1">
-              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button size="primary" className="px-3.5 py-2">
-                    <EventIcon className="text-primary" />
-                    <p>Create Event</p>
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Create Event</DialogTitle>
-                    <DialogDescription>
-                      Schedule an upcoming event.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <CreateEvent setDialogOpen={setDialogOpen} />
-                  <DialogFooter>
-                    <div className="flex justify-end gap-2">
-                      <DialogClose asChild>
-                        <Button variant="outline">Cancel</Button>
-                      </DialogClose>
-                      <Button form="create-event">Create</Button>
-                    </div>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+              <NewCreateEventForm />
               <CreateMeeting />
             </div>
           )}

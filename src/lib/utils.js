@@ -223,7 +223,8 @@ const downloadExcel = (event, eventvolunteers, attendance, attendanceCount) => {
         return [
           [
             family?.family_surname ? `Family Surname:  ` : "Registered by: ",
-            family?.family_surname ?? `${family.registered_by.first_name} ${family.registered_by.last_name}`,
+            family?.family_surname ??
+              `${family.registered_by.first_name} ${family.registered_by.last_name}`,
           ],
           ...(attendedParents.length > 0
             ? [
@@ -333,7 +334,13 @@ const exportAttendanceList = (
 
     // Add Family Surname Header
     doc.setFontSize(14);
-    doc.text(family?.family_surname ? `Family Surname ${family?.family_surname}` : `Registered by ${family.registered_by.first_name} ${family.registered_by.last_name}` , 10, currentY);
+    doc.text(
+      family?.family_surname
+        ? `Family Surname ${family?.family_surname}`
+        : `Registered by ${family.registered_by.first_name} ${family.registered_by.last_name}`,
+      10,
+      currentY
+    );
 
     // Update currentY for the next element
     currentY += 10;
@@ -392,13 +399,66 @@ const formatEventTime = (time) => {
   });
 };
 
-const getCurrentTime =  () => {
+const getCurrentTime = () => {
   const now = new Date();
   const hours = String(now.getHours()).padStart(2, "0");
   const minutes = String(now.getMinutes()).padStart(2, "0");
   const seconds = String(now.getSeconds()).padStart(2, "0");
   return `${hours}:${minutes}:${seconds}`;
 };
+
+//Function to convert a time string (HH:MM:ss) to a date object
+const convertTimeStringToDate = (timeString) => {
+  const [hours, minutes, seconds] = timeString.split(":");
+  const eventTime = new Date();
+  eventTime.setHours(parseInt(hours, 10));
+  eventTime.setMinutes(parseInt(minutes, 10));
+  eventTime.setSeconds(parseInt(seconds, 10));
+
+  return eventTime;
+};
+
+/**
+ * Formats event time with dots and lowercase (e.g., "10.30am")
+ * @param {string} time - The event time string
+ * @returns {string} Formatted time string
+ */
+const formatEventTimeCompact = (time) => {
+  try {
+    if (!time) return "";
+
+    // Try to handle both cases: when date is provided and when only time is provided
+    let dateTime;
+
+    if (time.includes("T")) {
+      // Time is already a full datetime string
+      dateTime = new Date(time);
+    } else {
+      // Time is just a time string (HH:MM:SS)
+      dateTime = new Date(`2000-01-01T${time}`);
+    }
+
+    // Check if date is valid
+    if (isNaN(dateTime.getTime())) {
+      console.error("Invalid time for compact formatting:", time);
+      return "";
+    }
+
+    return dateTime
+      .toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true,
+      })
+      .replace(":", ".")
+      .replace(" ", "")
+      .toLowerCase();
+  } catch (error) {
+    console.error("Error formatting time compact:", error, time);
+    return "";
+  }
+};
+
 export {
   getCurrentTime,
   cn,
@@ -408,4 +468,6 @@ export {
   exportAttendanceList,
   formatEventDate,
   formatEventTime,
+  convertTimeStringToDate,
+  formatEventTimeCompact,
 };

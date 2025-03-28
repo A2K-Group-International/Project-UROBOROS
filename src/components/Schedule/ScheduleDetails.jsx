@@ -45,7 +45,13 @@ import {
 } from "@/services/attendanceService";
 
 import { useUser } from "@/context/useUser";
-import { cn, downloadExcel, exportAttendanceList } from "@/lib/utils";
+import {
+  cn,
+  downloadExcel,
+  exportAttendanceList,
+  formatEventDate,
+  formatEventTimeCompact,
+} from "@/lib/utils";
 import { Label } from "../ui/label";
 import { useToast } from "@/hooks/use-toast";
 import AddRecord from "./AddRecord";
@@ -500,25 +506,12 @@ const ScheduleDetails = () => {
       <div className="flex flex-wrap justify-between">
         <div>
           <Title className="text-2xl">
-            {`${event.event_name}, ${new Date(
-              `${event.event_date}T${event.event_time}`
-            )
-              .toLocaleTimeString("en-US", {
-                hour: "numeric",
-                minute: "numeric",
-                hour12: true,
-              })
-              .replace(":", ".")
-              .replace(" ", "")
-              .toLowerCase()}`}
+            {event.requires_attendance
+              ? `${event.event_name}, ${formatEventTimeCompact(event.event_time)}`
+              : event.event_name}
           </Title>
           <Label className="text-xl text-primary-text">
-            Date:{" "}
-            {new Date(event?.event_date).toLocaleDateString("en-GB", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-            })}
+            Date: {formatEventDate(event?.event_date)}
           </Label>
           <Description>{event?.event_description}</Description>
         </div>
