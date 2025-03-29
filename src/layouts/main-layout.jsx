@@ -22,7 +22,7 @@ const MainLayout = () => {
 
       {/* Footer */}
       <div className="z-10 flex h-[1.8rem] w-full items-center border-t border-gray/10 bg-[#663F30] pl-4">
-        <p className="font-regular text-[0.8rem] text-[#FBCCC0]/40">
+        <p className="font-regular text-[0.55rem] text-[#FBCCC0]/40 md:text-[0.7rem]">
           Developed by{" "}
           <a
             href="http://a2kgroup.org"

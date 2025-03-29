@@ -1,78 +1,92 @@
+import { useState } from "react";
 import PropTypes from "prop-types";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Description } from "../Title";
 import ManualAttendEvents from "./ManualAttendEvents";
-// import { AddToCalendarButton } from "add-to-calendar-button-react";
+import SampleImage from "@/assets/images/CartoonizedChurch.png";
+import { Button } from "../ui/button";
+import { Icon } from "@iconify/react";
+import { formatEventDate, formatEventTime } from "@/lib/utils";
 
 const EventCard = ({
   eventId,
   eventName,
-  eventDescription,
-  eventDate = "No description available",
+  eventDate,
   eventTime,
+  eventImage,
+  requireAttendance,
 }) => {
-  // Calculate end time (1 hour after start time)
-  // const calculateEndTime = (startTime) => {
-  //   const [hours, minutes] = startTime.split(":");
-  //   const date = new Date();
-  //   date.setHours(parseInt(hours));
-  //   date.setMinutes(parseInt(minutes));
-  //   date.setHours(date.getHours() + 1); // Add 1 hour
-  //   return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
-  // };
-
-  // const endTime = calculateEndTime(eventTime);
+  const [showFullImage, setShowFullImage] = useState(false);
 
   return (
-    <Card className="border-primary text-primary-text">
-      <CardHeader>
-        <CardTitle>{eventName}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Description>{eventDescription}</Description>
-        <Description>
-          {new Date(`${eventDate}T${eventTime}`).toDateTime()}
-        </Description>
-      </CardContent>
-      <CardFooter>
-        <div>
-          <ManualAttendEvents
-            eventId={eventId}
-            eventName={eventName}
-            eventTime={eventTime}
-            eventDate={eventDate}
-          />
-          {/* <AddToCalendarButton
-            name={eventName}
-            startDate={eventDate}
-            startTime={eventTime}
-            endTime={endTime}
-            options={["Google", "Apple", "Yahoo"]}
-            timeZone="UTC"
-            trigger="click"
-            buttonStyle="3d"
-          >
-            Add to calendar
-          </AddToCalendarButton> */}
+    <>
+      <Card className="h-[27rem] max-h-[27rem] w-72 rounded-2xl border-primary-text/30 text-primary-text">
+        <CardContent className="flex h-full flex-col gap-y-1 p-4">
+          {/* Image container with fixed size and aspect ratio */}
+          <div className="aspect-square w-full cursor-pointer overflow-hidden rounded-2xl border border-primary-text/30">
+            <img
+              src={eventImage ?? SampleImage}
+              alt="Event Image"
+              className="h-full w-full object-cover"
+              onClick={() => setShowFullImage(true)}
+            />
+          </div>
+          <CardTitle className="mt-4 break-words px-2 text-[16px] font-bold">
+            {eventName}
+          </CardTitle>
+          <Description className="flex-grow break-words px-2 text-[14px] font-medium">
+            {requireAttendance
+              ? `${formatEventDate(eventDate)} ${formatEventTime(eventTime)}`
+              : formatEventDate(eventDate)}
+          </Description>
+          {requireAttendance && (
+            <ManualAttendEvents
+              eventId={eventId}
+              eventName={eventName}
+              eventTime={eventTime}
+              eventDate={eventDate}
+            />
+          )}
+        </CardContent>
+      </Card>
+      {/* Full screen image modal */}
+      {showFullImage && (
+        <div
+          className="w-dvh fixed inset-0 z-50 flex h-dvh items-center justify-center bg-black/80 p-4"
+          onClick={() => setShowFullImage(false)}
+        >
+          <div className="relative max-h-[90vh] max-w-[90vw]">
+            <img
+              src={eventImage ?? SampleImage}
+              alt="Event Image"
+              className="max-h-[90vh] max-w-[90vw] object-contain"
+            />
+            <Button
+              className="text-primary-foreground absolute -right-4 -top-4 w-10 rounded-full p-2"
+              variant="outline"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowFullImage(false);
+              }}
+            >
+              <Icon icon="mingcute:close-fill" width={24} />
+            </Button>
+          </div>
         </div>
-      </CardFooter>
-    </Card>
+      )}
+    </>
   );
 };
 
 // Add PropTypes validation
 EventCard.propTypes = {
   eventId: PropTypes.string.isRequired,
-  eventName: PropTypes.string.isRequired, // Must be a string and required
-  eventDescription: PropTypes.string, // Optional string
-  eventDate: PropTypes.string.isRequired, // Must be a string in date format
-  eventTime: PropTypes.string.isRequired, // Must be a string in time format
+  eventName: PropTypes.string.isRequired,
+  eventDescription: PropTypes.string,
+  eventDate: PropTypes.string.isRequired,
+  eventTime: PropTypes.string.isRequired,
+  eventImage: PropTypes.string,
+  requireAttendance: PropTypes.bool,
 };
 
 export default EventCard;

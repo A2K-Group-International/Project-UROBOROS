@@ -23,7 +23,38 @@ const fetchGroups = async (ministryId) => {
     throw new Error(`Error fetching groups${error.message}`);
   }
 
-  return data;
+  // Process each group to get the proper image URL
+  const arrangedData = data.map((group) => {
+    // Create a copy of the group object
+    const processedGroup = { ...group };
+
+    // Only process image URL if it exists
+    if (processedGroup.image_url) {
+      const { data: urlData } = supabase.storage
+        .from("Uroboros")
+        .getPublicUrl(processedGroup.image_url);
+
+      processedGroup.image_url = urlData.publicUrl;
+    }
+
+    return processedGroup;
+  });
+
+  return arrangedData;
+};
+
+export const deleteImageFromStorage = async (path) => {
+  if (!path) return { data: null, error: null };
+
+  const { data, error } = await supabase.storage
+    .from("Uroboros")
+    .remove([path]);
+
+  if (error) {
+    console.error("Error deleting image:", error.message);
+  }
+
+  return { data, error };
 };
 
 const createGroup = async ({
@@ -32,53 +63,116 @@ const createGroup = async ({
   description,
   created_by,
   members,
+  groupImage,
 }) => {
-  const { data: group, error } = await supabase
-    .from("groups")
-    .insert([
-      {
-        ministry_id: ministryId,
-        name,
-        description,
-        created_by,
-      },
-    ])
-    .select("id")
-    .single();
+  try {
+    //  Upload the image (if provided)
+    let imagePath = null;
+    if (groupImage) {
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("Uroboros")
+        .upload(`group_images/${name}_${Date.now()}`, groupImage);
 
-  if (error) {
-    throw new Error(`Error creating group: ${error.message}`);
-  }
+      if (uploadError) {
+        throw new Error(`Image upload failed: ${uploadError.message}`);
+      }
 
-  // If there are members to add, add them
-  if (members && members.length > 0) {
-    const membersData = members.map((memberId) => ({
-      group_id: group.id,
-      user_id: memberId,
-    }));
-
-    const { error: membersError } = await supabase
-      .from("group_members")
-      .insert(membersData);
-
-    if (membersError) {
-      throw new Error(`Error adding group members: ${membersError.message}`);
+      imagePath = uploadData.path;
     }
-  }
+    const { data: group, error } = await supabase
+      .from("groups")
+      .insert([
+        {
+          ministry_id: ministryId,
+          name,
+          description,
+          image_url: imagePath,
+          created_by,
+        },
+      ])
+      .select("id")
+      .single();
 
-  return group;
+    if (error) {
+      // If DB insertion fails, clean up the uploaded image
+      if (imagePath) {
+        await deleteImageFromStorage(imagePath);
+      }
+      throw new Error(`Error creating group: ${error.message}`);
+    }
+
+    // If there are members to add, add them
+    if (members && members.length > 0) {
+      const membersData = members.map((memberId) => ({
+        group_id: group.id,
+        user_id: memberId,
+      }));
+
+      const { error: membersError } = await supabase
+        .from("group_members")
+        .insert(membersData);
+
+      if (membersError) {
+        throw new Error(`Error adding group members: ${membersError.message}`);
+      }
+    }
+
+    return group;
+  } catch (error) {
+    console.error("Error in create group:", error);
+    throw error;
+  }
 };
 
-const editGroup = async ({ groupId, name, description }) => {
+const editGroup = async ({ groupId, name, description, groupImage }) => {
   // Data validation
   if (!groupId) {
     throw new Error("Group ID is required");
+  }
+
+  // Get the currect group to check for existing image
+  const { data: currentGroup, error: fetchError } = await supabase
+    .from("groups")
+    .select("image_url")
+    .eq("id", groupId)
+    .single();
+
+  if (fetchError) {
+    throw new Error(`Error fetching current group: ${fetchError.message}`);
   }
 
   // Create update object with only the fields to update
   const updateData = {};
   if (name) updateData.name = name;
   if (description !== undefined) updateData.description = description;
+
+  // Handle image upload and deletion
+  let imagePath = null;
+
+  // If a new image is provided (File object)
+  if (groupImage instanceof File) {
+    // Upload the new image
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("Uroboros")
+      .upload(`group_images/${name}_${Date.now()}`, groupImage);
+
+    if (uploadError) {
+      throw new Error(`Image upload failed: ${uploadError.message}`);
+    }
+
+    imagePath = uploadData.path;
+    updateData.image_url = imagePath;
+
+    // Delete old image if it exists
+    if (currentGroup.image_url) {
+      await deleteImageFromStorage(currentGroup.image_url);
+    }
+  }
+  // If image is explicitly set to null, remove the current image
+  else if (groupImage === null && currentGroup.image_url) {
+    await deleteImageFromStorage(currentGroup.image_url);
+    updateData.image_url = null;
+  }
 
   // No fields to update
   if (Object.keys(updateData).length === 0) {
@@ -144,6 +238,22 @@ const removeMember = async ({ userId, groupId }) => {
 };
 
 const deleteGroup = async ({ groupId }) => {
+  const { data: group, error: fetchError } = await supabase
+    .from("groups")
+    .select("image_url")
+    .eq("id", groupId)
+    .single();
+
+  if (fetchError) {
+    console.error("Error fetching group:", fetchError);
+    throw new Error(`Failed to fetch group: ${fetchError.message}`);
+  }
+
+  // Delete the image if it exists
+  if (group && group.image_url) {
+    await deleteImageFromStorage(group.image_url);
+  }
+
   const { error: groupError } = await supabase
     .from("groups")
     .delete()

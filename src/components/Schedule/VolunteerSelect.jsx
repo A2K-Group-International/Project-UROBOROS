@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@iconify/react";
@@ -19,9 +20,8 @@ const VolunteerSelect = ({
   disableSchedule,
   assignedVolunteers,
   oldVolunteerId,
-  volunteers,
   eventId,
-  admins,
+  volunteerOptions, // This now comes from getVolunteerOptionsForRole()
   replaced,
   newreplacement_id,
 }) => {
@@ -30,38 +30,35 @@ const VolunteerSelect = ({
   const [error, setError] = useState("");
   const queryClient = useQueryClient();
 
-  const volunteersWithAdmin = [...admins || [],...volunteers || []]
+  // Filter the incoming volunteerOptions to exclude already assigned volunteers
+  const filteredOptions = (volunteerOptions || []).filter((option) => {
+    // Always include the current replacement if there is one
+    if (option.value === newreplacement_id) {
+      return true;
+    }
 
-  const previousVolunteerIds = new Set(
-    // Create a set of volunteer IDs that have already been replaced
-    assignedVolunteers
-      .filter((volunteer) => volunteer.replaced) // Filter for volunteers that have been replaced
-      .map((volunteer) => volunteer.volunteer_id) // Extract the volunteer_id for those replaced volunteers
-  );
-  
-  const replacementVolunteerIds = new Set(
-    // Create a set of volunteer IDs that are replacements (i.e., volunteers who replaced someone)
-    assignedVolunteers
-      .filter((volunteer) => volunteer.replaced) // Filter for volunteers that have been replaced
-      .map((volunteer) => volunteer.replacedby_id) // Extract the replacedby_id (the ID of the replacement volunteer)
-  );
-  
-  // Filter the volunteers list to exclude already assigned or replaced volunteers
-  const filteredVolunteers = volunteersWithAdmin?.filter(
-    (volunteer) =>
-      // Include volunteers that are either not yet assigned or are previous replacements
-      (!assignedVolunteers.some(
-        (assignedVolunteer) => assignedVolunteer.volunteer_id === volunteer.id
-      ) ||
-        previousVolunteerIds.has(volunteer.id)) &&
-      // Exclude volunteers who are currently replacements
-      !replacementVolunteerIds.has(volunteer.id)
-  );
+    // Get IDs of volunteers already assigned to this event (and not replaced)
+    const assignedVolunteerIds = new Set(
+      assignedVolunteers
+        ?.filter((vol) => !vol.replaced)
+        .map((vol) => vol.volunteer_id)
+    );
 
-  const volunteerOptions = filteredVolunteers?.map((volunteer) => ({
-    value: volunteer.id,
-    label: `${volunteer.first_name} ${volunteer.last_name}`,
-  }));
+    // Get IDs of volunteers who are currently acting as replacements
+    const replacementVolunteerIds = new Set(
+      assignedVolunteers
+        ?.filter((vol) => vol.replacedby_id)
+        .map((vol) => vol.replacedby_id)
+    );
+
+    // Exclude volunteers who are:
+    // 1. Already assigned and not replaced, or
+    // 2. Currently acting as replacements for other volunteers
+    return (
+      !assignedVolunteerIds.has(option.value) &&
+      !replacementVolunteerIds.has(option.value)
+    );
+  });
 
   const replaceVolunteerMutation = useMutation({
     mutationFn: async (data) => replaceVolunteer(data),
@@ -69,6 +66,8 @@ const VolunteerSelect = ({
       toast({
         title: "Volunteer replaced successfully",
       });
+      // Clear selection after successful replacement
+      setSelectedVolunteer(null);
     },
     onError: (error) => {
       toast({
@@ -111,31 +110,36 @@ const VolunteerSelect = ({
           />
         </DialogTrigger>
       )}
+
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit Assigned Volunteer</DialogTitle>
-          <DialogDescription>
-            Select a volunteer to replace.
-          </DialogDescription>
+          <DialogDescription>Select a volunteer to replace.</DialogDescription>
         </DialogHeader>
         <div>
           <CustomReactSelect
-          isMulti={false}
-            options={volunteerOptions}
+            isMulti={false}
+            options={filteredOptions}
             value={selectedVolunteer}
-            onChange={setSelectedVolunteer}
+            onChange={(value) => {
+              setSelectedVolunteer(value);
+              setError(""); // Clear error when selection changes
+            }}
             placeholder="Select a Volunteer"
             isClearable
-        />
+          />
           {error && (
             <div className="mt-2 text-sm font-semibold text-red-500">
               {error}
             </div>
           )}
-          <div className="flex justify-end">
-            <Button className="mt-2" onClick={handleSubmit}>
-              Replace Volunteer
-            </Button>
+          <div className="mt-4 flex justify-end space-x-2">
+            <DialogClose asChild>
+              <Button variant="outline" onClick={() => setError("")}>
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button onClick={handleSubmit}>Replace Volunteer</Button>
           </div>
         </div>
       </DialogContent>
@@ -153,21 +157,14 @@ VolunteerSelect.propTypes = {
     })
   ),
   oldVolunteerId: PropTypes.string.isRequired,
-  volunteers: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      first_name: PropTypes.string.isRequired,
-      last_name: PropTypes.string.isRequired,
-    })
-  ).isRequired,
-  admins:PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      first_name: PropTypes.string.isRequired,
-      last_name: PropTypes.string.isRequired,
-    })
-  ).isRequired,
   eventId: PropTypes.string.isRequired,
+  eventVisibility: PropTypes.string.isRequired,
+  volunteerOptions: PropTypes.arrayOf(
+    PropTypes.shape({
+      value: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+    })
+  ),
   replaced: PropTypes.bool.isRequired,
   newreplacement_id: PropTypes.string,
 };

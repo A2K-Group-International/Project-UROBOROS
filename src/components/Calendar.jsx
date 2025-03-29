@@ -11,8 +11,6 @@ import useRoleSwitcher from "@/hooks/useRoleSwitcher";
 import useEvent from "@/hooks/useEvent";
 
 const Calendar = ({ events }) => {
-
-
   const { calendarEvents } = useEvent();
   const [selectedShowCalendar, setSelectedShowCalendar] = useState("Events");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -20,6 +18,7 @@ const Calendar = ({ events }) => {
   const { userData } = useUser();
 
   const temporaryRole = useRoleSwitcher();
+
   const { data: meetings } = useQuery({
     queryKey: ["meetings", userData?.id],
     queryFn: () => fetchMeetingByCreatorId(userData?.id),
@@ -27,7 +26,9 @@ const Calendar = ({ events }) => {
   });
 
   // Make sure getEvents is available and is an array
-  const eventArray = Array.isArray(calendarEvents?.data) ? calendarEvents.data : [];
+  const eventArray = Array.isArray(calendarEvents?.data)
+    ? calendarEvents.data
+    : [];
   const safeMeetings = Array.isArray(meetings) ? meetings : [];
 
   const eventData = events
@@ -43,7 +44,6 @@ const Calendar = ({ events }) => {
         description: item.event_description,
         id: item.id,
       }));
-
 
   const meetingData = safeMeetings.map((meeting) => ({
     title: meeting.meeting_name,
@@ -98,6 +98,7 @@ const Calendar = ({ events }) => {
       <EventInfoDialog
         open={dialogOpen}
         event={selectedEvent}
+        eventData={events}
         onClose={() => setDialogOpen(false)}
         temporaryRole={temporaryRole?.temporaryRole}
       />

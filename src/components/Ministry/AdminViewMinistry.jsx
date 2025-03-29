@@ -9,7 +9,7 @@ const AdminViewMinistry = () => {
   const { ministries, ministryLoading } = useMinistry({});
   return (
     <div className="relative flex h-full flex-col p-0">
-      <div className="items-center justify-between border-b border-primary-outline pb-[20px] pl-[42px] pr-[48px] pt-[25px] md:flex">
+      <div className="flex items-center justify-between border-b border-primary-outline pb-4 lg:pb-[20px] lg:pl-[42px] lg:pr-[48px] lg:pt-[25px]">
         <div>
           <Title>Ministry Management</Title>
           <Description>Manage your ministry.</Description>
@@ -31,7 +31,7 @@ const AdminViewMinistry = () => {
       {ministryLoading ? (
         <Loading />
       ) : (
-        <div className="no-scrollbar grid h-full w-full gap-6 overflow-scroll px-[42px] py-6 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+        <div className="no-scrollbar h-auto w-full gap-6 space-y-2 overflow-scroll py-6 sm:grid sm:grid-cols-2 md:space-y-0 lg:px-[42px] xl:grid-cols-3 2xl:grid-cols-4">
           {/* Check if ministries exist after loading */}
           {ministries?.length === 0 ? (
             <p>No ministry have been created yet.</p>

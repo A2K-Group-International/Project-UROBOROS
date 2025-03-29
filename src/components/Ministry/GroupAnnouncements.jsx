@@ -6,6 +6,7 @@ import useAnnouncements from "@/hooks/useAnnouncements";
 import { Skeleton } from "../ui/skeleton";
 import useInterObserver from "@/hooks/useInterObserver";
 import PropTypes from "prop-types";
+import foldedPaperImage from "@/assets/images/foldedpaper.png";
 
 const GroupAnnouncements = ({ groupId }) => {
   const [searchParams] = useSearchParams();
@@ -30,7 +31,7 @@ const GroupAnnouncements = ({ groupId }) => {
   // Check if user is coordinator for this ministry
 
   return (
-    <div className="mx-auto flex h-full w-full max-w-[530px] flex-col pt-4">
+    <div className="mx-auto flex h-dvh w-full max-w-[530px] flex-col items-center pt-4">
       <AnnouncementHeader
         image={userData.user_image}
         first_name={userData.first_name}
@@ -45,7 +46,14 @@ const GroupAnnouncements = ({ groupId }) => {
           </div>
         ))
       ) : data?.pages?.flatMap((page) => page.items).length === 0 ? (
-        <p className="text-center">No announcements yet.</p>
+        <div className="mt-32 flex flex-1 flex-col gap-y-6 self-center">
+          <div className="mx-auto">
+            <img src={foldedPaperImage} alt="Folded Paper" />
+          </div>
+          <p className="text-center text-[20px] font-medium text-accent/35">
+            POST YOUR FIRST ANNOUNCEMENT
+          </p>
+        </div>
       ) : (
         data?.pages?.flatMap((page) =>
           page?.items?.map((announcement) => (

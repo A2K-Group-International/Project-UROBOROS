@@ -41,14 +41,14 @@ const RemoveCoordinator = ({ coordinator_id, ministryId }) => {
   return (
     <AlertDialog>
       <AlertDialogTrigger>
-        <Icon icon="mingcute:minus-circle-fill" height="20" />
+        <Icon icon="mingcute:minus-circle-fill" height="20" color="#663E2F" />
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
             Are you sure you want to remove this coordinator?
           </AlertDialogTitle>
-          <AlertDialogDescription>
+          <AlertDialogDescription className="sr-only">
             This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
@@ -57,6 +57,7 @@ const RemoveCoordinator = ({ coordinator_id, ministryId }) => {
           <Button
             variant="destructive"
             onClick={() => mutate({ ministryId, coordinator_id })}
+            className="flex-1"
           >
             Continue
           </Button>

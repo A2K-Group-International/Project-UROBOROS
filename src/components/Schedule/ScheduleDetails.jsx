@@ -1,4 +1,4 @@
-import { useEffect, memo, useState } from "react";
+import { useEffect, memo, useState, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import QRCode from "qrcode";
@@ -45,7 +45,13 @@ import {
 } from "@/services/attendanceService";
 
 import { useUser } from "@/context/useUser";
-import { cn, downloadExcel, exportAttendanceList } from "@/lib/utils";
+import {
+  cn,
+  downloadExcel,
+  exportAttendanceList,
+  formatEventDate,
+  formatEventTimeCompact,
+} from "@/lib/utils";
 import { Label } from "../ui/label";
 import { useToast } from "@/hooks/use-toast";
 import AddRecord from "./AddRecord";
@@ -73,6 +79,29 @@ import useRoleSwitcher from "@/hooks/useRoleSwitcher";
 import AddExistingRecord from "./AddExistingRecord";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import CustomReactSelect from "../CustomReactSelect";
+import {
+  fetchAllMinistryVolunteers,
+  getMinistryVolunteers,
+} from "@/services/ministryService";
+import { ROLES } from "@/constants/roles";
+
+//Fetch volunteer based on Ministry
+const useMinistryVolunteers = (ministryId) => {
+  return useQuery({
+    queryKey: ["ministry-volunteers", ministryId],
+    queryFn: () => getMinistryVolunteers(ministryId),
+    enabled: !!ministryId,
+  });
+};
+
+//Fetch all volunteer in all ministries coordinating by users
+const useFetchAllMinistryVolunteers = (userId) => {
+  return useQuery({
+    queryKey: ["user-group-members", userId],
+    queryFn: () => fetchAllMinistryVolunteers(userId),
+    enabled: !!userId,
+  });
+};
 
 const ScheduleDetails = () => {
   const [qrCode, setQRCode] = useState(null);
@@ -88,19 +117,30 @@ const ScheduleDetails = () => {
   const { toast } = useToast();
 
   const { temporaryRole } = useRoleSwitcher();
-
+  // Fetch volunteers and admins for assigning volunteers
   const { data: volunteers } = useUsersByRole("volunteer");
   const { data: admins } = useUsersByRole("admin");
+  const { data: coordinators } = useUsersByRole("coordinator");
 
-  // Fetch volunteers and admins for assigning volunteers
-  const { data: event, isLoading } = useQuery({
-    queryKey: ["event", eventId],
-    queryFn: async () => {
-      const response = await getEventById(eventId);
-      return response;
-    },
-    enabled: !!eventId,
-  });
+  // Fetch event base on eventId
+  const fetchedEvent = useMemo(
+    () => ({
+      queryKey: ["event", eventId],
+      queryFn: async () => {
+        const response = await getEventById(eventId);
+        return response;
+      },
+      enabled: !!eventId,
+    }),
+    [eventId]
+  );
+  const { data: event, isLoading } = useQuery(fetchedEvent);
+
+  const { data: ministryVolunteers, isLoading: _ministryVolunteersLoading } =
+    useMinistryVolunteers(event?.ministry_id);
+
+  const { data: allMinistryVolunteers, isLoading: _allMinistryVolunteers } =
+    useFetchAllMinistryVolunteers(userData?.id);
 
   const deleteMutation = useMutation({
     mutationFn: async () => await deleteEvent(eventId),
@@ -132,7 +172,7 @@ const ScheduleDetails = () => {
     },
   });
 
-  const { data: eventvolunteers, isLoading: _volunteersLoading } = useQuery({
+  const { data: eventVolunteers, isLoading: _volunteersLoading } = useQuery({
     queryKey: ["event_volunteers", eventId],
     queryFn: async () => {
       const response = await fetchEventVolunteers(eventId);
@@ -141,26 +181,34 @@ const ScheduleDetails = () => {
     enabled: !!eventId,
   });
 
-  const assignedUsers = [...(volunteers || []), ...(admins || [])];
+  const assignedUsers = [
+    ...(volunteers || []),
+    ...(admins || []),
+    ...(coordinators || []),
+  ];
 
-  const previousVolunteerIds = new Set(
-    // Create a set of volunteer IDs that have already been replaced
-    eventvolunteers
-      ?.filter((volunteer) => volunteer.replaced) // Filter for volunteers that have been replaced
-      .map((volunteer) => volunteer.volunteer_id) // Extract the volunteer_id for those replaced volunteers
-  );
+  // For tracking volunteers who have been replaced (original volunteers)
+  const previousVolunteerIds = useMemo(() => {
+    return new Set(
+      eventVolunteers
+        ?.filter((volunteer) => volunteer.replaced) // Filter for volunteers that have been replaced
+        .map((volunteer) => volunteer.volunteer_id) // Get IDs of original volunteers
+    );
+  }, [eventVolunteers]);
 
-  const replacementVolunteerIds = new Set(
-    // Create a set of volunteer IDs that are replacements (i.e., volunteers who replaced someone)
-    eventvolunteers
-      ?.filter((volunteer) => volunteer.replaced) // Filter for volunteers that have been replaced
-      .map((volunteer) => volunteer.replacedby_id) // Extract the replacedby_id (the ID of the replacement volunteer)
-  );
+  // For tracking volunteers who are acting as replacements
+  const replacementVolunteerIds = useMemo(() => {
+    return new Set(
+      eventVolunteers
+        ?.filter((volunteer) => volunteer.replacedby_id) // Filter volunteers that have a replacement
+        .map((volunteer) => volunteer.replacedby_id) // Get IDs of replacement volunteers
+    );
+  }, [eventVolunteers]);
 
   const filteredVolunteers = assignedUsers?.filter(
     (volunteer) =>
       // Include volunteers that are either not yet assigned or are previous replacements
-      (!eventvolunteers?.some(
+      (!eventVolunteers?.some(
         (assignedVolunteer) => assignedVolunteer.volunteer_id === volunteer.id
       ) ||
         previousVolunteerIds.has(volunteer.id)) &&
@@ -168,10 +216,107 @@ const ScheduleDetails = () => {
       !replacementVolunteerIds.has(volunteer.id)
   );
 
+  // Fetch all volunteers
   const volunteerOptions = filteredVolunteers?.map((volunteer) => ({
     value: volunteer.id,
     label: `${volunteer.first_name} ${volunteer.last_name}`,
   }));
+
+  // Fetch all volunteers on all ministry of user
+  const ministriesVolunteers = useMemo(() => {
+    if (!allMinistryVolunteers) return [];
+
+    // Filter out volunteers that are already assigned to the event
+    const filteredVolunteers = allMinistryVolunteers.filter(
+      (volunteer) =>
+        // Include users that are either not yet assigned or are previous replacements
+        (!eventVolunteers?.some(
+          (assignedVolunteer) => assignedVolunteer.volunteer_id === volunteer.id
+        ) ||
+          previousVolunteerIds.has(volunteer.id)) &&
+        // Exclude volunteers who are currently replacements
+        !replacementVolunteerIds.has(volunteer.id)
+    );
+
+    // Map the filtered volunteers to the options format
+    return filteredVolunteers.map((volunteer) => ({
+      value: volunteer.id,
+      label: `${volunteer.first_name} ${volunteer.last_name}`,
+    }));
+  }, [
+    allMinistryVolunteers,
+    eventVolunteers,
+    previousVolunteerIds,
+    replacementVolunteerIds,
+  ]);
+
+  // Fetch volunteers based on ministry
+  const ministryVolunteerOptions = useMemo(() => {
+    if (!ministryVolunteers || !Array.isArray(ministryVolunteers)) return [];
+
+    // Fetch volunteers based on ministry
+    const ministryUsers = ministryVolunteers.flatMap((item) => {
+      if (item?.users) {
+        return [
+          {
+            id: item.users.id,
+            first_name: item.users.first_name,
+            last_name: item.users.last_name,
+          },
+        ];
+      }
+      return [];
+    });
+
+    // Filter out volunteers that are already assigned to the event
+    const filteredMinistryUsers = ministryUsers.filter(
+      (volunteer) =>
+        // Include users that are either not yet assigned or are previous replacements
+        (!eventVolunteers?.some(
+          (assignedVolunteer) => assignedVolunteer.volunteer_id === volunteer.id
+        ) ||
+          previousVolunteerIds.has(volunteer.id)) &&
+        // Exclude volunteers who are currently replacements
+        !replacementVolunteerIds.has(volunteer.id)
+    );
+
+    // Convert filtered data to options format
+    return filteredMinistryUsers.map((volunteer) => ({
+      value: volunteer.id,
+      label: `${volunteer.first_name} ${volunteer.last_name}`,
+    }));
+  }, [
+    ministryVolunteers,
+    eventVolunteers,
+    previousVolunteerIds,
+    replacementVolunteerIds,
+  ]);
+
+  // Fetch volunteers in select
+  const getVolunteerOptionsForRole = () => {
+    //Admin Role
+    if (temporaryRole === ROLES[4]) {
+      return event?.event_visibility === "public"
+        ? volunteerOptions
+        : ministryVolunteerOptions;
+    }
+
+    //Coordinator role
+    if (temporaryRole === ROLES[0]) {
+      return event?.event_visibility === "public"
+        ? ministriesVolunteers
+        : ministryVolunteerOptions;
+    }
+
+    //Volunteer role
+
+    //Admin Role
+    if (temporaryRole === ROLES[1]) {
+      return event?.event_visibility === "public"
+        ? volunteerOptions
+        : ministryVolunteerOptions;
+    }
+  };
 
   const { data: attendance, isLoading: attendanceLoading } = useQuery({
     queryKey: ["attendance", eventId],
@@ -257,11 +402,11 @@ const ScheduleDetails = () => {
   };
 
   const handleDownloadExcel = () => {
-    downloadExcel(event, eventvolunteers, attendance, attendanceCount);
+    downloadExcel(event, eventVolunteers, attendance, attendanceCount);
   };
 
   const handleDownloadPDF = () => {
-    exportAttendanceList(event, eventvolunteers, attendance, attendanceCount);
+    exportAttendanceList(event, eventVolunteers, attendance, attendanceCount);
   };
 
   useEffect(() => {
@@ -369,42 +514,33 @@ const ScheduleDetails = () => {
     <div className="no-scrollbar flex h-full grow flex-col gap-2 overflow-y-scroll px-3 py-2 md:px-9 md:py-6">
       <div className="flex flex-wrap justify-between">
         <div>
-          <Title>
-            {`${event.event_name}, ${new Date(
-              `${event.event_date}T${event.event_time}`
-            )
-              .toLocaleTimeString("en-US", {
-                hour: "numeric",
-                minute: "numeric",
-                hour12: true,
-              })
-              .replace(":", ".")
-              .replace(" ", "")
-              .toLowerCase()}`}
+          <Title className="text-2xl">
+            {event.requires_attendance
+              ? `${event.event_name}, ${formatEventTimeCompact(event.event_time)}`
+              : event.event_name}
           </Title>
-          <Label className="text-2xl text-primary-text">
-            Date:{" "}
-            {new Date(event?.event_date).toLocaleDateString("en-GB", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-            })}
+          <Label className="text-xl text-primary-text">
+            Date: {formatEventDate(event?.event_date)}
           </Label>
           <Description>{event?.event_description}</Description>
         </div>
         <div className="flex">
-          <div className="flex gap-1">
+          <div className="flex flex-col gap-1 md:flex-row">
             {!disableSchedule && (
               <div className="flex flex-wrap gap-1">
                 <AddExistingRecord eventId={eventId} />
                 <AddRecord eventId={eventId} />
+              </div>
+            )}
+            <div className="flex gap-x-2">
+              <div>
                 <Dialog onOpenChange={generateQRCode}>
                   <DialogTrigger asChild>
                     <Button>
                       <Icon icon={"mingcute:qrcode-2-line"} />
                     </Button>
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent aria-describedby="generate-qrcode">
                     <DialogHeader>
                       <DialogTitle>QR Code</DialogTitle>
                       <DialogDescription>
@@ -417,73 +553,74 @@ const ScheduleDetails = () => {
                   </DialogContent>
                 </Dialog>
               </div>
-            )}
-            <div className="flex flex-wrap">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button className="rounded-xl px-3 py-3">
-                    <Icon icon={"mingcute:download-2-line"} />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" side="bottom">
-                  <DropdownMenuItem onClick={handleDownloadPDF}>
-                    Download as PDF
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleDownloadExcel}>
-                    Download as Excel
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button className="rounded-xl px-3 py-3">
+                      <Icon icon={"mingcute:download-2-line"} />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" side="bottom">
+                    <DropdownMenuItem onClick={handleDownloadPDF}>
+                      Download as PDF
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleDownloadExcel}>
+                      Download as Excel
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+              <div>
+                <Dialog
+                  open={deleteDialogOpen}
+                  onOpenChange={(isOpen) => {
+                    setDeleteDialogOpen(isOpen);
+                  }}
+                >
+                  {((!disableSchedule && temporaryRole === "admin") ||
+                    (!disableSchedule && temporaryRole === "coordinator")) && (
+                    <DialogTrigger asChild>
+                      <Button className="rounded-xl px-3 py-3">
+                        <Icon icon={"mingcute:delete-3-line"} />
+                      </Button>
+                    </DialogTrigger>
+                  )}
+                  <DialogContent
+                    className="sm:rounded-3xl"
+                    aria-describedby="delete-event"
+                  >
+                    <DialogHeader>
+                      <DialogTitle className="text-2xl text-accent">
+                        Delete Event?
+                      </DialogTitle>
+                    </DialogHeader>
+                    <DialogDescription className="text-accent opacity-80">
+                      Are you sure you want to delete this event?
+                    </DialogDescription>
+                    <DialogFooter className="mx-2 flex gap-2">
+                      <Button
+                        onClick={() => setDeleteDialogOpen(false)}
+                        className="rounded-xl text-accent hover:text-accent"
+                        variant="outline"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        className="rounded-xl"
+                        variant={"destructive"}
+                        onClick={() => {
+                          deleteMutation.mutate();
+                        }}
+                        disabled={deleteMutation.isPending}
+                      >
+                        {deleteMutation.isPending ? "Deleting..." : "Delete"}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
           </div>
-
-          <Dialog
-            open={deleteDialogOpen}
-            onOpenChange={(isOpen) => {
-              setDeleteDialogOpen(isOpen);
-            }}
-          >
-            {((!disableSchedule && temporaryRole === "admin") ||
-              (!disableSchedule && temporaryRole === "coordinator")) && (
-              <DialogTrigger className="ml-2 w-fit" asChild>
-                <Button
-                  // onClick={() => deleteMutation.mutate()}
-                  className="rounded-xl px-3 py-3"
-                >
-                  <Icon icon={"mingcute:delete-3-line"} />
-                </Button>
-              </DialogTrigger>
-            )}
-            <DialogContent className="sm:rounded-3xl">
-              <DialogHeader>
-                <DialogTitle className="text-2xl text-accent">
-                  Delete Event?
-                </DialogTitle>
-              </DialogHeader>
-              <DialogDescription className="text-accent opacity-80">
-                Are you sure you want to delete this event?
-              </DialogDescription>
-              <DialogFooter className="mx-2 flex gap-2">
-                <Button
-                  onClick={() => setDeleteDialogOpen(false)}
-                  className="rounded-xl text-accent hover:text-accent"
-                  variant="outline"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  className="rounded-xl"
-                  variant={"destructive"}
-                  onClick={() => {
-                    deleteMutation.mutate();
-                  }}
-                  disabled={deleteMutation.isPending}
-                >
-                  {deleteMutation.isPending ? "Deleting..." : "Delete"}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
         </div>
       </div>
       <div>
@@ -491,15 +628,12 @@ const ScheduleDetails = () => {
           <Label className="text-primary-text">
             List of Assigned Volunteer(s)
           </Label>
-          <Dialog>
-            {!disableSchedule && temporaryRole !== "volunteer" && (
-              <DialogTrigger>
-                <button className="rounded-md bg-accent p-1 hover:cursor-pointer">
-                  <Icon
-                    className="h-4 w-4 text-white"
-                    icon="mingcute:add-fill"
-                  ></Icon>
-                </button>
+          <Dialog aria-describedby="assign-volunteer">
+            {!disableSchedule && (
+              <DialogTrigger asChild>
+                <Button className="h-5 w-5" size="icon">
+                  <Icon className="text-white" icon="mingcute:add-fill"></Icon>
+                </Button>
               </DialogTrigger>
             )}
             <DialogContent>
@@ -519,11 +653,11 @@ const ScheduleDetails = () => {
                         <FormLabel>Assign Volunteer</FormLabel>
                         <FormControl>
                           <CustomReactSelect
-                            options={volunteerOptions}
+                            options={getVolunteerOptionsForRole()}
                             onChange={(selectedOptions) => {
                               field.onChange(
                                 selectedOptions.map((option) => option.value)
-                              ); // Extract IDs from selected options
+                              );
                             }}
                             placeholder="Select Volunteer"
                           />
@@ -542,7 +676,7 @@ const ScheduleDetails = () => {
             </DialogContent>
           </Dialog>
         </div>
-        {eventvolunteers?.map((volunteer, i) => (
+        {eventVolunteers?.map((volunteer, i) => (
           <div key={i} className="flex gap-2">
             <p>{`${i + 1}.`}</p>
             <p
@@ -561,19 +695,20 @@ const ScheduleDetails = () => {
                 <VolunteerSelect
                   // setVolunteerDialogOpen={setVolunteerDialogOpen}
                   currentVolunteer={volunteer}
-                  assignedVolunteers={eventvolunteers}
+                  assignedVolunteers={eventVolunteers}
                   admins={admins}
-                  oldVolunteerId={volunteer.volunteer_id}
+                  oldVolunteerId={volunteer?.volunteer_id}
                   eventId={eventId}
+                  eventVisibility={event?.event_visibility}
                   volunteers={volunteers}
-                  newreplacement_id={volunteer.replacedby_id}
+                  volunteerOptions={getVolunteerOptionsForRole()}
+                  newreplacement_id={volunteer?.replacedby_id}
                   replaced={volunteer.replaced}
                   disableSchedule={disableSchedule}
                 />
               )}
               <Dialog>
-                {((!disableSchedule && temporaryRole === "admin") ||
-                  (!disableSchedule && temporaryRole === "coordinator")) && (
+                {!disableSchedule && (
                   <DialogTrigger>
                     <Icon
                       className="h-5 w-5 text-red-500 hover:cursor-pointer"
@@ -582,10 +717,10 @@ const ScheduleDetails = () => {
                   </DialogTrigger>
                 )}
 
-                <DialogContent>
+                <DialogContent aria-describedby="update-volunteer">
                   <DialogHeader>
                     <DialogTitle>
-                      Remove{" "}
+                      Remove
                       {!volunteer?.volunteer_replacement
                         ? `${volunteer.users.first_name.toFirstUpperCase()} ${volunteer.users.last_name.toFirstUpperCase()} `
                         : `${volunteer?.volunteer_replacement?.first_name.toFirstUpperCase()} ${volunteer?.volunteer_replacement?.last_name.toFirstUpperCase()}?`}

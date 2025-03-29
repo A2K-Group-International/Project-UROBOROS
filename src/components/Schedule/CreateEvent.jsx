@@ -44,6 +44,7 @@ import CustomReactSelect from "../CustomReactSelect";
 import useRoleSwitcher from "@/hooks/useRoleSwitcher";
 import { ROLES } from "@/constants/roles";
 import {
+  fetchAllMinistryVolunteers,
   getAssignedMinistries,
   getMinistryVolunteers,
 } from "@/services/ministryService";
@@ -61,6 +62,14 @@ const useMinistryVolunteers = (ministryId) => {
     queryKey: ["ministry-volunteers", ministryId],
     queryFn: () => getMinistryVolunteers(ministryId),
     enabled: !!ministryId,
+  });
+};
+
+const useFetchAllMinistryVolunteers = (userId) => {
+  return useQuery({
+    queryKey: ["user-group-members", userId],
+    queryFn: () => fetchAllMinistryVolunteers(userId),
+    enabled: !!userId,
   });
 };
 
@@ -98,6 +107,11 @@ const CreateEvent = ({
   const { data: ministryVolunteers, isLoading: ministryVolunteersLoading } =
     useMinistryVolunteers(selectedMinistry);
 
+  const {
+    data: allMinistryVolunteers = [],
+    isLoading: allMinistryVolunteersLoading,
+  } = useFetchAllMinistryVolunteers(userData?.id);
+
   const publicVolunteers = [
     ...(volunteers || []),
     ...(admins || []),
@@ -134,8 +148,20 @@ const CreateEvent = ({
 
   //Volunteer options
   const getVolunteerOptions = () => {
-    //For public visibility, return all volunteers
-    if (watchVisibility === "public") {
+    if (
+      allMinistryVolunteersLoading &&
+      watchVisibility === "public" &&
+      temporaryRole === ROLES[0]
+    ) {
+      return [{ value: "", label: "Loading volunteers...", isDisabled: true }];
+    }
+    if (watchVisibility === "public" && temporaryRole === ROLES[0]) {
+      //For public visibility, return all volunteers
+      return allMinistryVolunteers?.map((volunteer) => ({
+        value: volunteer.id,
+        label: `${volunteer.first_name} ${volunteer.last_name}`,
+      }));
+    } else if (watchVisibility === "public") {
       return (
         publicVolunteers?.map((volunteer) => ({
           value: volunteer?.id || "",
@@ -163,7 +189,6 @@ const CreateEvent = ({
   };
 
   const updateEventSchema = createEventSchema.omit({ assignVolunteer: true });
-
   const eventForm = useForm({
     resolver: zodResolver(eventData ? updateEventSchema : createEventSchema),
     defaultValues: {
@@ -173,7 +198,7 @@ const CreateEvent = ({
         eventData?.event_visibility ||
         (temporaryRole === ROLES[0] ? "private" : "public"),
       ministry:
-        eventData?.event_ministry ||
+        eventData?.ministry_id ||
         (coordinatorMinistry?.length === 1 ? coordinatorMinistry[0] : ""),
       eventDate: eventData?.event_date
         ? new Date(`${eventData?.event_date}T${eventData?.event_time}`)
@@ -263,9 +288,9 @@ const CreateEvent = ({
     // Prepare event data with formatted date and time
     const eventPayload = {
       ...data,
-      eventDate: formattedDate, // Ensure event date is formatted correctly
-      eventTime: formattedTime, // Ensure event time is formatted correctly
-      userId, // Include userId in the data
+      eventDate: formattedDate,
+      eventTime: formattedTime,
+      userId,
     };
 
     // Call the create event function with the prepared data

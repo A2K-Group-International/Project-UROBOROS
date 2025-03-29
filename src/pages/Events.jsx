@@ -29,17 +29,17 @@ const Events = () => {
     <>
       <Title>Events</Title>
       <Description>Latest upcoming events at the church</Description>
-      <div className="mt-5 flex justify-center gap-x-2 md:justify-start">
+      <div className="no-scrollbar mt-5 flex justify-center gap-x-2 md:justify-start">
         <ParishionerDialogCalendar events={parishionerEvents?.data} />
         <QrScannerEvents eventData={parishionerEvents?.data} />
       </div>
-      <div className="mt-5 grid gap-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+      <div className="mt-5 grid place-items-center justify-center gap-2 sm:grid-cols-2 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
         {isLoading ? (
           <Loading />
         ) : parishionerEvents?.data?.length === 0 ? (
           <p>No Upcoming Events</p>
         ) : (
-          parishionerEvents?.data.map((event, i) => (
+          parishionerEvents?.data?.map((event, i) => (
             <EventCard
               key={i}
               eventId={event.id}
@@ -47,6 +47,8 @@ const Events = () => {
               eventDescription={event.description}
               eventDate={event.event_date}
               eventTime={event.event_time}
+              eventImage={event.image_url}
+              requireAttendance={event.requires_attendance}
             />
           ))
         )}

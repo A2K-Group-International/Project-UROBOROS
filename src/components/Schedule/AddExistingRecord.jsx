@@ -120,9 +120,44 @@ const AddExistingRecord = ({ eventId }) => {
       },
       initialPageParam: 1,
     });
-  // Combine all families from all pages
-  const allFamilies = useMemo(() => {
-    return data?.pages?.flatMap((page) => page.families) ?? [];
+
+  // Extract all parents from all pages
+  const allParents = useMemo(() => {
+    if (!data?.pages) return [];
+
+    // Create a Map to track unique parents by ID
+
+    const uniqueParents = new Map();
+
+    // Process all pages
+    data.pages.forEach((page) => {
+      page.parents?.forEach((parent) => {
+        if (!uniqueParents.has(parent.id)) {
+          uniqueParents.set(parent.id, parent);
+        }
+      });
+    });
+
+    return Array.from(uniqueParents.values());
+  }, [data?.pages]);
+
+  // Extract all children from all pages
+  const allChildren = useMemo(() => {
+    if (!data?.pages) return [];
+
+    // Create a Map to track unique children by ID
+    const uniqueChildren = new Map();
+
+    // Process all pages
+    data.pages.forEach((page) => {
+      page.children?.forEach((child) => {
+        if (!uniqueChildren.has(child.id)) {
+          uniqueChildren.set(child.id, child);
+        }
+      });
+    });
+
+    return Array.from(uniqueChildren.values());
   }, [data?.pages]);
 
   const allWalkIns = useMemo(() => {
@@ -293,238 +328,52 @@ const AddExistingRecord = ({ eventId }) => {
             </div>
           ) : (
             <>
-              {(allFamilies.length === 0) & (allWalkIns.length === 0) ? (
+              {allParents?.length === 0 &&
+              allChildren?.length === 0 &&
+              allWalkIns?.length === 0 ? (
                 <Label className="flex items-center justify-center">
                   No data found
                 </Label>
               ) : (
                 <>
-                  {allFamilies?.map((family) => (
-                    <div
-                      key={family?.familyId}
-                      className="rounded-lg bg-primary p-2"
-                    >
-                      {/* Parents Section */}
-                      {family.parents?.length > 0 && (
-                        <div className="space-y-2">
-                          <Label className="text-primary-text">
-                            Parents/Guardians
-                          </Label>
-                          <ul className="space-y-2">
-                            {family.parents?.map((parent) => (
-                              <li
-                                key={parent?.id}
-                                className="rounded-lg bg-white px-5 py-1 text-primary-text"
-                              >
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-x-2">
-                                    {existingAttendees?.has(parent.id) && (
-                                      <Switch
-                                        checked={attendanceStatus?.get(
-                                          parent.id
-                                        )}
-                                        onCheckedChange={(checked) =>
-                                          onAttend(parent.id, checked)
-                                        }
-                                      />
-                                    )}
-                                    <Label>
-                                      {parent.first_name} {parent.last_name}
-                                    </Label>
-                                  </div>
-                                  <div>
-                                    {existingAttendees?.has(parent.id) ? (
-                                      <Button
-                                        disabled={
-                                          loadingRemoveAttendeeId == parent.id
-                                        }
-                                        onClick={() =>
-                                          handleRemoveAttendee(parent.id)
-                                        }
-                                        className="rounded-xl bg-red-100 text-[12px] text-red-600"
-                                      >
-                                        {loadingRemoveAttendeeId ===
-                                        parent.id ? (
-                                          <Loader2 className="h-4 w-4 animate-spin" />
-                                        ) : (
-                                          "Remove"
-                                        )}
-                                      </Button>
-                                    ) : (
-                                      <Button
-                                        disabled={
-                                          loadingAddAttendeeId == parent.id
-                                        }
-                                        onClick={() =>
-                                          handleAddAttendee(
-                                            parent.id,
-                                            parent.first_name,
-                                            parent.last_name,
-                                            parent.family_id,
-                                            parent.contact_number,
-                                            "parents"
-                                          )
-                                        }
-                                        className="rounded-xl bg-[#EFDED6] text-[12px] text-primary-text"
-                                      >
-                                        {loadingAddAttendeeId === parent.id ? (
-                                          <Loader2 className="h-4 w-4 animate-spin" />
-                                        ) : (
-                                          "Add"
-                                        )}
-                                      </Button>
-                                    )}
-                                  </div>
-                                </div>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      {/* Children Section */}
-                      {family.children?.length > 0 && (
-                        <div className="space-y-2">
-                          <Label className="text-primary-text">Children</Label>
-                          <ul className="space-y-2">
-                            {family.children.map((child) => (
-                              <li
-                                key={child.id}
-                                className="rounded-lg bg-white px-5 py-1 text-primary-text"
-                              >
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-x-2">
-                                    {existingAttendees.has(child.id) && (
-                                      <Switch
-                                        checked={attendanceStatus.get(child.id)}
-                                        onCheckedChange={(checked) =>
-                                          onAttend(child.id, checked)
-                                        }
-                                      />
-                                    )}
-                                    <Label>
-                                      {child.first_name} {child.last_name}
-                                    </Label>
-                                  </div>
-                                  <div>
-                                    {existingAttendees.has(child.id) ? (
-                                      <Button
-                                        disabled={
-                                          loadingRemoveAttendeeId === child.id
-                                        }
-                                        onClick={() =>
-                                          handleRemoveAttendee(child.id)
-                                        }
-                                        className="rounded-xl bg-red-100 text-[12px] text-red-600"
-                                      >
-                                        {loadingRemoveAttendeeId ===
-                                        child.id ? (
-                                          <Loader2 className="h-4 w-4 animate-spin" />
-                                        ) : (
-                                          "Remove"
-                                        )}
-                                      </Button>
-                                    ) : (
-                                      <Button
-                                        disabled={
-                                          loadingAddAttendeeId === child.id
-                                        }
-                                        onClick={() =>
-                                          handleAddAttendee(
-                                            child.id,
-                                            child.first_name,
-                                            child.last_name,
-                                            child.family_id,
-                                            child.contact_number,
-                                            "children"
-                                          )
-                                        }
-                                        className="rounded-xl bg-[#EFDED6] text-[12px] text-primary-text"
-                                      >
-                                        {loadingAddAttendeeId === child.id ? (
-                                          <Loader2 className="h-4 w-4 animate-spin" />
-                                        ) : (
-                                          "Add"
-                                        )}
-                                      </Button>
-                                    )}
-                                  </div>
-                                </div>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                  <div className="space-y-2 rounded-lg bg-primary p-2">
-                    {allWalkIns.length > 0 && (
-                      <>
-                        <div className="flex items-center justify-center gap-x-2 text-center text-primary-text">
-                          <Label className="text-xs font-semibold text-primary-text md:text-sm">
-                            Manual Record (from Walk-in and Volunteers input)
-                          </Label>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Icon
-                                className="h-5 w-5"
-                                icon="mingcute:question-line"
-                              />
-                            </PopoverTrigger>
-                            <PopoverContent>
-                              <p>
-                                This section displays attendance records added
-                                from walk-ins and volunteers.
-                              </p>
-                            </PopoverContent>
-                          </Popover>
-                        </div>
-                        {/* Walk-ins Section */}
-                        {allWalkIns.map((walkIn) => (
-                          <div
-                            key={walkIn.id}
+                  {/* Parents Section */}
+                  {allParents.length > 0 && (
+                    <div className="space-y-2 rounded-lg bg-primary p-2">
+                      <Label className="text-primary-text">
+                        Parents/Guardians
+                      </Label>
+                      <ul className="space-y-2">
+                        {allParents.map((parent) => (
+                          <li
+                            key={parent?.id}
                             className="rounded-lg bg-white px-5 py-1 text-primary-text"
                           >
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-x-2">
-                                {existingWalkInAttendees?.has(
-                                  `${walkIn.first_name} ${walkIn.last_name}`
-                                ) && (
+                                {existingAttendees?.has(parent.id) && (
                                   <Switch
-                                    checked={walkInAtendeeStatus?.get(
-                                      `${walkIn.first_name} ${walkIn.last_name}`
-                                    )}
+                                    checked={attendanceStatus?.get(parent.id)}
                                     onCheckedChange={(checked) =>
-                                      handleUpdateWalkInAttendee(
-                                        walkIn.first_name,
-                                        walkIn.last_name,
-                                        checked
-                                      )
+                                      onAttend(parent.id, checked)
                                     }
                                   />
                                 )}
                                 <Label>
-                                  {walkIn.first_name} {walkIn.last_name}
+                                  {parent.first_name} {parent.last_name}
                                 </Label>
                               </div>
                               <div>
-                                {existingWalkInAttendees?.has(
-                                  `${walkIn.first_name} ${walkIn.last_name}`
-                                ) ? (
+                                {existingAttendees?.has(parent.id) ? (
                                   <Button
                                     disabled={
-                                      loadingRemoveAttendeeId ===
-                                      `${walkIn.first_name} ${walkIn.last_name}`
+                                      loadingRemoveAttendeeId == parent.id
                                     }
                                     onClick={() =>
-                                      handleRemoveWalkInAttendee(
-                                        walkIn.first_name,
-                                        walkIn.last_name
-                                      )
+                                      handleRemoveAttendee(parent.id)
                                     }
                                     className="rounded-xl bg-red-100 text-[12px] text-red-600"
                                   >
-                                    {loadingRemoveAttendeeId ===
-                                    `${walkIn.first_name} ${walkIn.last_name}` ? (
+                                    {loadingRemoveAttendeeId === parent.id ? (
                                       <Loader2 className="h-4 w-4 animate-spin" />
                                     ) : (
                                       "Remove"
@@ -532,23 +381,20 @@ const AddExistingRecord = ({ eventId }) => {
                                   </Button>
                                 ) : (
                                   <Button
-                                    disabled={
-                                      loadingAddAttendeeId ===
-                                      `${walkIn.first_name} ${walkIn.last_name}`
-                                    }
+                                    disabled={loadingAddAttendeeId == parent.id}
                                     onClick={() =>
-                                      handleWalkInAddAttendee(
-                                        walkIn.first_name,
-                                        walkIn.last_name,
-                                        walkIn.family_id,
-                                        walkIn.contact_number,
-                                        walkIn.attendee_type
+                                      handleAddAttendee(
+                                        parent.id,
+                                        parent.first_name,
+                                        parent.last_name,
+                                        parent.family_id,
+                                        parent.contact_number,
+                                        "parents"
                                       )
                                     }
                                     className="rounded-xl bg-[#EFDED6] text-[12px] text-primary-text"
                                   >
-                                    {loadingAddAttendeeId ===
-                                    `${walkIn.first_name} ${walkIn.last_name}` ? (
+                                    {loadingAddAttendeeId === parent.id ? (
                                       <Loader2 className="h-4 w-4 animate-spin" />
                                     ) : (
                                       "Add"
@@ -557,11 +403,189 @@ const AddExistingRecord = ({ eventId }) => {
                                 )}
                               </div>
                             </div>
-                          </div>
+                          </li>
                         ))}
-                      </>
-                    )}
-                  </div>
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Children Section */}
+                  {allChildren.length > 0 && (
+                    <div className="space-y-2 rounded-lg bg-primary p-2">
+                      <Label className="text-primary-text">Children</Label>
+                      <ul className="space-y-2">
+                        {allChildren.map((child) => (
+                          <li
+                            key={child.id}
+                            className="rounded-lg bg-white px-5 py-1 text-primary-text"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-x-2">
+                                {existingAttendees.has(child.id) && (
+                                  <Switch
+                                    checked={attendanceStatus.get(child.id)}
+                                    onCheckedChange={(checked) =>
+                                      onAttend(child.id, checked)
+                                    }
+                                  />
+                                )}
+                                <Label>
+                                  {child.first_name} {child.last_name}
+                                </Label>
+                              </div>
+                              <div>
+                                {existingAttendees.has(child.id) ? (
+                                  <Button
+                                    disabled={
+                                      loadingRemoveAttendeeId === child.id
+                                    }
+                                    onClick={() =>
+                                      handleRemoveAttendee(child.id)
+                                    }
+                                    className="rounded-xl bg-red-100 text-[12px] text-red-600"
+                                  >
+                                    {loadingRemoveAttendeeId === child.id ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      "Remove"
+                                    )}
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    disabled={loadingAddAttendeeId === child.id}
+                                    onClick={() =>
+                                      handleAddAttendee(
+                                        child.id,
+                                        child.first_name,
+                                        child.last_name,
+                                        child.family_id,
+                                        child.contact_number,
+                                        "children"
+                                      )
+                                    }
+                                    className="rounded-xl bg-[#EFDED6] text-[12px] text-primary-text"
+                                  >
+                                    {loadingAddAttendeeId === child.id ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      "Add"
+                                    )}
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Keep your existing Walk-ins section which is already correct */}
+
+                  {allWalkIns.length > 0 && (
+                    <div className="space-y-2 rounded-lg bg-primary p-2">
+                      <div className="flex items-center justify-center gap-x-2 text-center text-primary-text">
+                        <Label className="text-xs font-semibold text-primary-text md:text-sm">
+                          Manual Record (from Walk-in and Volunteers input)
+                        </Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Icon
+                              className="h-5 w-5"
+                              icon="mingcute:question-line"
+                            />
+                          </PopoverTrigger>
+                          <PopoverContent>
+                            <p>
+                              This section displays attendance records added
+                              from walk-ins and volunteers.
+                            </p>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                      {/* Walk-ins Section */}
+                      {allWalkIns.map((walkIn) => (
+                        <div
+                          key={walkIn.id}
+                          className="rounded-lg bg-white px-5 py-1 text-primary-text"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-x-2">
+                              {existingWalkInAttendees?.has(
+                                `${walkIn.first_name} ${walkIn.last_name}`
+                              ) && (
+                                <Switch
+                                  checked={walkInAtendeeStatus?.get(
+                                    `${walkIn.first_name} ${walkIn.last_name}`
+                                  )}
+                                  onCheckedChange={(checked) =>
+                                    handleUpdateWalkInAttendee(
+                                      walkIn.first_name,
+                                      walkIn.last_name,
+                                      checked
+                                    )
+                                  }
+                                />
+                              )}
+                              <Label>
+                                {walkIn.first_name} {walkIn.last_name}
+                              </Label>
+                            </div>
+                            <div>
+                              {existingWalkInAttendees?.has(
+                                `${walkIn.first_name} ${walkIn.last_name}`
+                              ) ? (
+                                <Button
+                                  disabled={
+                                    loadingRemoveAttendeeId ===
+                                    `${walkIn.first_name} ${walkIn.last_name}`
+                                  }
+                                  onClick={() =>
+                                    handleRemoveWalkInAttendee(
+                                      walkIn.first_name,
+                                      walkIn.last_name
+                                    )
+                                  }
+                                  className="rounded-xl bg-red-100 text-[12px] text-red-600"
+                                >
+                                  {loadingRemoveAttendeeId ===
+                                  `${walkIn.first_name} ${walkIn.last_name}` ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    "Remove"
+                                  )}
+                                </Button>
+                              ) : (
+                                <Button
+                                  disabled={
+                                    loadingAddAttendeeId ===
+                                    `${walkIn.first_name} ${walkIn.last_name}`
+                                  }
+                                  onClick={() =>
+                                    handleWalkInAddAttendee(
+                                      walkIn.first_name,
+                                      walkIn.last_name,
+                                      walkIn.family_id,
+                                      walkIn.contact_number,
+                                      walkIn.attendee_type
+                                    )
+                                  }
+                                  className="rounded-xl bg-[#EFDED6] text-[12px] text-primary-text"
+                                >
+                                  {loadingAddAttendeeId ===
+                                  `${walkIn.first_name} ${walkIn.last_name}` ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    "Add"
+                                  )}
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </>
               )}
               {/* div for intersection observer */}

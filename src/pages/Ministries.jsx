@@ -12,8 +12,8 @@ const CoordinatorViewMinistry = lazy(
 );
 
 const ROLE_COMPONENTS = {
-  [ROLES[0]]: CoordinatorViewMinistry,
-  [ROLES[4]]: AdminViewMinistry,
+  [ROLES[0]]: CoordinatorViewMinistry, // Coordinator
+  [ROLES[4]]: AdminViewMinistry, // Admin
   [ROLES[1]]: CoordinatorViewMinistry, // Volunteer
   [ROLES[2]]: CoordinatorViewMinistry, // Parishioner
   [ROLES[3]]: CoordinatorViewMinistry, // Co-parent

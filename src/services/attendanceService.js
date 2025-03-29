@@ -717,7 +717,6 @@ const addSingleAttendee = async ({
   attendee_type,
   event_id,
 }) => {
-
   const { data: checkExistence, error: checkError } = await supabase
     .from("attendance")
     .select("first_name, last_name")
@@ -765,7 +764,6 @@ const addSingleAttendee = async ({
       throw new Error("failed Adding to edit logs!", addLogError.message);
     }
   }
-
 };
 
 const fetchAlreadyRegistered = async (eventId, attendeeIds) => {
@@ -820,23 +818,161 @@ const fetchChildrenAttendanceHistory = async (event_name) => {
   return data;
 };
 
-const searchAttendee = async ({ searchTerm, page = 1, pageSize = 10 }) => {
+const searchAttendee = async ({ searchTerm = "", page = 1, pageSize = 10 }) => {
+  // Initial data retrieval when no search term is provided
+  if (!searchTerm || searchTerm.trim() === "") {
+    try {
+      const start = (page - 1) * pageSize;
+      const end = start + pageSize - 1;
+
+      const [parentsResult, childrenResult, walkInResult] = await Promise.all([
+        supabase
+          .from("parents")
+          .select("id, first_name, last_name, family_id, contact_number")
+          .order("first_name", { ascending: true })
+          .order("last_name", { ascending: true })
+          .range(start, end),
+        supabase
+          .from("children")
+          .select("id, first_name, last_name, family_id")
+          .order("first_name", { ascending: true })
+          .order("last_name", { ascending: true })
+          .range(start, end),
+        supabase
+          .from("attendance")
+          .select(
+            "id, first_name, last_name, family_id, contact_number, attendee_type, event_id"
+          )
+          .is("attendee_id", null)
+          .order("first_name", { ascending: true })
+          .order("last_name", { ascending: true })
+          .range(start, end),
+      ]);
+
+      // Check for any errors in the queries
+      if (parentsResult.error || childrenResult.error || walkInResult.error) {
+        throw parentsResult.error || childrenResult.error || walkInResult.error;
+      }
+
+      // Create a map to track existing names to avoid duplicates
+      const existingNames = new Set();
+
+      // Add parents to the set of existing names
+      const parentsWithType = parentsResult.data.map((item) => {
+        const nameKey = `${item.first_name.toLowerCase()}_${item.last_name.toLowerCase()}`;
+        existingNames.add(nameKey);
+        return {
+          ...item,
+          type: "parent",
+        };
+      });
+
+      // Add children to the set of existing names
+      const childrenWithType = childrenResult.data.map((item) => {
+        const nameKey = `${item.first_name.toLowerCase()}_${item.last_name.toLowerCase()}`;
+        existingNames.add(nameKey);
+        return {
+          ...item,
+          type: "child",
+        };
+      });
+
+      // Filter walk-ins to only include those with unique names
+      const walkInsWithType = walkInResult.data
+        .filter((item) => {
+          const nameKey = `${item.first_name.toLowerCase()}_${item.last_name.toLowerCase()}`;
+          return !existingNames.has(nameKey);
+        })
+        .map((item) => ({
+          ...item,
+          type: "walkIn",
+        }));
+
+      // Combine and sort the results
+      const allItems = [
+        ...parentsWithType,
+        ...childrenWithType,
+        ...walkInsWithType,
+      ];
+      allItems.sort((a, b) => {
+        const firstNameCompare = a.first_name.localeCompare(b.first_name);
+        return firstNameCompare === 0
+          ? a.last_name.localeCompare(b.last_name)
+          : firstNameCompare;
+      });
+
+      // Get total counts
+      const [parentCount, childCount, walkInCount] = await Promise.all([
+        supabase.from("parents").select("id", { count: "exact" }),
+        supabase.from("children").select("id", { count: "exact" }),
+        supabase
+          .from("attendance")
+          .select("id", { count: "exact", filters: "attendee_id.is.null" }),
+      ]);
+
+      return {
+        parents: parentsWithType,
+        children: childrenWithType,
+        walkInAttendees: walkInsWithType,
+        totalParents: parentCount.count || 0,
+        totalChildren: childCount.count || 0,
+        totalWalkIns: walkInCount.count || 0,
+        totalItems:
+          parentCount.count +
+          childCount.count +
+          walkInResult.data.length -
+          (walkInResult.data.length - walkInsWithType.length),
+        page,
+        hasMore:
+          parentCount.count +
+            childCount.count +
+            (walkInCount.count -
+              (walkInResult.data.length - walkInsWithType.length)) >
+          page * pageSize,
+      };
+    } catch (error) {
+      console.error("Error in initial data retrieval:", error);
+      return {
+        parents: [],
+        children: [],
+        walkInAttendees: [],
+        totalParents: 0,
+        totalChildren: 0,
+        totalWalkIns: 0,
+        totalItems: 0,
+        page,
+        hasMore: false,
+      };
+    }
+  }
+
+  // Search logic for when a search term is provided
   try {
     const start = (page - 1) * pageSize;
     const end = start + pageSize - 1;
 
-    // Search for matching parents, children, and walk-in attendees
+    // Normalize search term to handle multiple word searches
+    const searchTerms = searchTerm.trim().split(/\s+/);
+
+    // Helper function to check if all search terms match
+    const matchesAllTerms = (item, terms) => {
+      return terms.every(
+        (term) =>
+          item.first_name.toLowerCase().includes(term.toLowerCase()) ||
+          item.last_name.toLowerCase().includes(term.toLowerCase())
+      );
+    };
+
+    // Fetch data for all tables
     const [parentsResult, childrenResult, walkInResult] = await Promise.all([
       supabase
         .from("parents")
-        .select("first_name, last_name, family_id")
-        .or(`first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%`)
+        .select("id, first_name, last_name, family_id, contact_number")
         .order("first_name", { ascending: true })
         .order("last_name", { ascending: true }),
       supabase
         .from("children")
-        .select("first_name, last_name, family_id")
-        .or(`first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%`)
+        .select("id, first_name, last_name, family_id")
         .order("first_name", { ascending: true })
         .order("last_name", { ascending: true }),
       supabase
@@ -845,151 +981,281 @@ const searchAttendee = async ({ searchTerm, page = 1, pageSize = 10 }) => {
           "id, first_name, last_name, family_id, contact_number, attendee_type, event_id"
         )
         .is("attendee_id", null)
-        .or(`first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%`)
         .order("first_name", { ascending: true })
         .order("last_name", { ascending: true }),
     ]);
 
+    // Check for any errors in the queries
     if (parentsResult.error || childrenResult.error || walkInResult.error) {
       throw parentsResult.error || childrenResult.error || walkInResult.error;
     }
 
-    // Get unique family IDs from parents and children
-    const familyIds = [
-      ...new Set([
-        ...parentsResult.data.map((parent) => parent.family_id),
-        ...childrenResult.data.map((child) => child.family_id),
-      ]),
-    ];
+    // Filter results based on search terms
+    const filteredParents = parentsResult.data
+      .filter((parent) => matchesAllTerms(parent, searchTerms))
+      .map((item) => ({ ...item, type: "parent" }));
+
+    const filteredChildren = childrenResult.data
+      .filter((child) => matchesAllTerms(child, searchTerms))
+      .map((item) => ({ ...item, type: "child" }));
 
     // Create a map to track existing names to avoid duplicates
-    const existingNames = new Set();
+    const existingNames = new Set([
+      ...filteredParents.map(
+        (p) => `${p.first_name.toLowerCase()}_${p.last_name.toLowerCase()}`
+      ),
+      ...filteredChildren.map(
+        (c) => `${c.first_name.toLowerCase()}_${c.last_name.toLowerCase()}`
+      ),
+    ]);
 
-    // Add family members' names to the set
-    parentsResult.data.forEach((p) =>
-      existingNames.add(
-        `${p.first_name.toLowerCase()}_${p.last_name.toLowerCase()}`
-      )
-    );
-    childrenResult.data.forEach((c) =>
-      existingNames.add(
-        `${c.first_name.toLowerCase()}_${c.last_name.toLowerCase()}`
-      )
-    );
-
-    // Filter walk-in attendees to remove duplicates
-    const uniqueWalkIns = Array.from(
-      walkInResult.data.reduce((map, w) => {
-        const nameKey = `${w.first_name.toLowerCase()}_${w.last_name.toLowerCase()}`;
-        if (!existingNames.has(nameKey) && !map.has(nameKey)) {
-          map.set(nameKey, w);
-        }
-        return map;
-      }, new Map())
-    )
-      .map(([_, walkIn]) => walkIn)
+    // Filter and sort walk-in attendees without duplicates
+    const filteredWalkIns = walkInResult.data
+      .filter((walkIn) => {
+        const nameKey = `${walkIn.first_name.toLowerCase()}_${walkIn.last_name.toLowerCase()}`;
+        return (
+          matchesAllTerms(walkIn, searchTerms) && !existingNames.has(nameKey)
+        );
+      })
+      .map((item) => ({ ...item, type: "walkIn" }))
       .sort((a, b) => {
-        // Sort by first name first
         const firstNameCompare = a.first_name.localeCompare(b.first_name);
-        // If first names are equal, sort by last name
         return firstNameCompare === 0
           ? a.last_name.localeCompare(b.last_name)
           : firstNameCompare;
       });
 
-    if (!familyIds.length && !uniqueWalkIns.length) {
-      return {
-        families: [],
-        walkInAttendees: [],
-        hasMore: false,
-        page,
-        total: 0,
-      };
-    }
+    // Combine all filtered items
+    const allItems = [
+      ...filteredParents,
+      ...filteredChildren,
+      ...filteredWalkIns,
+    ];
 
-    // Fetch family groups if there are any family IDs
-    let familyGroups = [];
-    let count = 0;
+    // Sort the combined array
+    allItems.sort((a, b) => {
+      const firstNameCompare = a.first_name.localeCompare(b.first_name);
+      return firstNameCompare === 0
+        ? a.last_name.localeCompare(b.last_name)
+        : firstNameCompare;
+    });
 
-    if (familyIds.length > 0) {
-      const familyResult = await supabase
-        .from("family_group")
-        .select("*", { count: "exact" })
-        .in("id", familyIds);
+    // Apply pagination to the combined array
+    const paginatedItems = allItems.slice(start, end + 1);
 
-      if (familyResult.error) throw familyResult.error;
-      familyGroups = familyResult.data;
-      count = familyResult.count;
-    }
-
-    // Fetch all parents and children for these family groups
-    const [parents, children] = await Promise.all([
-      familyGroups.length > 0
-        ? supabase
-            .from("parents")
-            .select("*")
-            .in(
-              "family_id",
-              familyGroups.map((fg) => fg.id)
-            )
-        : { data: [] },
-      familyGroups.length > 0
-        ? supabase
-            .from("children")
-            .select("*")
-            .in(
-              "family_id",
-              familyGroups.map((fg) => fg.id)
-            )
-        : { data: [] },
-    ]);
-
-    // Group by family_id
-    const families = familyGroups
-      .map((fg) => ({
-        familyId: fg.id,
-        parents:
-          parents.data
-            ?.filter((p) => p.family_id === fg.id)
-            .sort((a, b) => a.first_name.localeCompare(b.first_name)) || [],
-        children:
-          children.data
-            ?.filter((c) => c.family_id === fg.id)
-            .sort((a, b) => a.first_name.localeCompare(b.first_name)) || [],
-      }))
-      .sort((a, b) => {
-        const aName = a.parents[0]?.last_name || "";
-        const bName = b.parents[0]?.last_name || "";
-        return aName.localeCompare(bName);
-      });
-
-    // Calculate total items and handle pagination in memory
-    const totalItems = families.length + uniqueWalkIns.length;
-
-    // Paginate both families and walk-ins
-    const paginatedFamilies = families.slice(start, end + 1);
-    const paginatedWalkIns = uniqueWalkIns.slice(
-      Math.max(0, start - families.length),
-      Math.max(0, end + 1 - families.length)
+    // Separate the paginated items back into their respective categories
+    const paginatedParents = paginatedItems.filter(
+      (item) => item.type === "parent"
     );
+
+    const paginatedChildren = paginatedItems.filter(
+      (item) => item.type === "child"
+    );
+
+    const paginatedWalkIns = paginatedItems.filter(
+      (item) => item.type === "walkIn"
+    );
+
+    // Determine if there are more items to fetch
+    const hasMore = allItems.length > page * pageSize;
+
     return {
-      families: paginatedFamilies,
+      parents: paginatedParents,
+      children: paginatedChildren,
       walkInAttendees: paginatedWalkIns,
-      hasMore: page * pageSize < count + uniqueWalkIns.length,
+      totalParents: filteredParents.length,
+      totalChildren: filteredChildren.length,
+      totalWalkIns: filteredWalkIns.length,
+      totalItems: allItems.length,
       page,
-      total: totalItems,
+      hasMore,
     };
   } catch (error) {
     console.error("Error in searchAttendee:", error);
     return {
-      families: [],
+      parents: [],
+      children: [],
       walkInAttendees: [],
-      hasMore: false,
+      totalParents: 0,
+      totalChildren: 0,
+      totalWalkIns: 0,
+      totalItems: 0,
       page,
-      total: 0,
+      hasMore: false,
     };
   }
 };
+
+// const searchAttendee = async ({ searchTerm, page = 1, pageSize = 10 }) => {
+//   try {
+//     const start = (page - 1) * pageSize;
+//     const end = start + pageSize - 1;
+
+//     // Search for matching parents, children, and walk-in attendees
+//     const [parentsResult, childrenResult, walkInResult] = await Promise.all([
+//       supabase
+//         .from("parents")
+//         .select("first_name, last_name, family_id")
+//         .or(`first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%`)
+//         .order("first_name", { ascending: true })
+//         .order("last_name", { ascending: true }),
+//       supabase
+//         .from("children")
+//         .select("first_name, last_name, family_id")
+//         .or(`first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%`)
+//         .order("first_name", { ascending: true })
+//         .order("last_name", { ascending: true }),
+//       supabase
+//         .from("attendance")
+//         .select(
+//           "id, first_name, last_name, family_id, contact_number, attendee_type, event_id"
+//         )
+//         .is("attendee_id", null)
+//         .or(`first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%`)
+//         .order("first_name", { ascending: true })
+//         .order("last_name", { ascending: true }),
+//     ]);
+
+//     if (parentsResult.error || childrenResult.error || walkInResult.error) {
+//       throw parentsResult.error || childrenResult.error || walkInResult.error;
+//     }
+
+//     // Get unique family IDs from parents and children
+//     const familyIds = [
+//       ...new Set([
+//         ...parentsResult.data.map((parent) => parent.family_id),
+//         ...childrenResult.data.map((child) => child.family_id),
+//       ]),
+//     ];
+
+//     // Create a map to track existing names to avoid duplicates
+//     const existingNames = new Set();
+
+//     // Add family members' names to the set
+//     parentsResult.data.forEach((p) =>
+//       existingNames.add(
+//         `${p.first_name.toLowerCase()}_${p.last_name.toLowerCase()}`
+//       )
+//     );
+//     childrenResult.data.forEach((c) =>
+//       existingNames.add(
+//         `${c.first_name.toLowerCase()}_${c.last_name.toLowerCase()}`
+//       )
+//     );
+
+//     // Filter walk-in attendees to remove duplicates
+//     const uniqueWalkIns = Array.from(
+//       walkInResult.data.reduce((map, w) => {
+//         const nameKey = `${w.first_name.toLowerCase()}_${w.last_name.toLowerCase()}`;
+//         if (!existingNames.has(nameKey) && !map.has(nameKey)) {
+//           map.set(nameKey, w);
+//         }
+//         return map;
+//       }, new Map())
+//     )
+//       .map(([_, walkIn]) => walkIn)
+//       .sort((a, b) => {
+//         // Sort by first name first
+//         const firstNameCompare = a.first_name.localeCompare(b.first_name);
+//         // If first names are equal, sort by last name
+//         return firstNameCompare === 0
+//           ? a.last_name.localeCompare(b.last_name)
+//           : firstNameCompare;
+//       });
+
+//     if (!familyIds.length && !uniqueWalkIns.length) {
+//       return {
+//         families: [],
+//         walkInAttendees: [],
+//         hasMore: false,
+//         page,
+//         total: 0,
+//       };
+//     }
+
+//     // Fetch family groups if there are any family IDs
+//     let familyGroups = [];
+//     let count = 0;
+
+//     if (familyIds.length > 0) {
+//       const familyResult = await supabase
+//         .from("family_group")
+//         .select("*", { count: "exact" })
+//         .in("id", familyIds);
+
+//       if (familyResult.error) throw familyResult.error;
+//       familyGroups = familyResult.data;
+//       count = familyResult.count;
+//     }
+
+//     // Fetch all parents and children for these family groups
+//     const [parents, children] = await Promise.all([
+//       familyGroups.length > 0
+//         ? supabase
+//             .from("parents")
+//             .select("*")
+//             .in(
+//               "family_id",
+//               familyGroups.map((fg) => fg.id)
+//             )
+//         : { data: [] },
+//       familyGroups.length > 0
+//         ? supabase
+//             .from("children")
+//             .select("*")
+//             .in(
+//               "family_id",
+//               familyGroups.map((fg) => fg.id)
+//             )
+//         : { data: [] },
+//     ]);
+
+//     // Group by family_id
+//     const families = familyGroups
+//       .map((fg) => ({
+//         familyId: fg.id,
+//         parents:
+//           parents.data
+//             ?.filter((p) => p.family_id === fg.id)
+//             .sort((a, b) => a.first_name.localeCompare(b.first_name)) || [],
+//         children:
+//           children.data
+//             ?.filter((c) => c.family_id === fg.id)
+//             .sort((a, b) => a.first_name.localeCompare(b.first_name)) || [],
+//       }))
+//       .sort((a, b) => {
+//         const aName = a.parents[0]?.last_name || "";
+//         const bName = b.parents[0]?.last_name || "";
+//         return aName.localeCompare(bName);
+//       });
+
+//     // Calculate total items and handle pagination in memory
+//     const totalItems = families.length + uniqueWalkIns.length;
+
+//     // Paginate both families and walk-ins
+//     const paginatedFamilies = families.slice(start, end + 1);
+//     const paginatedWalkIns = uniqueWalkIns.slice(
+//       Math.max(0, start - families.length),
+//       Math.max(0, end + 1 - families.length)
+//     );
+//     return {
+//       families: paginatedFamilies,
+//       walkInAttendees: paginatedWalkIns,
+//       hasMore: page * pageSize < count + uniqueWalkIns.length,
+//       page,
+//       total: totalItems,
+//     };
+//   } catch (error) {
+//     console.error("Error in searchAttendee:", error);
+//     return {
+//       families: [],
+//       walkInAttendees: [],
+//       hasMore: false,
+//       page,
+//       total: 0,
+//     };
+//   }
+// };
 const getAttendee = async (eventId) => {
   try {
     // Fetch attendance records

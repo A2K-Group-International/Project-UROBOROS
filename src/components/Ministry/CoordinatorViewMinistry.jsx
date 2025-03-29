@@ -25,9 +25,10 @@ import GroupAnnouncements from "./GroupAnnouncements";
 import GroupMembers from "./GroupMembers";
 import { getInitial } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import CartoonizedChurch from "@/assets/images/CartoonizedChurch.png";
 
 // Custom hook for ministries where user is a coordinator
-export const useAssignedMinistries = (userId) => {
+const useAssignedMinistries = (userId) => {
   return useQuery({
     queryKey: ["assigned-ministries", userId],
     queryFn: () => getAssignedMinistries(userId),
@@ -100,6 +101,7 @@ const MinistryItem = ({
             ministryId={ministry.id}
             ministryName={ministry.ministry_name}
             ministryDescription={ministry.ministry_description}
+            ministryImage={ministry.image_url}
           />
         </div>
       </div>
@@ -174,7 +176,19 @@ const MinistryGroups = ({
                       : "hover:bg-primary/5"
                   }`}
                 >
-                  {group.name}
+                  <div className="flex items-center gap-x-2">
+                    <Avatar>
+                      <AvatarImage
+                        className="h-10 w-10 rounded-[4px] object-cover"
+                        src={group.image_url}
+                        alt="profile picture"
+                      />
+                      <AvatarFallback>
+                        {group.name?.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <p>{group.name}</p>
+                  </div>
                 </SheetTrigger>
                 <SheetContent className="w-full">
                   <SheetHeader>
@@ -228,7 +242,19 @@ const MinistryGroups = ({
                     : ""
                 }
               >
-                {group.name}
+                <div className="flex items-center gap-x-2">
+                  <Avatar>
+                    <AvatarImage
+                      className="h-10 w-10 rounded-[4px] object-cover"
+                      src={group.image_url}
+                      alt="profile picture"
+                    />
+                    <AvatarFallback>
+                      {group.name?.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <p>{group.name}</p>
+                </div>
               </span>
             </div>
           </div>
@@ -244,12 +270,6 @@ MinistryGroups.propTypes = {
   onSelectGroup: PropTypes.func.isRequired,
   groups: PropTypes.array,
   isLoading: PropTypes.bool,
-};
-
-MinistryGroups.defaultProps = {
-  groups: [],
-  isLoading: false,
-  selectedGroup: null,
 };
 
 // Define MemberMinistryItem component for member groups
@@ -275,6 +295,11 @@ const MemberMinistryItem = ({
         </div>
         <div className="mr-3">
           <Avatar>
+            <AvatarImage
+              className="h-10 w-10 rounded-[4px] object-cover"
+              src={ministry.image_url}
+              alt="profile picture"
+            />
             <AvatarFallback>
               {ministry.ministry_name?.substring(0, 2).toUpperCase() || "MN"}
             </AvatarFallback>
@@ -303,7 +328,19 @@ const MemberMinistryItem = ({
                           : "hover:bg-primary/5"
                       }`}
                     >
-                      {group.group_name}
+                      <div className="flex items-center gap-x-2">
+                        <Avatar>
+                          <AvatarImage
+                            className="h-10 w-10 rounded-[4px] object-cover"
+                            src={group.image_url}
+                            alt="profile picture"
+                          />
+                          <AvatarFallback>
+                            {group.group_name?.substring(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <p>{group.group_name}</p>
+                      </div>
                     </SheetTrigger>
                     <SheetContent className="w-full">
                       <SheetHeader>
@@ -360,7 +397,19 @@ const MemberMinistryItem = ({
                         : ""
                     }
                   >
-                    {group.group_name}
+                    <div className="flex items-center gap-x-2">
+                      <Avatar>
+                        <AvatarImage
+                          className="h-10 w-10 rounded-[4px] object-cover"
+                          src={group.image_url}
+                          alt="profile picture"
+                        />
+                        <AvatarFallback>
+                          {group.group_name?.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <p>{group.group_name}</p>
+                    </div>
                   </span>
                 </div>
               </div>
@@ -376,6 +425,7 @@ MemberMinistryItem.propTypes = {
   ministry: PropTypes.shape({
     ministry_id: PropTypes.string.isRequired,
     ministry_name: PropTypes.string.isRequired,
+    image_url: PropTypes.string,
     groups: PropTypes.arrayOf(
       PropTypes.shape({
         group_id: PropTypes.string.isRequired,
@@ -489,7 +539,7 @@ const CoordinatorViewMinistry = () => {
 
   return (
     <div className="flex h-full flex-col text-primary-text lg:flex-row">
-      <aside className="w-full overflow-y-auto border-primary-outline/50 lg:max-w-[25rem] lg:border-r">
+      <aside className="no-scrollbar w-full overflow-y-auto border-primary-outline/50 lg:max-w-[25rem] lg:border-r">
         <div className="mb-4">
           <div className="px-8 py-4">
             <Label className="text-[20px] font-bold">Your Ministries</Label>
@@ -560,8 +610,8 @@ const CoordinatorViewMinistry = () => {
             !isLoadingMember &&
             assignedMinistries.length === 0 &&
             memberGroups.length === 0 && (
-              <div className="text-muted-foreground py-8 text-center">
-                No ministries or groups assigned yet.
+              <div className="py-8 text-center">
+                <p>No ministry or group assigned yet.</p>
               </div>
             )}
         </div>
@@ -576,9 +626,21 @@ const CoordinatorViewMinistry = () => {
           >
             <div className="flex justify-between border-b border-primary-outline/50 px-8 py-4">
               <div>
-                <Label className="text-lg font-bold">
-                  {selectedGroupDetails.name}
-                </Label>
+                <div className="flex items-center gap-x-2">
+                  <Avatar>
+                    <AvatarImage
+                      className="h-10 w-10 rounded-[4px] object-cover"
+                      src={selectedGroupDetails.image_url}
+                      alt="profile picture"
+                    />
+                    <AvatarFallback>
+                      {selectedGroupDetails.name?.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <Label className="text-lg font-bold">
+                    {selectedGroupDetails.name}
+                  </Label>
+                </div>
                 <p className="text-muted-foreground text-sm">
                   {selectedGroupDetails.description}
                 </p>
@@ -593,9 +655,7 @@ const CoordinatorViewMinistry = () => {
               className="no-scrollbar mt-0 h-full w-full overflow-y-auto bg-primary"
               value="announcement"
             >
-              <div>
-                <GroupAnnouncements groupId={selectedGroup} />
-              </div>
+              <GroupAnnouncements groupId={selectedGroup} />
             </TabsContent>
 
             <TabsContent
@@ -609,16 +669,12 @@ const CoordinatorViewMinistry = () => {
             </TabsContent>
           </Tabs>
         ) : (
-          <div className="text-muted-foreground grid h-[90vh] place-content-center">
-            Select a group
+          <div className="grid h-[90dvh] place-content-center gap-y-2">
+            <img src={CartoonizedChurch} alt="Cartoonized Church" />
+            <p className="text-[20px] text-accent/30">OPEN A MINISTRY GROUP</p>
           </div>
         )}
       </main>
-
-      {/* On mobile, show a message to select a group if none selected */}
-      <div className="text-muted-foreground flex-1 py-8 text-center lg:hidden">
-        {!selectedGroup && "Select a ministry and group from above"}
-      </div>
     </div>
   );
 };
