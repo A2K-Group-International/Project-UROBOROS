@@ -288,11 +288,11 @@ const NewCreateEventForm = () => {
           </div>
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent className="max-w-4xl">
+      <AlertDialogContent className="w-auto max-w-4xl sm:w-full">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <AlertDialogHeader className="text-primary-text">
-              <AlertDialogTitle className="text-[20px] font-bold">
+              <AlertDialogTitle className="p-0 text-[20px] font-bold">
                 Create Event
               </AlertDialogTitle>
               <AlertDialogDescription>
