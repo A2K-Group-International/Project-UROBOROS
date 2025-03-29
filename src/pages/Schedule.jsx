@@ -17,7 +17,7 @@ import { ROLES } from "@/constants/roles";
 import MeetingDetails from "@/components/Schedule/MeetingDetails";
 import useInterObserver from "@/hooks/useInterObserver";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import VolunteerDialogCalendar from "@/components/Schedule/VolunteerDialogCalendar";
+// import VolunteerDialogCalendar from "@/components/Schedule/VolunteerDialogCalendar";
 import { useDebounce } from "@/hooks/useDebounce";
 import ScheduleCards from "@/components/Schedule/ScheduleCards";
 import MeetingCards from "@/components/Schedule/MeetingCards";
@@ -140,7 +140,7 @@ const Schedule = () => {
                 : "Manage schedules for your organisation."}
             </Description>
           </div>
-          {userData?.role === ROLES[1] && <VolunteerDialogCalendar />}
+          {/* {userData?.role === ROLES[1] && <VolunteerDialogCalendar />} */}
         </div>
         <div className="flex flex-col gap-3">
           {(temporaryRole === ROLES[0] || userData?.role === ROLES[4]) && (

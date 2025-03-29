@@ -10,9 +10,11 @@ import { Button } from "@/components/ui/button";
 import PropTypes from "prop-types";
 import { useUser } from "@/context/useUser";
 import ManualAttendEvents from "../Events/ManualAttendEvents";
+import { ROLES } from "@/constants/roles";
+// import { formatEventTime, formatEventDate } from "@/lib/utils";
 
-const EventInfoDialog = ({ open, event, onClose, temporaryRole }) => {
-  const {userData} = useUser();
+const EventInfoDialog = ({ open, event, onClose }) => {
+  const { userData } = useUser();
   const role = userData?.role;
 
   const formatUKDate = (dateString) => {
@@ -49,10 +51,12 @@ const EventInfoDialog = ({ open, event, onClose, temporaryRole }) => {
           <Button variant="outline" onClick={onClose}>
             Close
           </Button>
-          {(role === "parishioner" ||
-            temporaryRole === "volunteer" ||
-            temporaryRole === "admin") && (
-            <ManualAttendEvents eventId={event?.id} />
+          {role === ROLES[2] && (
+            <ManualAttendEvents
+              eventId={event?.id}
+              eventName={event?.title}
+              // eventTime={formattedEventTime}
+            />
           )}
         </DialogFooter>
       </DialogContent>
