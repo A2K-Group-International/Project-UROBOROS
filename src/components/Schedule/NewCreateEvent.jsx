@@ -288,7 +288,7 @@ const NewCreateEventForm = () => {
           </div>
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent className="w-auto max-w-4xl sm:w-full">
+      <AlertDialogContent className="max-w-4xl">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <AlertDialogHeader className="text-primary-text">
@@ -566,7 +566,7 @@ const NewCreateEventForm = () => {
                             onChange={(newValue) => field.onChange(newValue)}
                             disabled={watchObservation}
                             className={
-                              watchObservation ? "cursor-not-allowed" : ""
+                              watchObservation ? "cursor-not-allowed" : "w-full"
                             }
                           />
                         </FormControl>
