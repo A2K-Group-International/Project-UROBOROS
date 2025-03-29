@@ -22,6 +22,7 @@ import { Loader2 } from "lucide-react";
 import GroupAnnouncements from "./GroupAnnouncements";
 import GroupMembers from "./GroupMembers";
 import { Label } from "../ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 const AdminCoordinatorView = ({
   ministryId,
@@ -96,11 +97,16 @@ const AdminCoordinatorView = ({
       >
         <SidebarHeader className="flex flex-row items-center text-primary-text">
           <span>
-            <img
-              src={ministryImage}
-              alt={`${ministryTitle} Picture`}
-              className="w-20"
-            />
+            <Avatar>
+              <AvatarImage
+                className="h-10 w-10 rounded-[4px] object-cover"
+                src={ministryImage}
+                alt={`${ministryTitle} Picture`}
+              />
+              <AvatarFallback>
+                {ministryTitle?.substring(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
           </span>
           <div>
             <h2 className="text-xl font-bold">{ministryTitle}</h2>
