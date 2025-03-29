@@ -231,7 +231,7 @@ const NewEditEvent = ({
           </div>
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent className="max-w-4xl">
+      <AlertDialogContent className="w-auto max-w-4xl sm:w-full">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <AlertDialogHeader className="text-primary-text">

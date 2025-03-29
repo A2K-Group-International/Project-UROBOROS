@@ -292,7 +292,7 @@ const NewCreateEventForm = () => {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <AlertDialogHeader className="text-primary-text">
-              <AlertDialogTitle className="p-0 text-[20px] font-bold">
+              <AlertDialogTitle className="text-[20px] font-bold">
                 Create Event
               </AlertDialogTitle>
               <AlertDialogDescription>
