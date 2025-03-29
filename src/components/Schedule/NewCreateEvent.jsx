@@ -566,7 +566,7 @@ const NewCreateEventForm = () => {
                             onChange={(newValue) => field.onChange(newValue)}
                             disabled={watchObservation}
                             className={
-                              watchObservation ? "cursor-not-allowed" : ""
+                              watchObservation ? "cursor-not-allowed" : "w-full"
                             }
                           />
                         </FormControl>
