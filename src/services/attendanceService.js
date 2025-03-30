@@ -863,6 +863,8 @@ const searchAttendee = async ({ searchTerm = "", page = 1, pageSize = 10 }) => {
         existingNames.add(nameKey);
         return {
           ...item,
+          first_name: item.first_name.trim(),
+          last_name: item.last_name.trim(),
           type: "parent",
         };
       });
@@ -873,26 +875,39 @@ const searchAttendee = async ({ searchTerm = "", page = 1, pageSize = 10 }) => {
         existingNames.add(nameKey);
         return {
           ...item,
+          first_name: item.first_name.trim(),
+          last_name: item.last_name.trim(),
           type: "child",
         };
       });
 
-      // Filter walk-ins to only include those with unique names
-      const walkInsWithType = walkInResult.data
-        .filter((item) => {
-          const nameKey = `${item.first_name.toLowerCase()}_${item.last_name.toLowerCase()}`;
-          return !existingNames.has(nameKey);
-        })
-        .map((item) => ({
-          ...item,
-          type: "walkIn",
-        }));
+      const normalizedWalkIns = walkInResult.data.map((item) => ({
+        ...item,
+        first_name: item.first_name.trim(),
+        last_name: item.last_name.trim(),
+      }));
+
+      const uniqueWalkIns = [];
+      const walkInNames = new Set();
+
+      for (const item of normalizedWalkIns) {
+        const nameKey = `${item.first_name.toLowerCase()}_${item.last_name.toLowerCase()}`;
+
+        // Skip if this name exists in parents/children
+        if (!existingNames.has(nameKey) && !walkInNames.has(nameKey)) {
+          walkInNames.add(nameKey);
+          uniqueWalkIns.push({
+            ...item,
+            type: "walkIn",
+          });
+        }
+      }
 
       // Combine and sort the results
       const allItems = [
         ...parentsWithType,
         ...childrenWithType,
-        ...walkInsWithType,
+        ...uniqueWalkIns,
       ];
       allItems.sort((a, b) => {
         const firstNameCompare = a.first_name.localeCompare(b.first_name);
@@ -902,7 +917,7 @@ const searchAttendee = async ({ searchTerm = "", page = 1, pageSize = 10 }) => {
       });
 
       // Get total counts
-      const [parentCount, childCount, walkInCount] = await Promise.all([
+      const [parentCount, childCount, _walkInCount] = await Promise.all([
         supabase.from("parents").select("id", { count: "exact" }),
         supabase.from("children").select("id", { count: "exact" }),
         supabase
@@ -913,21 +928,14 @@ const searchAttendee = async ({ searchTerm = "", page = 1, pageSize = 10 }) => {
       return {
         parents: parentsWithType,
         children: childrenWithType,
-        walkInAttendees: walkInsWithType,
+        walkInAttendees: uniqueWalkIns,
         totalParents: parentCount.count || 0,
         totalChildren: childCount.count || 0,
-        totalWalkIns: walkInCount.count || 0,
-        totalItems:
-          parentCount.count +
-          childCount.count +
-          walkInResult.data.length -
-          (walkInResult.data.length - walkInsWithType.length),
+        totalWalkIns: uniqueWalkIns.length || 0,
+        totalItems: parentCount.count + childCount.count + uniqueWalkIns.length,
         page,
         hasMore:
-          parentCount.count +
-            childCount.count +
-            (walkInCount.count -
-              (walkInResult.data.length - walkInsWithType.length)) >
+          parentCount.count + childCount.count + uniqueWalkIns.length >
           page * pageSize,
       };
     } catch (error) {
@@ -990,40 +998,61 @@ const searchAttendee = async ({ searchTerm = "", page = 1, pageSize = 10 }) => {
       throw parentsResult.error || childrenResult.error || walkInResult.error;
     }
 
-    // Filter results based on search terms
+    const existingNames = new Set();
+
+    // Filter and normalize parent data, then add to set of existing names
     const filteredParents = parentsResult.data
+      .map((item) => ({
+        ...item,
+        first_name: item.first_name.trim(),
+        last_name: item.last_name.trim(),
+      }))
       .filter((parent) => matchesAllTerms(parent, searchTerms))
-      .map((item) => ({ ...item, type: "parent" }));
+      .map((item) => {
+        const nameKey = `${item.first_name.toLowerCase()}_${item.last_name.toLowerCase()}`;
+        existingNames.add(nameKey);
+        return { ...item, type: "parent" };
+      });
 
+    // Filter and normalize children data, then add to set of existing names
     const filteredChildren = childrenResult.data
+      .map((item) => ({
+        ...item,
+        first_name: item.first_name.trim(),
+        last_name: item.last_name.trim(),
+      }))
       .filter((child) => matchesAllTerms(child, searchTerms))
-      .map((item) => ({ ...item, type: "child" }));
-
-    // Create a map to track existing names to avoid duplicates
-    const existingNames = new Set([
-      ...filteredParents.map(
-        (p) => `${p.first_name.toLowerCase()}_${p.last_name.toLowerCase()}`
-      ),
-      ...filteredChildren.map(
-        (c) => `${c.first_name.toLowerCase()}_${c.last_name.toLowerCase()}`
-      ),
-    ]);
+      .map((item) => {
+        const nameKey = `${item.first_name.toLowerCase()}_${item.last_name.toLowerCase()}`;
+        existingNames.add(nameKey);
+        return { ...item, type: "child" };
+      });
 
     // Filter and sort walk-in attendees without duplicates
-    const filteredWalkIns = walkInResult.data
-      .filter((walkIn) => {
-        const nameKey = `${walkIn.first_name.toLowerCase()}_${walkIn.last_name.toLowerCase()}`;
-        return (
-          matchesAllTerms(walkIn, searchTerms) && !existingNames.has(nameKey)
-        );
-      })
-      .map((item) => ({ ...item, type: "walkIn" }))
-      .sort((a, b) => {
-        const firstNameCompare = a.first_name.localeCompare(b.first_name);
-        return firstNameCompare === 0
-          ? a.last_name.localeCompare(b.last_name)
-          : firstNameCompare;
-      });
+    const normalizedWalkIns = walkInResult.data.map((item) => ({
+      ...item,
+      first_name: item.first_name.trim(),
+      last_name: item.last_name.trim(),
+    }));
+
+    // Filter for search terms and uniqueness
+    const filteredWalkIns = [];
+    const walkInNames = new Set();
+
+    for (const item of normalizedWalkIns) {
+      if (matchesAllTerms(item, searchTerms)) {
+        const nameKey = `${item.first_name.toLowerCase()}_${item.last_name.toLowerCase()}`;
+
+        // Skip if this name exists in parents/children or we've already added this walk-in
+        if (!existingNames.has(nameKey) && !walkInNames.has(nameKey)) {
+          walkInNames.add(nameKey);
+          filteredWalkIns.push({
+            ...item,
+            type: "walkIn",
+          });
+        }
+      }
+    }
 
     // Combine all filtered items
     const allItems = [
