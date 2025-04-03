@@ -276,6 +276,7 @@ export const insertGuardians = async (parentData) => {
         last_name: parentData.last_name,
         contact_number: parentData.contact_number,
         registered_by: parentData.registered_by,
+        time_attended: parentData.time_attended,
       },
     ])
     .select();
@@ -344,6 +345,7 @@ export const insertChildren = async (childData) => {
         family_id: childData.family_id,
         registration_code: childData.registration_code,
         registered_by: childData.registered_by,
+        time_attended: childData.time_attended,
       },
     ])
     .select();
