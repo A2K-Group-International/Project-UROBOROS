@@ -15,7 +15,7 @@ const fetchSubgroupMembers = async (subgroupId) => {
 
 const fetchSubgroups = async (groupId) => {
   const { data, error } = await supabase
-    .from("sub_groups")
+    .from("sub_group")
     .select("*")
     .eq("group_id", groupId);
 
@@ -130,7 +130,7 @@ const editSubgroup = async ({
 
   // Get the current subgroup to check for existing image
   const { data: currentSubgroup, error: fetchError } = await supabase
-    .from("sub_groups")
+    .from("sub_group")
     .select("image_url")
     .eq("id", subgroupId)
     .single();
@@ -179,7 +179,7 @@ const editSubgroup = async ({
 
   try {
     const { data, error } = await supabase
-      .from("sub_groups")
+      .from("sub_group")
       .update(updateData)
       .eq("id", subgroupId)
       .select();
@@ -238,7 +238,7 @@ const removeSubgroupMember = async ({ userId, subgroupId }) => {
 
 const deleteSubgroup = async ({ subgroupId }) => {
   const { data: subgroup, error: fetchError } = await supabase
-    .from("sub_groups")
+    .from("sub_group")
     .select("image_url")
     .eq("id", subgroupId)
     .single();
@@ -254,7 +254,7 @@ const deleteSubgroup = async ({ subgroupId }) => {
   }
 
   const { error: subgroupError } = await supabase
-    .from("sub_groups")
+    .from("sub_group")
     .delete()
     .eq("id", subgroupId);
 

@@ -51,12 +51,9 @@ import AutoLinkText from "@/lib/AutoLinkText";
 
 const Announcement = ({ announcement, deleteAnnouncementMutation }) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState();
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const { userData } = useUser();
   const location = useLocation();
-
-  if (!userData) {
-    return null;
-  }
 
   return (
     <div>
@@ -168,12 +165,13 @@ const Announcement = ({ announcement, deleteAnnouncementMutation }) => {
         className="mb-4 block whitespace-pre-wrap break-words text-start leading-5 text-accent"
       />
       <Dialog className="border-none border-transparent">
-        <DialogTrigger>
+        <div>
           <div className="flex w-full gap-2">
             {announcement.announcement_files.length > 0 &&
               announcement.announcement_files[0]?.type?.startsWith("image") &&
               announcement.announcement_files.slice(0, 3).map((file, i) => (
-                <div
+                <DialogTrigger
+                  onClick={() => setSelectedImageIndex(i)}
                   key={i}
                   className={cn(
                     "flex-1 border border-primary-outline hover:cursor-pointer",
@@ -181,12 +179,16 @@ const Announcement = ({ announcement, deleteAnnouncementMutation }) => {
                       relative: i === 2,
                     },
                     { "rounded-s-md": i === 0 },
-                    { "relative z-20 rounded-e-md bg-black": i === 2 }
+                    {
+                      "relative z-20 rounded-e-md bg-black":
+                        i === 2 && announcement.announcement_files.length > 3,
+                    }
                   )}
                 >
                   <img
                     className={cn("h-[223px] min-w-0 bg-black object-cover", {
-                      "opacity-45": i === 2,
+                      "bg-red-400 opacity-45":
+                        i === 2 && announcement.announcement_files.length > 3,
                     })}
                     src={file.url}
                     alt="file"
@@ -196,10 +198,10 @@ const Announcement = ({ announcement, deleteAnnouncementMutation }) => {
                       +{announcement.announcement_files.length - 3} more
                     </p>
                   )}
-                </div>
+                </DialogTrigger>
               ))}
           </div>
-        </DialogTrigger>
+        </div>
         {announcement.announcement_files.length > 0 &&
           announcement.announcement_files[0]?.type?.startsWith("video") && (
             <div className="border border-primary-outline">
@@ -231,7 +233,12 @@ const Announcement = ({ announcement, deleteAnnouncementMutation }) => {
             <DialogTitle className="sr-only"></DialogTitle>
             <DialogDescription className="sr-only"></DialogDescription>
           </DialogHeader>
-          <Carousel className="w-full max-w-5xl">
+          <Carousel
+            opts={{
+              startIndex: selectedImageIndex,
+            }}
+            className="w-full max-w-5xl"
+          >
             <CarouselContent className="-ml-1 p-0">
               {announcement.announcement_files.map((file, index) => (
                 <CarouselItem key={index} className="pl-0">

@@ -36,7 +36,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { getInitial } from "@/lib/utils";
 import useMinistry from "@/hooks/useMinistry";
 import { useQueryClient } from "@tanstack/react-query";
-import CreateSubgroup from "./createSubGroup";
+import CreateSubgroup from "./CreateSubgroup";
 
 const allowedMimeTypes = ["image/jpeg", "image/png"];
 
