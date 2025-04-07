@@ -36,6 +36,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { getInitial } from "@/lib/utils";
 import useMinistry from "@/hooks/useMinistry";
 import { useQueryClient } from "@tanstack/react-query";
+import CreateSubgroup from "./createSubGroup";
 
 const allowedMimeTypes = ["image/jpeg", "image/png"];
 
@@ -164,6 +165,7 @@ const ConfigureGroup = ({
                 <p className="text-xs text-primary-text">{group.description}</p>
               </div>
               <div className="flex items-center gap-x-2 border-primary-text/30 pl-2 transition-opacity duration-150 group-hover:opacity-100 lg:opacity-0">
+                <CreateSubgroup groupId={group.id} />
                 <EditGroup
                   groupId={group.id}
                   groupName={group.name}
@@ -514,7 +516,7 @@ const EditGroup = ({ groupId, groupName, groupDescription, groupImage }) => {
                             setImagePreview(null);
                             form.setValue("groupImage", null);
                             if (fileInputRef.current) {
-                              fileInputRef.current.value = ""; // Safely reset file input
+                              fileInputRef.current.value = "";
                             }
                           }}
                           className="absolute right-0 top-0 text-2xl text-accent hover:cursor-pointer hover:text-red-600"
