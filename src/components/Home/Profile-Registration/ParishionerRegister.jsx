@@ -98,6 +98,8 @@ const ParishionerRegister = () => {
     form.reset(); // Reset form fields
     setActiveTab("profile"); // Reset active tab to "Profile"
     setIsProfileDisabled(false); // Re-enable the "Profile" tab
+    setShowPassword(false); // Reset password visibility
+    setIsAgreed(false); // Reset agreement checkbox
   };
 
   // Handle dialog close event
