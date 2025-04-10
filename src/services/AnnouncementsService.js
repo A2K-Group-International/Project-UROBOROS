@@ -14,7 +14,12 @@ import { supabase } from "./supabaseClient";
  *
  * @throws {Error} If there is an error during the file upload, announcement creation, or ministry association.
  */
-export const createAnnouncements = async ({ data, userId, groupId }) => {
+export const createAnnouncements = async ({
+  data,
+  userId,
+  groupId,
+  subgroupId,
+}) => {
   const fileData = [];
 
   await Promise.all(
@@ -44,8 +49,9 @@ export const createAnnouncements = async ({ data, userId, groupId }) => {
       {
         title: data.title,
         content: data.content,
-        visibility: groupId ? "private" : "public",
+        visibility: groupId || subgroupId ? "private" : "public",
         group_id: groupId ?? undefined,
+        subgroup_id: subgroupId ?? undefined,
         user_id: userId,
       },
     ])
@@ -57,7 +63,6 @@ export const createAnnouncements = async ({ data, userId, groupId }) => {
     throw error;
   }
 
-  // Ensure we wait for all file insertions
   await Promise.all(
     fileData.map(async (file) => {
       const { error: insertError } = await supabase
@@ -95,22 +100,27 @@ export const createAnnouncements = async ({ data, userId, groupId }) => {
  *
  */
 
-export const fetchAnnouncementsV2 = async (page, pageSize, groupId) => {
+export const fetchAnnouncementsV2 = async (
+  page,
+  pageSize,
+  groupId,
+  subgroupId
+) => {
   try {
     const select =
       "*, users(first_name,last_name,role), announcement_files(url,name,type)";
     const order = [{ column: "created_at", ascending: false }];
 
-    // Initialize query object
     const query = {};
 
-    if (groupId) {
+    if (subgroupId) {
+      query.subgroup_id = subgroupId;
+    } else if (groupId) {
       query.group_id = groupId;
     } else {
       query.visibility = "public";
     }
 
-    // Ensure `paginate` has valid arguments
     const paginatedData = await paginate({
       key: "announcement",
       page,
@@ -118,7 +128,7 @@ export const fetchAnnouncementsV2 = async (page, pageSize, groupId) => {
       query,
       order,
       select,
-      filters: {}, // Ensure filters are properly defined
+      filters: {},
     });
 
     paginatedData.items = paginatedData.items.map((item) => ({
@@ -139,113 +149,6 @@ export const fetchAnnouncementsV2 = async (page, pageSize, groupId) => {
     );
   }
 };
-
-// export const fetchAnnouncements = async (page, pageSize, group_id) => {
-//   try {
-//     const inquery = {};
-//     const query = {};
-//     const select = "*,announcement(*, users(first_name,last_name))";
-//     const filters = {};
-
-//     if (group_id) {
-//       filters.eq = { column: "group_id", value: group_id };
-//     } else {
-//       query.ministry_id = ministry_id;
-//     }
-
-//     const order = [
-//       {
-//         column: "created_at",
-//         ascending: false,
-//       },
-//     ];
-
-//     // Fetch and paginate the public announcements when ministry_id is an array
-//     let publicData = [];
-//     let publicPagination = { totalItems: 0, totalPages: 0, currentPage: 1 };
-
-//     if (Array.isArray(ministry_id)) {
-//       // Paginate the public announcements
-//       publicPagination = await paginate({
-//         key: "announcement",
-//         page,
-//         pageSize,
-//         query: { visibility: "public" },
-//         order,
-//         select: "*, users(first_name,last_name)",
-//       });
-
-//       publicData = publicPagination.items || [];
-//     }
-
-//     // Paginate announcement_ministries
-//     const paginatedData = await paginate({
-//       key: "announcement_ministries",
-//       page,
-//       pageSize,
-//       query,
-//       order,
-//       select,
-//       inquery,
-//       filters: {},
-//     });
-
-//     const paginatedDataItems = paginatedData.items.map(
-//       (item) => item.announcement
-//     );
-
-//     // Merge both paginated results (public + ministry-specific announcements)
-//     const allAnnouncements = [...publicData, ...paginatedDataItems];
-
-//     // Remove duplicates based on announcement ID
-//     const uniqueAnnouncements = allAnnouncements.reduce((acc, obj) => {
-//       if (!acc.some((existingObj) => existingObj.id === obj.id)) {
-//         acc.push(obj);
-//       }
-//       return acc;
-//     }, []);
-
-//     //sort by date
-//     const sortedDates = uniqueAnnouncements.sort(
-//       (a, b) => new Date(b.created_at) - new Date(a.created_at)
-//     );
-
-//     paginatedData.items = sortedDates;
-
-//     //get files associated
-//     const announcementsWithURL = await Promise.all(
-//       paginatedData.items.map(async (item) => {
-//         const { data: urlData, error: urlError } = await supabase.storage
-//           .from("Uroboros")
-//           .getPublicUrl(item.file_path);
-
-//         if (urlError) {
-//           throw new Error(`Error retrieving public URL: ${urlError.message}`);
-//         }
-
-//         return { ...item, file_url: urlData.publicUrl };
-//       })
-//     );
-
-//     // Return the merged data with file URLs and pagination details
-//     return {
-//       items: announcementsWithURL,
-//       pageSize: paginatedData.pageSize || publicPagination.pageSize,
-//       nextPage: paginatedData.nextPage || publicPagination.nextPage,
-//       totalItems: publicPagination.totalItems + paginatedData.totalItems,
-//       totalPages: Math.ceil(
-//         (publicPagination.totalItems + paginatedData.totalItems) / pageSize
-//       ),
-//       currentPage: paginatedData.currentPage || publicPagination.currentPage,
-//     };
-//   } catch (error) {
-//     console.error("Error fetching announcements:", error.message);
-//     throw new Error(
-//       error.message ||
-//         "An unexpected error occurred while fetching announcements."
-//     );
-//   }
-// };
 
 /**
  * Edits an existing announcement. Optionally uploads a new file, deletes the old file, and updates ministry associations.
@@ -307,7 +210,7 @@ export const editAnnouncement = async ({ data, announcementId }) => {
   // Upload new or updated files using their original name
   const fileData = await Promise.all(
     data.files.map(async (file) => {
-      const fileName = file.name; // using the original name
+      const fileName = file.name;
 
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from("Uroboros")
@@ -463,16 +366,3 @@ export const getAnnouncementMinistryId = async (announcement_id) => {
   }
   return ministryIds;
 };
-
-// export const trygettingallinone = async (ministry_ids) => {
-//   const { data, error } = await supabase
-//     .from("announcement_ministries")
-//     .select("*, announcement(*)").in("ministry_id",ministry_ids)
-//     .eq("announcement.visibility", "public");
-
-//   if (error) {
-//     throw new Error("Error fetching", error.message);
-//   }
-
-//   return data;
-// };

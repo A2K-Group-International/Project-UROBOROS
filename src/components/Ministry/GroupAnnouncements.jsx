@@ -8,11 +8,12 @@ import useInterObserver from "@/hooks/useInterObserver";
 import PropTypes from "prop-types";
 import foldedPaperImage from "@/assets/images/foldedpaper.png";
 
-const GroupAnnouncements = ({ groupId }) => {
+const GroupAnnouncements = ({ groupId, subgroupId }) => {
   const [searchParams] = useSearchParams();
   const { userData } = useUser();
 
-  // Use the passed groupId prop or fall back to search params
+  // Use the passed subgroupId first, then groupId, then search params
+  const subgroupIdToUse = subgroupId || searchParams.get("subgroupId");
   const groupIdToUse = groupId || searchParams.get("groupId");
 
   const {
@@ -23,18 +24,27 @@ const GroupAnnouncements = ({ groupId }) => {
     isLoading,
   } = useAnnouncements({
     user_id: userData?.id,
-    group_id: groupIdToUse,
+    group_id: subgroupIdToUse ? null : groupIdToUse, // Use groupId only if no subgroupId
+    subgroup_id: subgroupIdToUse, // Pass subgroupId if available
   });
 
   const { ref } = useInterObserver(fetchNextPage);
 
-  // Check if user is coordinator for this ministry
+  // Determine the placeholder text based on what's selected
+  const getPlaceholderText = () => {
+    if (subgroupIdToUse) {
+      return "POST YOUR FIRST SUBGROUP ANNOUNCEMENT";
+    }
+    return "POST YOUR FIRST ANNOUNCEMENT";
+  };
 
   return (
     <div className="mx-auto flex h-dvh w-full max-w-[530px] flex-col items-center pt-4">
       <AnnouncementHeader
         image={userData.user_image}
         first_name={userData.first_name}
+        subgroupId={subgroupIdToUse}
+        groupId={!subgroupIdToUse ? groupIdToUse : null}
       />
 
       {isLoading ? (
@@ -51,7 +61,7 @@ const GroupAnnouncements = ({ groupId }) => {
             <img src={foldedPaperImage} alt="Folded Paper" />
           </div>
           <p className="text-center text-[20px] font-medium text-accent/35">
-            POST YOUR FIRST ANNOUNCEMENT
+            {getPlaceholderText()}
           </p>
         </div>
       ) : (
@@ -77,6 +87,7 @@ const GroupAnnouncements = ({ groupId }) => {
 GroupAnnouncements.propTypes = {
   ministryId: PropTypes.string,
   groupId: PropTypes.string,
+  subgroupId: PropTypes.string,
 };
 
 export default GroupAnnouncements;

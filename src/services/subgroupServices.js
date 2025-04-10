@@ -1,16 +1,52 @@
 import { supabase } from "./supabaseClient";
 
+// Main function to fetch subgroup members - ensure it works correctly
 const fetchSubgroupMembers = async (subgroupId) => {
+  if (!subgroupId) {
+    console.error("No subgroupId provided to fetchSubgroupMembers");
+    return [];
+  }
+
   const { data, error } = await supabase
     .from("subgroup_members")
-    .select("joined_at,users(id,first_name,last_name)")
+    .select(
+      `
+        *,
+        users(
+          id,
+          first_name,
+          last_name  
+        )
+      `
+    )
     .eq("subgroup_id", subgroupId);
 
   if (error) {
-    throw new Error(`Error fetching subgroup members: ${error.message}`);
+    console.error("Supabase query error:", error);
+    throw error;
   }
 
   return data;
+};
+
+const fetchSubgroup = async (subgroupId) => {
+  const { data, error } = await supabase
+    .from("sub_group")
+    .select("*")
+    .eq("id", subgroupId)
+    .single();
+  if (error) {
+    throw new Error(`Error fetching subgroup: ${error.message}`);
+  }
+  const processeddata = {
+    ...data,
+    image_url: data.image_url
+      ? supabase.storage.from("Uroboros").getPublicUrl(data.image_url).data
+          ?.publicUrl || null
+      : null,
+  };
+
+  return processeddata;
 };
 
 const fetchSubgroups = async (groupId) => {
@@ -196,43 +232,50 @@ const editSubgroup = async ({
   }
 };
 
-const addSubgroupMember = async ({ subgroupId, members }) => {
-  if (!subgroupId || !members || !members.length) {
-    throw new Error("Subgroup ID and members are required");
+// Add members to a subgroup - ensure this works with the right parameters
+const addSubgroupMembers = async (subgroupId, memberIds) => {
+  if (!subgroupId) {
+    console.error("No subgroupId provided to addSubgroupMembers");
+    throw new Error("Subgroup ID is required");
   }
 
-  const membersToAdd = members.map((userId) => ({
+  if (!memberIds || !memberIds.length) {
+    console.error("No memberIds provided to addSubgroupMembers");
+    throw new Error("Member IDs are required");
+  }
+
+  const membersToAdd = memberIds.map((userId) => ({
     subgroup_id: subgroupId,
     user_id: userId,
+    joined_at: new Date().toISOString(),
   }));
 
-  try {
-    const { data, error } = await supabase
-      .from("subgroup_members")
-      .insert(membersToAdd)
-      .select();
+  const { data, error } = await supabase
+    .from("subgroup_members")
+    .insert(membersToAdd)
+    .select();
 
-    if (error) {
-      console.error("Error adding members:", error);
-      throw new Error(`Error adding members: ${error.message}`);
-    }
-
-    return data;
-  } catch (error) {
-    console.error("Exception in addSubgroupMembers:", error);
+  if (error) {
+    console.error("Supabase insert error:", error);
     throw error;
   }
+
+  return data;
 };
 
 const removeSubgroupMember = async ({ userId, subgroupId }) => {
-  const { error } = await supabase
-    .from("subgroup_members")
-    .delete()
-    .eq("subgroup_id", subgroupId)
-    .eq("user_id", userId);
+  try {
+    const { data, error } = await supabase
+      .from("subgroup_members")
+      .delete()
+      .eq("user_id", userId)
+      .eq("subgroup_id", subgroupId);
 
-  if (error) {
-    throw new Error("Error removing subgroup member");
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error("Error removing subgroup member:", error);
+    throw error;
   }
 };
 
@@ -264,12 +307,14 @@ const deleteSubgroup = async ({ subgroupId }) => {
   }
 };
 
+// Export all functions explicitly to ensure they're available
 export {
   createSubgroup,
   editSubgroup,
   deleteSubgroup,
-  addSubgroupMember,
+  addSubgroupMembers,
   removeSubgroupMember,
-  fetchSubgroupMembers,
   fetchSubgroups,
+  fetchSubgroup,
+  fetchSubgroupMembers,
 };

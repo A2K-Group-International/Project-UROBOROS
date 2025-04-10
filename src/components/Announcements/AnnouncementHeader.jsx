@@ -7,7 +7,7 @@ import { Icon } from "@iconify/react";
 import { Button } from "../ui/button";
 import AnnouncementForm from "./AnnouncementForm";
 
-const AnnouncementHeader = ({ image, first_name }) => {
+const AnnouncementHeader = ({ image, first_name, subgroupId, groupId }) => {
   return (
     <>
       <div className="flex h-[84px] w-full gap-2 rounded-[10px] border-primary-outline bg-white px-8 py-6">
@@ -16,7 +16,7 @@ const AnnouncementHeader = ({ image, first_name }) => {
           <AvatarFallback>{getInitial(first_name)}</AvatarFallback>
         </Avatar>
 
-        <AnnouncementForm>
+        <AnnouncementForm subgroupId={subgroupId} groupId={groupId}>
           <div className="flex w-full gap-2">
             <Input placeholder="Announce something publicly." />
             <Button className="h-9 w-14 rounded-[18px] bg-primary">
@@ -37,6 +37,8 @@ const AnnouncementHeader = ({ image, first_name }) => {
 AnnouncementHeader.propTypes = {
   image: PropTypes.string,
   first_name: PropTypes.string.isRequired,
+  subgroupId: PropTypes.string,
+  groupId: PropTypes.string,
 };
 
 export default AnnouncementHeader;

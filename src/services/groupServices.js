@@ -1,13 +1,28 @@
 import { supabase } from "./supabaseClient";
 
 const fetchGroupMembers = async (groupId) => {
+  if (!groupId) {
+    console.error("No groupId provided to fetchGroupMembers");
+    return [];
+  }
+
   const { data, error } = await supabase
     .from("group_members")
-    .select("joined_at,users(id,first_name,last_name)")
+    .select(
+      `
+        *,
+        users:user_id (
+          id,
+          first_name,
+          last_name
+        )
+      `
+    )
     .eq("group_id", groupId);
 
   if (error) {
-    throw new Error(`Error fetching group members${error.message}`);
+    console.error("Supabase query error:", error);
+    throw new Error(`Error fetching group members: ${error.message}`);
   }
 
   return data;

@@ -26,7 +26,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import CustomReactSelect from "../CustomReactSelect";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUser } from "@/context/useUser";
 import { Loader2 } from "lucide-react";
 import { Icon } from "@iconify/react";
@@ -63,6 +63,7 @@ const CreateSubGroupSchema = z.object({
 const CreateSubgroup = ({ groupId }) => {
   const [openDialog, setOpenDialog] = useState(false);
   const { userData } = useUser();
+  const queryClient = useQueryClient();
   const [imagePreview, setImagePreview] = useState(null);
   const fileInputRef = useRef(null);
 
@@ -117,6 +118,11 @@ const CreateSubgroup = ({ groupId }) => {
       toast({
         title: "Subgroup created",
         description: "Subgroup created successfully",
+      });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["subgroups", groupId],
       });
     },
   });
@@ -319,11 +325,7 @@ const CreateSubgroup = ({ groupId }) => {
                         }
                       />
                     </FormControl>
-                    {memberOptions.length === 0 && !isLoadingMembers && (
-                      <p className="text-sm text-amber-600">
-                        No group members available to add to this subgroup.
-                      </p>
-                    )}
+
                     <FormMessage />
                   </FormItem>
                 )}

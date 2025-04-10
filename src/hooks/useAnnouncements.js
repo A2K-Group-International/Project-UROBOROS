@@ -11,17 +11,23 @@ import {
 } from "@tanstack/react-query";
 import { toast } from "./use-toast";
 
-const useAnnouncements = ({ group_id }) => {
+const useAnnouncements = ({ group_id, subgroup_id }) => {
   const queryClient = useQueryClient();
 
+  // Create a unique query key that includes both group_id and subgroup_id
+  const queryKey = ["announcements", { group_id, subgroup_id }];
+
   const { data, hasNextPage, fetchNextPage, isLoading } = useInfiniteQuery({
-    queryKey: ["announcements", group_id],
+    queryKey,
     queryFn: async ({ pageParam }) => {
-      const response = await fetchAnnouncementsV2(pageParam, 10, group_id);
+      const response = await fetchAnnouncementsV2(
+        pageParam,
+        10,
+        group_id,
+        subgroup_id
+      );
       return response;
     },
-    // enabled: !!group_id,
-
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
       if (lastPage.nextPage) {
@@ -33,50 +39,13 @@ const useAnnouncements = ({ group_id }) => {
   const addAnnouncementMutation = useMutation({
     mutationFn: createAnnouncements,
 
-    // onMutate: async ({ announcementData, first_name, last_name }) => {
-    //   const newestAnnouncement = {
-    //     ...announcementData,
-    //     file_url: announcementData?.file
-    //       ? URL.createObjectURL(announcementData?.file)
-    //       : "",
-    //     users: { last_name, first_name },
-    //   };
-
-    //   // Cancel active queries to prevent unwanted re-fetching
-    //   await queryClient.cancelQueries(["announcements", group_id]);
-
-    //   // Get the previous state for rollback
-    //   const previousAnnouncements = queryClient.getQueryData([
-    //     "announcements",
-    //     group_id,
-    //   ]);
-
-    //   // Optimistically update the cache
-    //   queryClient.setQueryData(["announcements", group_id], (old) => {
-    //     const existingItems = old.pages.map((page) => page.items);
-    //     const isDuplicate = existingItems.some(
-    //       (item) => item.id === newestAnnouncement.id
-    //     );
-
-    //     if (isDuplicate) return old; // Prevent adding duplicates
-
-    //     return {
-    //       ...old,
-    //       pages: old.pages.map((page) => ({
-    //         ...page,
-    //         items: [newestAnnouncement, ...page.items],
-    //       })),
-    //     };
-    //   });
-
-    //   return { previousAnnouncements };
-    // },
-
     onSuccess: () => {
       toast({
         title: "Success",
         description: "Announcement created.",
       });
+      // Invalidate the query with both parameters
+      queryClient.invalidateQueries({ queryKey });
     },
 
     onError: (error, context) => {
@@ -100,44 +69,6 @@ const useAnnouncements = ({ group_id }) => {
 
   const editAnnouncementMutation = useMutation({
     mutationFn: editAnnouncement,
-    // onMutate: async ({ announcementData, first_name, last_name }) => {
-    //   const newestAnnouncement = {
-    //     ...announcementData,
-    //     file_url: announcementData?.file
-    //       ? URL.createObjectURL(announcementData?.file)
-    //       : "",
-    //     users: { last_name, first_name },
-    //   };
-
-    //   // Cancel active queries to prevent unwanted re-fetching
-    //   await queryClient.cancelQueries(["announcements", group_id]);
-
-    //   // Get the previous state for rollback
-    //   const previousAnnouncements = queryClient.getQueryData([
-    //     "announcements",
-    //     group_id,
-    //   ]);
-
-    //   // Optimistically update the cache
-    //   queryClient.setQueryData(["announcements", group_id], (old) => {
-    //     const existingItems = old.pages.map((page) => page.items);
-    //     const isDuplicate = existingItems.some(
-    //       (item) => item.id === newestAnnouncement.id
-    //     );
-
-    //     if (isDuplicate) return old; // Prevent adding duplicates
-
-    //     return {
-    //       ...old,
-    //       pages: old.pages.map((page) => ({
-    //         ...page,
-    //         items: [newestAnnouncement, ...page.items],
-    //       })),
-    //     };
-    //   });
-
-    //   return { previousAnnouncements };
-    // },
     onSuccess: () => {
       toast({
         title: "Success!",
@@ -155,43 +86,13 @@ const useAnnouncements = ({ group_id }) => {
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["announcements", group_id],
-      });
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 
   const deleteAnnouncementMutation = useMutation({
     mutationFn: async (announcementData) =>
       await deleteAnnouncement(announcementData),
-    // onMutate: async ({ announcement_id }) => {
-    //   // Cancel active queries to prevent unwanted re-fetching
-
-    //   await queryClient.cancelQueries(["announcements", group_id]);
-
-    //   // Get the previous state for rollback
-    //   const previousAnnouncements = queryClient.getQueryData([
-    //     "announcements",
-    //     group_id,
-    //   ]);
-
-    //   // // Optimistically update the cache
-    //   queryClient.setQueryData(["announcements", group_id], (old) => {
-    //     const newPages = old.pages.map((page) => ({
-    //       ...old,
-    //       items: page?.items
-    //         ? page?.items.filter((item) => item.id !== announcement_id)
-    //         : [],
-    //     }));
-
-    //     return {
-    //       ...old,
-    //       pages: newPages,
-    //     };
-    //   });
-
-    //   return { previousAnnouncements };
-    // },
     onSuccess: () => {
       toast({
         title: "Success!",
@@ -209,9 +110,7 @@ const useAnnouncements = ({ group_id }) => {
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["announcements", group_id],
-      });
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 
