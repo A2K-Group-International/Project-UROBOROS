@@ -11,37 +11,31 @@ import PropTypes from "prop-types";
 import { useUser } from "@/context/useUser";
 import ManualAttendEvents from "../Events/ManualAttendEvents";
 import { ROLES } from "@/constants/roles";
-// import { formatEventTime, formatEventDate } from "@/lib/utils";
+import { useMemo } from "react";
+import { formatEventDate, formatEventTime } from "@/lib/utils";
 
-const EventInfoDialog = ({ open, event, onClose }) => {
+const EventInfoDialog = ({ open, event, eventData, onClose }) => {
   const { userData } = useUser();
   const role = userData?.role;
 
-  const formatUKDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-GB", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
-  };
+  // Find the matching event in eventData that corresponds to the current event.id
+  const currentEventDetails = useMemo(() => {
+    if (!eventData || !Array.isArray(eventData) || !event?.id) return null;
 
-  const formatUKTime = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString("en-GB", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+    const matchingEvent = eventData.find((item) => item.id === event.id);
+    return matchingEvent || null;
+  }, [eventData, event?.id]);
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader className="text-start">
-          <DialogTitle>{event?.title}</DialogTitle>
+          <DialogTitle>{currentEventDetails?.event_name}</DialogTitle>
           <DialogDescription>
-            <p>Date: {formatUKDate(event?.start)}</p>
-            <p>Time: {formatUKTime(event?.start)}</p>
+            <p>Date: {formatEventDate(currentEventDetails?.event_date)}</p>
+            {currentEventDetails?.requires_attendance && (
+              <p>Time: {formatEventTime(currentEventDetails?.event_time)}</p>
+            )}
             <p>
               Description: {event?.description || "No description provided."}
             </p>
@@ -51,11 +45,12 @@ const EventInfoDialog = ({ open, event, onClose }) => {
           <Button variant="outline" onClick={onClose}>
             Close
           </Button>
-          {role === ROLES[2] && (
+          {role === ROLES[2] && currentEventDetails?.requires_attendance && (
             <ManualAttendEvents
-              eventId={event?.id}
-              eventName={event?.title}
-              // eventTime={formattedEventTime}
+              eventId={currentEventDetails?.id}
+              eventName={currentEventDetails?.event_name}
+              eventTime={currentEventDetails?.event_time}
+              eventDate={currentEventDetails?.event_date}
             />
           )}
         </DialogFooter>
@@ -72,6 +67,15 @@ EventInfoDialog.propTypes = {
     description: PropTypes.string,
     id: PropTypes.string,
   }),
+  eventData: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string,
+      event_name: PropTypes.string,
+      event_date: PropTypes.string,
+      event_time: PropTypes.string,
+      event_description: PropTypes.string,
+    })
+  ),
   onClose: PropTypes.func.isRequired,
   temporaryRole: PropTypes.string,
 };
