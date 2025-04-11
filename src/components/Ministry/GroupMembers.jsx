@@ -303,6 +303,7 @@ const AddGroupMembersForm = ({ ministryId, groupId }) => {
     volunteers,
     parishioners,
     coordinators,
+    admins,
     ministryCoordinatorIds,
     userData?.id,
   ]);

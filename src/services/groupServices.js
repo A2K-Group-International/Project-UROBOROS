@@ -280,18 +280,43 @@ const deleteGroup = async ({ groupId }) => {
   }
 };
 
-const transferMembersFetchGroups = async (ministryId, currentGroupId) => {
-  const { data, error } = await supabase
+const transferMembersFetchGroups = async (ministryId, memberId) => {
+  const { data: allGroups, error: groupError } = await supabase
     .from("groups")
     .select("*")
-    .eq("ministry_id", ministryId)
-    .neq("id", currentGroupId);
+    .eq("ministry_id", ministryId);
 
-  if (error) {
-    throw new Error(`Error fetching groups${error.message}`);
+  if (groupError) {
+    throw new Error(`Error fetching groups${groupError.message}`);
   }
 
-  return data;
+  if (!allGroups || allGroups.length === 0) {
+    return [];
+  }
+
+  // Check if the user is already a member of any other groups
+  const { data: userMemberships, error: membershipError } = await supabase
+    .from("group_members")
+    .select("group_id")
+    .eq("user_id", memberId);
+
+  if (membershipError) {
+    throw new Error(
+      `Error checking user memberships: ${membershipError.message}`
+    );
+  }
+
+  // Create a Set of group IDs where the user is already a member
+  const userGroupIds = new Set(
+    userMemberships ? userMemberships.map((m) => m.group_id) : []
+  );
+
+  // Filter out groups where the user is already a member
+  const availableGroups = allGroups.filter(
+    (group) => !userGroupIds.has(group.id)
+  );
+
+  return availableGroups;
 };
 
 const transferUserToGroup = async ({ userId, currentGroupId, newGroupId }) => {

@@ -112,6 +112,7 @@ const TransferMember = ({
                     ministry={ministry}
                     currentGroupId={groupId}
                     onSelectGroup={handleGroupSelect}
+                    memberId={userId}
                   />
                 </AccordionContent>
               </AccordionItem>
@@ -158,13 +159,13 @@ TransferMember.propTypes = {
 };
 
 // Ministry submenu
-const MinistrySubMenu = ({ ministry, currentGroupId, onSelectGroup }) => {
+const MinistrySubMenu = ({ ministry, onSelectGroup, memberId }) => {
   const [selectedValue, setSelectedValue] = useState("");
   // Fetch groups for this specific ministry
   const { data: groups = [], isLoading } = useQuery({
-    queryKey: ["transferGroups", ministry.id, currentGroupId],
-    queryFn: () => transferMembersFetchGroups(ministry.id, currentGroupId),
-    enabled: !!ministry.id && !!currentGroupId,
+    queryKey: ["transferGroups", ministry.id, memberId],
+    queryFn: () => transferMembersFetchGroups(ministry.id, memberId),
+    enabled: !!ministry.id && !!memberId,
   });
 
   const handleValueChange = (value) => {
@@ -225,7 +226,7 @@ MinistrySubMenu.propTypes = {
     id: PropTypes.string.isRequired,
     ministry_name: PropTypes.string.isRequired,
   }).isRequired,
-  currentGroupId: PropTypes.string.isRequired,
+  memberId: PropTypes.string.isRequired,
   onSelectGroup: PropTypes.func.isRequired,
 };
 
