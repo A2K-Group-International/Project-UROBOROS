@@ -50,8 +50,6 @@ const AnnouncementForm = ({
   const subgroupIdToUse = subgroupId || searchParams.get("subgroupId");
   const groupIdToUse = groupId || searchParams.get("groupId");
 
-  console.log("Using subgroupId:", subgroupIdToUse);
-
   const [currentFiles, setCurrentFiles] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedFileType, setSelectedFileTypes] = useState(
@@ -60,7 +58,6 @@ const AnnouncementForm = ({
   const [selectedVideo, setSelectedVideo] = useState("");
   const [selectedPDF, setSelectedPDF] = useState("");
   const [imagePreviews, setImagePreviews] = useState([]);
-  console.log("par", searchParams.get("subgroupId"));
   // console.log("edit data", files);
   const form = useForm({
     resolver: zodResolver(AnnouncementSchema),

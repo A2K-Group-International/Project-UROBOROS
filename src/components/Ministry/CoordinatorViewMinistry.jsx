@@ -482,11 +482,7 @@ const MobileSubgroupsList = ({ groupId, ministryId }) => {
                 value="members"
                 className="no-scrollbar h-[calc(100%-60px)] overflow-y-auto"
               >
-                <GroupMembers
-                  ministryId={ministryId}
-                  groupId={groupId}
-                  subgroupId={subgroup.id}
-                />
+                <GroupMembers ministryId={ministryId} groupId={groupId} />
               </TabsContent>
             </Tabs>
           </SheetContent>
@@ -1007,6 +1003,7 @@ const CoordinatorViewMinistry = () => {
               <GroupMembers
                 ministryId={selectedMinistryId}
                 groupId={selectedGroup}
+                assignedMinistry={assignedMinistries}
               />
             </TabsContent>
           </Tabs>

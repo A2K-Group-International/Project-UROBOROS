@@ -280,6 +280,48 @@ const deleteGroup = async ({ groupId }) => {
   }
 };
 
+const transferMembersFetchGroups = async (ministryId, currentGroupId) => {
+  const { data, error } = await supabase
+    .from("groups")
+    .select("*")
+    .eq("ministry_id", ministryId)
+    .neq("id", currentGroupId);
+
+  if (error) {
+    throw new Error(`Error fetching groups${error.message}`);
+  }
+
+  return data;
+};
+
+const transferUserToGroup = async ({ userId, currentGroupId, newGroupId }) => {
+  try {
+    const { data, error } = await supabase
+      .from("group_members")
+      .update({
+        group_id: newGroupId,
+        joined_at: new Date().toISOString(),
+      })
+      .eq("user_id", userId)
+      .eq("group_id", currentGroupId)
+      .select();
+
+    if (error) {
+      throw new Error(`Error transferring user to new group: ${error.message}`);
+    }
+
+    // Check if the update affected any rows
+    if (data?.length === 0) {
+      throw new Error("User is not a member of the specified group");
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error transferring user:", error);
+    throw error;
+  }
+};
+
 export {
   createGroup,
   editGroup,
@@ -288,4 +330,6 @@ export {
   removeMember,
   fetchGroupMembers,
   fetchGroups,
+  transferMembersFetchGroups,
+  transferUserToGroup,
 };
