@@ -26,7 +26,7 @@ const AttendanceTable = ({
   onSubmit,
   attendeeType,
   onRowAttend,
-  // updateTimeOut,
+  updateTimeOut,
 }) => {
   return (
     <>
@@ -98,14 +98,16 @@ const AttendanceTable = ({
                         hour12: true,
                       })
                     ) : attendee.time_attended ? (
-                      !disableSchedule && (
-                        // <Icon
-                        //   onClick={() => updateTimeOut(attendee?.id)}
-                        //   className="h-5 w-5 hover:cursor-pointer"
-                        //   icon="mingcute:exit-line"
-                        // />
+                      !disableSchedule &&
+                      (attendee.attendee_type === "children" ? (
                         <TimeOutDialog attendee={attendee} />
-                      )
+                      ) : (
+                        <Icon
+                          onClick={() => updateTimeOut(attendee?.id)}
+                          className="h-5 w-5 hover:cursor-pointer"
+                          icon="mingcute:exit-line"
+                        />
+                      ))
                     ) : (
                       <p>--:--</p>
                     )}
@@ -151,7 +153,7 @@ AttendanceTable.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   onRowAttend: PropTypes.func.isRequired,
   attendeeType: PropTypes.string,
-  // updateTimeOut: PropTypes.func.isRequired,
+  updateTimeOut: PropTypes.func.isRequired,
 };
 
 export default memo(AttendanceTable);

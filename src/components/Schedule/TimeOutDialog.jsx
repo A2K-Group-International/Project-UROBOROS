@@ -30,6 +30,7 @@ import { Icon } from "@iconify/react";
 import { useQuery } from "@tanstack/react-query";
 import { parentsWithEmail } from "@/services/attendanceService";
 import { Loader2 } from "lucide-react";
+import useTimeOutAttendee from "@/hooks/Schedule/useTimeOutAttendee";
 
 const FormSchema = z.object({
   selectedParentsEmail: z
@@ -50,6 +51,7 @@ const FormSchema = z.object({
 const TimeOutDialog = ({ attendee }) => {
   const [isOpen, setIsOpen] = useState(false); // Handle dialog open
   const [attendeeInfo, setAttendeeInfo] = useState({}); // Handle child attendee info
+  const { timeOutMutation } = useTimeOutAttendee();
 
   const { data: parents = [], isLoading: parentsLoading } = useQuery({
     queryKey: ["parents-with-email", attendee?.family_id],
@@ -60,7 +62,6 @@ const TimeOutDialog = ({ attendee }) => {
   useEffect(() => {
     if (isOpen) {
       setAttendeeInfo(attendee);
-      console.log(attendeeInfo);
     }
   }, [isOpen, attendee]);
 
@@ -75,9 +76,24 @@ const TimeOutDialog = ({ attendee }) => {
   const selectedEmails = form.watch("selectedParentsEmail") || [];
   const hasSelectedParents = selectedEmails.length > 0;
 
-  const onSubmit = (data) => {
-    console.log(data);
+  // Use the mutation in onSubmit
+  const onSubmit = async (data) => {
+    try {
+      await timeOutMutation.mutateAsync({
+        attendeeId: attendeeInfo?.id,
+        selectedParentsEmails: data.selectedParentsEmail,
+      });
+
+      // Close the dialog on success
+      setIsOpen(false);
+    } catch (error) {
+      console.error("Failed to process time out:", error);
+    }
   };
+
+  // Check if mutation is loading
+  const isSubmitting = timeOutMutation.isPending;
+
   return (
     <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
       <AlertDialogTrigger>
@@ -154,8 +170,17 @@ const TimeOutDialog = ({ attendee }) => {
             </AlertDialogBody>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <Button type="submit" className="flex-1">
-                {hasSelectedParents ? "Send Email & Time Out" : "Time Out Only"}
+              <Button type="submit" className="flex-1" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <div className="flex items-center justify-center">
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {hasSelectedParents ? "Sending..." : "Processing..."}
+                  </div>
+                ) : hasSelectedParents ? (
+                  "Send Email & Time Out"
+                ) : (
+                  "Time Out Only"
+                )}
               </Button>
             </AlertDialogFooter>
           </form>
