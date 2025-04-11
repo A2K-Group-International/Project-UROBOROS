@@ -179,7 +179,9 @@ export const getGuardian = async (familyId) => {
     // Fetch the rest of the parents excluding the logged-in user
     const { data: otherParents, error: otherParentsError } = await supabase
       .from("parents")
-      .select("id,first_name, last_name, contact_number,family_id")
+      .select(
+        "id,first_name, last_name, contact_number,family_id, parishioner_id"
+      )
       .eq("family_id", familyId)
       .or(`parishioner_id.neq.${loggedInUserId},parishioner_id.is.null`);
 

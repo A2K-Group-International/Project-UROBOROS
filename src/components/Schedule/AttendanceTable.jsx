@@ -18,6 +18,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import PropTypes from "prop-types";
+import TimeOutDialog from "./TimeOutDialog";
 
 const AttendanceTable = ({
   attendance,
@@ -25,7 +26,7 @@ const AttendanceTable = ({
   onSubmit,
   attendeeType,
   onRowAttend,
-  updateTimeOut,
+  // updateTimeOut,
 }) => {
   return (
     <>
@@ -98,11 +99,12 @@ const AttendanceTable = ({
                       })
                     ) : attendee.time_attended ? (
                       !disableSchedule && (
-                        <Icon
-                          onClick={() => updateTimeOut(attendee?.id)}
-                          className="h-5 w-5 hover:cursor-pointer"
-                          icon="mingcute:exit-line"
-                        />
+                        // <Icon
+                        //   onClick={() => updateTimeOut(attendee?.id)}
+                        //   className="h-5 w-5 hover:cursor-pointer"
+                        //   icon="mingcute:exit-line"
+                        // />
+                        <TimeOutDialog attendee={attendee} />
                       )
                     ) : (
                       <p>--:--</p>
@@ -149,7 +151,7 @@ AttendanceTable.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   onRowAttend: PropTypes.func.isRequired,
   attendeeType: PropTypes.string,
-  updateTimeOut: PropTypes.func.isRequired,
+  // updateTimeOut: PropTypes.func.isRequired,
 };
 
 export default memo(AttendanceTable);
