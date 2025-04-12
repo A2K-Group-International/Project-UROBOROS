@@ -24,8 +24,8 @@ const useTimeOutAttendee = () => {
     },
     onMutate: () => {
       toast({
-        title: "Processing time out...",
-        description: "Please wait while we process the request.",
+        title: "Sending email...",
+        description: "Please wait while we send the email.",
       });
     },
     onSuccess: (data) => {
