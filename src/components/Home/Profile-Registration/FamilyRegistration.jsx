@@ -51,7 +51,6 @@ const FamilyRegistration = ({ skipBtn, closeModal }) => {
     control: form.control,
     name: "children",
   });
-
   const { mutate, isLoading } = useAddFamily();
 
   const onSubmit = async (data) => {

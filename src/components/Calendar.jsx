@@ -95,6 +95,7 @@ const Calendar = ({ events }) => {
         )} // Customize event content
         displayEventTime={false} // Hide time from display
       />
+
       <EventInfoDialog
         open={dialogOpen}
         event={selectedEvent}

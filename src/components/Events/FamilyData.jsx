@@ -36,10 +36,6 @@ AttendeeButton.propTypes = {
   isPending: PropTypes.bool,
 };
 
-AttendeeButton.defaultProps = {
-  isPending: false,
-};
-
 const ParentMemberCard = ({ name, id, onAttend, isPending }) => (
   <div className="mb-2 flex items-center justify-between rounded-xl bg-primary px-3 py-2">
     <Label>{name}</Label>
@@ -54,10 +50,6 @@ ParentMemberCard.propTypes = {
   id: PropTypes.string.isRequired,
   onAttend: PropTypes.func.isRequired,
   isPending: PropTypes.bool,
-};
-
-ParentMemberCard.defaultProps = {
-  isPending: false,
 };
 
 const ChildMemberCard = ({ name, id, onAttend, isPending }) => (
@@ -77,10 +69,6 @@ ChildMemberCard.propTypes = {
   id: PropTypes.string.isRequired,
   onAttend: PropTypes.func.isRequired,
   isPending: PropTypes.bool,
-};
-
-ChildMemberCard.defaultProps = {
-  isPending: false,
 };
 
 const RegisteredAttendees = ({ attendees, onCancelAttendance, isPending }) => (
@@ -120,11 +108,6 @@ RegisteredAttendees.propTypes = {
   ),
   onCancelAttendance: PropTypes.func.isRequired,
   isPending: PropTypes.bool,
-};
-
-RegisteredAttendees.defaultProps = {
-  attendees: [],
-  isPending: false,
 };
 
 const FamilyData = ({ userId, selectedEvent }) => {

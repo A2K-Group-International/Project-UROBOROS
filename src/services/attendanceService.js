@@ -276,6 +276,7 @@ export const insertGuardians = async (parentData) => {
         last_name: parentData.last_name,
         contact_number: parentData.contact_number,
         registered_by: parentData.registered_by,
+        time_attended: parentData.time_attended,
       },
     ])
     .select();
@@ -344,6 +345,7 @@ export const insertChildren = async (childData) => {
         family_id: childData.family_id,
         registration_code: childData.registration_code,
         registered_by: childData.registered_by,
+        time_attended: childData.time_attended,
       },
     ])
     .select();
@@ -1528,6 +1530,26 @@ const getAttendanceFromExistingRecord = async (eventId) => {
   }
 };
 
+const parentsWithEmail = async (familyId) => {
+  try {
+    // Fetch parents with email
+    const { data, error } = await supabase
+      .from("parents")
+      .select("id, first_name, last_name, parents:parishioner_id(id,email)")
+      .eq("family_id", familyId)
+      .not("parishioner_id", "is", null);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error in parentsWithEmail:", error);
+    throw error;
+  }
+};
+
 export {
   fetchChildrenAttendanceHistory,
   fetchParentAttendanceHistory,
@@ -1551,4 +1573,5 @@ export {
   removeWalkInAttendeeFromRecord,
   updateWalkInAttendee,
   getAttendanceFromExistingRecord,
+  parentsWithEmail,
 };

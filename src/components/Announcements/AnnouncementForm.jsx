@@ -40,9 +40,16 @@ const AnnouncementForm = ({
   content,
   announcementId,
   children,
+  subgroupId, // Add these props
+  groupId,
 }) => {
   const [searchParams] = useSearchParams();
   const { userData } = useUser();
+
+  // Use the props first, then fall back to URL params if needed
+  const subgroupIdToUse = subgroupId || searchParams.get("subgroupId");
+  const groupIdToUse = groupId || searchParams.get("groupId");
+
   const [currentFiles, setCurrentFiles] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedFileType, setSelectedFileTypes] = useState(
@@ -51,7 +58,6 @@ const AnnouncementForm = ({
   const [selectedVideo, setSelectedVideo] = useState("");
   const [selectedPDF, setSelectedPDF] = useState("");
   const [imagePreviews, setImagePreviews] = useState([]);
-
   // console.log("edit data", files);
   const form = useForm({
     resolver: zodResolver(AnnouncementSchema),
@@ -64,7 +70,8 @@ const AnnouncementForm = ({
 
   const { addAnnouncementMutation, editAnnouncementMutation } =
     useAnnouncements({
-      group_id: searchParams.get("groupId"),
+      group_id: groupIdToUse,
+      subgroup_id: subgroupIdToUse, // Make sure to set subgroup_id
     });
 
   const onSubmit = (data) => {
@@ -72,13 +79,15 @@ const AnnouncementForm = ({
       editAnnouncementMutation.mutate({
         data,
         announcementId,
-        groupId: searchParams.get("groupId"),
+        groupId: groupIdToUse,
+        subgroupId: subgroupIdToUse, // Use consistent naming (lowercase g)
       });
     } else {
       addAnnouncementMutation.mutate({
         data,
         userId: userData?.id,
-        groupId: searchParams.get("groupId"),
+        groupId: groupIdToUse,
+        subgroupId: subgroupIdToUse, // Use consistent naming (lowercase g)
       });
     }
 
@@ -425,6 +434,8 @@ AnnouncementForm.propTypes = {
   content: PropTypes.string,
   announcementId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   children: PropTypes.node.isRequired,
+  subgroupId: PropTypes.string,
+  groupId: PropTypes.string,
 };
 
 export default AnnouncementForm;

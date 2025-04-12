@@ -8,6 +8,7 @@ import {
   removeMember,
   addMember,
   deleteGroup,
+  transferUserToGroup,
 } from "@/services/groupServices";
 import { toast } from "./use-toast";
 
@@ -123,6 +124,28 @@ const useGroups = ({ ministryId, groupId }) => {
     },
   });
 
+  const transferUserToGroupMutation = useMutation({
+    mutationFn: transferUserToGroup,
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Member transferred successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Error transferring member",
+        variant: "destructive",
+      });
+    },
+    onSettled: (data, error, variables) => {
+      // Invalidate queries for both the source and destination groups
+      queryClient.invalidateQueries(["groupMembers", variables.currentGroupId]);
+      queryClient.invalidateQueries(["groupMembers", variables.newGroupId]);
+    },
+  });
+
   return {
     deleteGroupMutation,
     editGroupMutation,
@@ -131,6 +154,7 @@ const useGroups = ({ ministryId, groupId }) => {
     groupmembers,
     addGroupMembersMutation,
     removeGroupMembersMutation,
+    transferUserToGroupMutation,
   };
 };
 

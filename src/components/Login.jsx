@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useUser } from "@/context/useUser";
 import { useToast } from "@/hooks/use-toast";
-import { loginSchema } from "@/zodSchema/LoginSchema"; 
+import { loginSchema } from "@/zodSchema/LoginSchema";
 
 import {
   Dialog,
@@ -30,13 +30,12 @@ import { Input } from "@/components/ui/input";
 import ForgotPassword from "./ForgotPassword";
 
 const Login = () => {
-
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const loc = useLocation();
   const navigate = useNavigate();
-  const { login, loading } = useUser(); 
+  const { login, loading } = useUser();
   const { toast } = useToast();
 
   const form = useForm({
@@ -54,32 +53,36 @@ const Login = () => {
   const handleLogin = async (data) => {
     try {
       await login(data); // Trigger login and get user data
-
       setIsDialogOpen(false); // Close dialog
-      navigate(loc?.state?.from || "/announcements", { replace: true }); // Navigate to the dashboard
+      navigate(loc?.state?.from || "/announcements", { replace: true });
       toast({
         title: "Login Successfully",
       });
     } catch (error) {
-      console.error("Login failed:", error.message);
       toast({
         title: error.message,
-        variant: 'destructive'
+        variant: "destructive",
       });
     }
   };
 
-  // Effect to watch for userData and trigger navigation when it's updated
-  // useEffect(() => {
-  //   if (userData) {
-  //     setIsDialogOpen(false); // Close dialog on success
-  //     // navigate("/dashboard"); // Navigate to the dashboard
-  //   }
-  // }, [userData, navigate]);
-
+  const handleDialogReset = () => {
+    setIsDialogOpen(false); // Close dialog
+    form.reset(); // Reset form fields
+    setPasswordVisible(false); // Reset password visibility state
+  };
 
   return (
-    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+    <Dialog
+      open={isDialogOpen}
+      onOpenChange={(open) => {
+        if (!open) {
+          handleDialogReset();
+        } else {
+          setIsDialogOpen(true);
+        }
+      }}
+    >
       <DialogTrigger asChild>
         <Button variant="login">Login</Button>
       </DialogTrigger>
@@ -92,7 +95,7 @@ const Login = () => {
         </DialogHeader>
         <Form {...form}>
           <form
-          id="login"
+            id="login"
             onSubmit={form.handleSubmit(handleLogin)}
             className="space-y-6 py-4"
           >

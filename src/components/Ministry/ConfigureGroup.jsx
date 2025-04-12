@@ -514,7 +514,7 @@ const EditGroup = ({ groupId, groupName, groupDescription, groupImage }) => {
                             setImagePreview(null);
                             form.setValue("groupImage", null);
                             if (fileInputRef.current) {
-                              fileInputRef.current.value = ""; // Safely reset file input
+                              fileInputRef.current.value = "";
                             }
                           }}
                           className="absolute right-0 top-0 text-2xl text-accent hover:cursor-pointer hover:text-red-600"
