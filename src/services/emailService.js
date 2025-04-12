@@ -35,7 +35,7 @@ export const timeOutAttendeeWithNotification = async (data) => {
     const { data: result } = await axios.post(
       //   `https://uroboros-api.onrender.com/time-out-attendee` ||
       `https://uroboros-api.onrender.com/timeout/time-out-attendee`,
-      //   `http://localhost:3000/timeout/time-out-attendee`,
+      // `http://localhost:3000/timeout/time-out-attendee`,
       {
         attendeeId,
         selectedParentsEmails,
