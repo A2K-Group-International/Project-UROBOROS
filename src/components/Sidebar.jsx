@@ -39,7 +39,7 @@ const Sidebar = () => {
   };
 
   const initials = `${getInitial(userData?.first_name)}${getInitial(userData?.last_name)}`;
-
+  // Mobile Version
   return (
     <div className="flex lg:my-9 lg:w-64 lg:flex-col">
       <Title className="mb-12 ml-9 hidden max-w-[201px] lg:block">
@@ -87,6 +87,7 @@ const Sidebar = () => {
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
+                {/* Fetch Switch Account Base on Role */}
                 {availableRoles.map((role) => (
                   <DropdownMenuItem
                     key={role.value}
@@ -96,9 +97,23 @@ const Sidebar = () => {
                   </DropdownMenuItem>
                 ))}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate("/profile")}>
-                  Profile
-                </DropdownMenuItem>
+                {/* Profile Settings, Feedback Page, Logout */}
+                <Link
+                  to="/feedback"
+                  className="flex w-full items-center gap-2 hover:cursor-pointer"
+                >
+                  <DropdownMenuItem className="w-full">
+                    Send Feedback
+                  </DropdownMenuItem>
+                </Link>
+                <Link
+                  to="/profile"
+                  className="flex w-full items-center gap-2 hover:cursor-pointer"
+                >
+                  <DropdownMenuItem className="w-full">
+                    Profile
+                  </DropdownMenuItem>
+                </Link>
                 <DropdownMenuItem onClick={handleLogout}>
                   Logout
                 </DropdownMenuItem>
@@ -155,10 +170,7 @@ const SidebarProfile = ({ availableRoles, onSwitchRole }) => {
   return (
     <div className="ml-9 hidden h-10 w-56 items-center justify-between rounded-[20px] bg-white p-1 lg:flex">
       <div className="flex items-center gap-2">
-        {/* <Link
-          to="/profile"
-          className="flex items-center gap-2 hover:cursor-pointer"
-        > */}
+        {/* Avatar (Future Avatar Image) */}
         <Avatar className="h-8 w-8">
           <AvatarFallback>{initials}</AvatarFallback>
         </Avatar>
@@ -181,7 +193,14 @@ const SidebarProfile = ({ availableRoles, onSwitchRole }) => {
             </DropdownMenuItem>
           ))}
           {userData?.role !== ROLES[2] && <DropdownMenuSeparator />}
-
+          <Link
+            to="/feedback"
+            className="flex w-full items-center gap-2 hover:cursor-pointer"
+          >
+            <DropdownMenuItem className="w-full">
+              Send Feedback
+            </DropdownMenuItem>
+          </Link>
           <Link
             to="/profile"
             className="flex w-full items-center gap-2 hover:cursor-pointer"

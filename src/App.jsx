@@ -16,6 +16,7 @@ import RequireRole from "@/components/RequireRole";
 import { ROLES } from "@/constants/roles";
 import ResetPassword from "./pages/ResetPassword";
 import AcceptInvite from "./pages/AcceptInvite";
+import Feedback from "./pages/Feedback";
 
 const App = () => {
   return (
@@ -64,7 +65,7 @@ const App = () => {
           {/* All Roles Can Access Routes Below */}
           <Route element={<RequireRole roles={[...ROLES]} />}>
             <Route path="/announcements" element={<Announcements />} />
-
+            <Route path="/feedback" element={<Feedback />} />
             <Route path="/profile" element={<Profile />} />
 
             <Route path="/reset-password" element={<ResetPassword />} />
