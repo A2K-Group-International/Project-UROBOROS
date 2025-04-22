@@ -217,7 +217,7 @@ const ScheduleDetails = () => {
   );
 
   // Fetch all volunteers
-  const volunteerOptions = filteredVolunteers?.map((volunteer) => ({
+  const allVolunteersRole = filteredVolunteers?.map((volunteer) => ({
     value: volunteer.id,
     label: `${volunteer.first_name} ${volunteer.last_name}`,
   }));
@@ -292,28 +292,22 @@ const ScheduleDetails = () => {
     replacementVolunteerIds,
   ]);
 
-  // Fetch volunteers in select
+  //Admin Role
+  //If public event show all volunteers, coordinators and admins role
+  //If private event show only the coordinator and member in volunteer group to the ministry
   const getVolunteerOptionsForRole = () => {
-    //Admin Role
     if (temporaryRole === ROLES[4]) {
       return event?.event_visibility === "public"
-        ? volunteerOptions
+        ? allVolunteersRole
         : ministryVolunteerOptions;
     }
 
     //Coordinator role
-    if (temporaryRole === ROLES[0]) {
+    //If public event show all members in volunteer group and their coordinator in their ministry
+    //If private event show only volunteers in their volunteer group
+    if (temporaryRole === ROLES[0] || temporaryRole === ROLES[1]) {
       return event?.event_visibility === "public"
         ? ministriesVolunteers
-        : ministryVolunteerOptions;
-    }
-
-    //Volunteer role
-
-    //Admin Role
-    if (temporaryRole === ROLES[1]) {
-      return event?.event_visibility === "public"
-        ? volunteerOptions
         : ministryVolunteerOptions;
     }
   };
@@ -410,18 +404,17 @@ const ScheduleDetails = () => {
   };
 
   useEffect(() => {
-    if (!event || !userData) {
+    if (!event || !temporaryRole) {
       return;
     }
-
     const eventDateTime = new Date(`${event?.event_date}T${event?.event_time}`);
     const currentDateTime = new Date();
 
     let offset = 0;
-    if (userData.role === "volunteer") {
+    if (temporaryRole === "volunteer") {
       // 24 hours ahead for volunteer
       offset = 24 * 60 * 60 * 1000;
-    } else if (userData.role === "admin") {
+    } else if (temporaryRole === "admin" || temporaryRole === "coordinator") {
       // 7 days ahead for admin
       offset = 7 * 24 * 60 * 60 * 1000;
     }
@@ -433,7 +426,7 @@ const ScheduleDetails = () => {
     } else {
       setDisableSchedule(false);
     }
-  }, [event, userData]);
+  }, [event, temporaryRole]);
 
   const removeAssignedVolunteerMutation = useMutation({
     mutationFn: async (volunteerId) =>

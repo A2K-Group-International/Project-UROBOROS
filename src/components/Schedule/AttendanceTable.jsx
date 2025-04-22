@@ -18,6 +18,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import PropTypes from "prop-types";
+import TimeOutDialog from "./TimeOutDialog";
 
 const AttendanceTable = ({
   attendance,
@@ -97,13 +98,16 @@ const AttendanceTable = ({
                         hour12: true,
                       })
                     ) : attendee.time_attended ? (
-                      !disableSchedule && (
+                      !disableSchedule &&
+                      (attendee.attendee_type === "children" ? (
+                        <TimeOutDialog attendee={attendee} />
+                      ) : (
                         <Icon
                           onClick={() => updateTimeOut(attendee?.id)}
                           className="h-5 w-5 hover:cursor-pointer"
                           icon="mingcute:exit-line"
                         />
-                      )
+                      ))
                     ) : (
                       <p>--:--</p>
                     )}

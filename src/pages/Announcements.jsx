@@ -40,7 +40,8 @@ const Announcements = () => {
         {/* Announcements List */}
         <div className="no-scrollbar flex w-full flex-col items-center overflow-y-scroll rounded-none border-t border-primary-outline p-1 pt-3 md:rounded-xl md:border md:bg-primary md:px-9 md:py-6">
           <div className="w-full lg:w-2/3">
-            {userData?.role === "admin" && (
+            {(userData?.role === "admin" ||
+              userData?.role === "coordinator") && (
               <AnnouncementHeader
                 image={userData?.user_image}
                 first_name={userData?.first_name}

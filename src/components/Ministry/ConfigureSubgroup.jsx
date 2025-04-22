@@ -27,7 +27,7 @@ import {
   fetchSubgroups,
   editSubgroup,
 } from "@/services/subgroupServices";
-import CreateSubgroup from "./createSubGroup";
+import CreateSubgroup from "./CreateSubgroup";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import {

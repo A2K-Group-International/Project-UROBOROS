@@ -1530,6 +1530,26 @@ const getAttendanceFromExistingRecord = async (eventId) => {
   }
 };
 
+const parentsWithEmail = async (familyId) => {
+  try {
+    // Fetch parents with email
+    const { data, error } = await supabase
+      .from("parents")
+      .select("id, first_name, last_name, parents:parishioner_id(id,email)")
+      .eq("family_id", familyId)
+      .not("parishioner_id", "is", null);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error in parentsWithEmail:", error);
+    throw error;
+  }
+};
+
 export {
   fetchChildrenAttendanceHistory,
   fetchParentAttendanceHistory,
@@ -1553,4 +1573,5 @@ export {
   removeWalkInAttendeeFromRecord,
   updateWalkInAttendee,
   getAttendanceFromExistingRecord,
+  parentsWithEmail,
 };

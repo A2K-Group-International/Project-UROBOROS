@@ -52,7 +52,7 @@ AlertDialogContent.propTypes = {
 const AlertDialogHeader = ({ className, ...props }) => (
   <div
     className={cn(
-      "flex flex-col py-5 pl-8 pr-[26px] text-center sm:text-left",
+      "flex flex-col py-5 pl-8 pr-[26px] text-center text-primary-text sm:text-left",
       className
     )}
     {...props}

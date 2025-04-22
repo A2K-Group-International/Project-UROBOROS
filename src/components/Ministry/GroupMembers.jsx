@@ -39,12 +39,18 @@ import { ROLES } from "@/constants/roles";
 import CustomReactSelect from "../CustomReactSelect";
 import { useUser } from "@/context/useUser";
 import useMinistry from "@/hooks/useMinistry";
+import TransferMember from "./TransferMember";
 
 const addMembersSchema = z.object({
   members: z.array(z.string()).min(1, "Please select at least one member"),
 });
 
-const GroupMembers = ({ ministryId, groupId, subgroupId }) => {
+const GroupMembers = ({
+  ministryId,
+  groupId,
+  subgroupId,
+  assignedMinistry,
+}) => {
   const { userData } = useUser();
   const currentUserId = userData?.id;
 
@@ -152,14 +158,23 @@ const GroupMembers = ({ ministryId, groupId, subgroupId }) => {
                             }
                           />
                         ) : (
-                          <RemoveGroupMember
-                            userId={member.id}
-                            groupId={groupId}
-                            memberName={`${member.first_name} ${member.last_name}`}
-                            removeGroupMembersMutation={
-                              removeGroupMembersMutation
-                            }
-                          />
+                          <div className="flex items-center space-x-2">
+                            <TransferMember
+                              userId={member.id}
+                              groupId={groupId}
+                              firstName={member.first_name}
+                              lastName={member.last_name}
+                              assignedMinistry={assignedMinistry}
+                            />
+                            <RemoveGroupMember
+                              userId={member.id}
+                              groupId={groupId}
+                              memberName={`${member.first_name} ${member.last_name}`}
+                              removeGroupMembersMutation={
+                                removeGroupMembersMutation
+                              }
+                            />
+                          </div>
                         )}
                       </div>
                     )}
@@ -178,6 +193,15 @@ GroupMembers.propTypes = {
   ministryId: PropTypes.string,
   groupId: PropTypes.string,
   subgroupId: PropTypes.string,
+  assignedMinistry: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      image_url: PropTypes.string.isRequired,
+      created_at: PropTypes.string.isRequired,
+      ministry_name: PropTypes.string.isRequired,
+      ministry_description: PropTypes.string,
+    })
+  ),
 };
 
 const AddGroupMembersForm = ({ ministryId, groupId }) => {
@@ -279,6 +303,7 @@ const AddGroupMembersForm = ({ ministryId, groupId }) => {
     volunteers,
     parishioners,
     coordinators,
+    admins,
     ministryCoordinatorIds,
     userData?.id,
   ]);

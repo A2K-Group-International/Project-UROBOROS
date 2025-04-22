@@ -280,6 +280,73 @@ const deleteGroup = async ({ groupId }) => {
   }
 };
 
+const transferMembersFetchGroups = async (ministryId, memberId) => {
+  const { data: allGroups, error: groupError } = await supabase
+    .from("groups")
+    .select("*")
+    .eq("ministry_id", ministryId);
+
+  if (groupError) {
+    throw new Error(`Error fetching groups${groupError.message}`);
+  }
+
+  if (!allGroups || allGroups.length === 0) {
+    return [];
+  }
+
+  // Check if the user is already a member of any other groups
+  const { data: userMemberships, error: membershipError } = await supabase
+    .from("group_members")
+    .select("group_id")
+    .eq("user_id", memberId);
+
+  if (membershipError) {
+    throw new Error(
+      `Error checking user memberships: ${membershipError.message}`
+    );
+  }
+
+  // Create a Set of group IDs where the user is already a member
+  const userGroupIds = new Set(
+    userMemberships ? userMemberships.map((m) => m.group_id) : []
+  );
+
+  // Filter out groups where the user is already a member
+  const availableGroups = allGroups.filter(
+    (group) => !userGroupIds.has(group.id)
+  );
+
+  return availableGroups;
+};
+
+const transferUserToGroup = async ({ userId, currentGroupId, newGroupId }) => {
+  try {
+    const { data, error } = await supabase
+      .from("group_members")
+      .update({
+        group_id: newGroupId,
+        joined_at: new Date().toISOString(),
+      })
+      .eq("user_id", userId)
+      .eq("group_id", currentGroupId)
+      .select();
+
+    if (error) {
+      throw new Error(`Error transferring user to new group: ${error.message}`);
+    }
+
+    // Check if the update affected any rows
+    if (data?.length === 0) {
+      throw new Error("User is not a member of the specified group");
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error transferring user:", error);
+    throw error;
+  }
+};
+
 export {
   createGroup,
   editGroup,
@@ -288,4 +355,6 @@ export {
   removeMember,
   fetchGroupMembers,
   fetchGroups,
+  transferMembersFetchGroups,
+  transferUserToGroup,
 };
