@@ -20,16 +20,6 @@ const Announcements = () => {
     group_id: null,
   });
 
-  // const onSubmit = (announcementData) => {
-  //   addAnnouncementMutation.mutate({
-  //     announcementData,
-  //     first_name: userData?.first_name,
-  //     last_name: userData?.last_name,
-  //   });
-  //   reset();
-  //   setIsOpen(false);
-  // };
-
   const { ref } = useInterObserver(fetchNextPage);
 
   if (!userData) return <div>Loading...</div>;

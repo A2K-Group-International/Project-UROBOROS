@@ -163,12 +163,11 @@ export const getMeetings = async ({
       const endOfMonth = `${year}-${month}-${lastDayOfMonth}`;
 
       filters.gte = {
-        "meeting_date": startOfMonth
-      }
+        meeting_date: startOfMonth,
+      };
       filters.lte = {
-        "meeting_date": endOfMonth
-      }
-
+        meeting_date: endOfMonth,
+      };
     }
 
     // Filter by meeting name (optional query search)
@@ -178,7 +177,7 @@ export const getMeetings = async ({
 
     // If the user is not an admin, fetch meetings they are assigned to
     let nonAdminMeetingIds = [];
-    if (user && user.role !== ROLES[0]) {
+    if (user && user.role !== ROLES[4]) {
       const { data: participantMeetings, error: participantError } =
         await supabase
           .from("meeting_participants")
@@ -212,7 +211,6 @@ export const getMeetings = async ({
       pageSize,
       filters,
     });
-
 
     return data;
   } catch (error) {
