@@ -25,6 +25,7 @@ const App = () => {
       <Routes>
         {/* Auth Routes */}
         <Route path="/" element={<Home />} />
+        <Route path="/feedback" element={<Feedback />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/accept-invite" element={<AcceptInvite />} />
         {/* Privacy Policy Route */}
@@ -65,7 +66,6 @@ const App = () => {
           {/* All Roles Can Access Routes Below */}
           <Route element={<RequireRole roles={[...ROLES]} />}>
             <Route path="/announcements" element={<Announcements />} />
-            <Route path="/feedback" element={<Feedback />} />
             <Route path="/profile" element={<Profile />} />
 
             <Route path="/reset-password" element={<ResetPassword />} />

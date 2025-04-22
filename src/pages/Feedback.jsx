@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -13,13 +14,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Form,
   FormControl,
   FormDescription,
@@ -30,26 +24,19 @@ import {
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const feedbackSchema = z.object({
-  category: z.string().min(1, "Please select a feedback category"),
+  name: z.string().optional(),
+  email: z.string().email("Please enter a valid email address"),
+  subject: z.string().min(3, "Subject must be at least 3 characters"),
   description: z
     .string()
-    .min(10, "Please provide at least 10 characters of description")
-    .max(1000, "Feedback must be less than 1000 characters"),
+    .max(1000, "Feedback must be less than 1000 characters")
+    .optional(),
+  images: z.array(z.instanceof(File)).optional(),
 });
-
-const feedbackCategories = [
-  { value: "bug", label: "🐞 Bug Report" },
-  { value: "feature", label: "✨ Feature Request" },
-  { value: "ui", label: "🎨 UI Issue" },
-  { value: "performance", label: "⚡ Performance Issue" },
-  { value: "general", label: "💬 General Feedback" },
-  { value: "account", label: "🔐 Account/Login Issue" },
-  { value: "event", label: "📅 Event-Related Feedback" },
-  { value: "notification", label: "🔔 Notification Issue" },
-  { value: "other", label: "❓ Other" },
-];
 
 const feedbackAdditionalInformation = [
   {
@@ -68,12 +55,19 @@ const feedbackAdditionalInformation = [
 
 const Feedback = () => {
   const [characterCount, setCharacterCount] = useState(0);
+  const navigate = useNavigate();
+
+  const [imagePreviews, setImagePreviews] = useState([]);
+  const [currentFiles, setCurrentFiles] = useState([]);
 
   const form = useForm({
     resolver: zodResolver(feedbackSchema),
     defaultValues: {
-      category: "",
+      name: "",
+      email: "",
+      subject: "",
       description: "",
+      images: [],
     },
   });
 
@@ -87,129 +81,284 @@ const Feedback = () => {
   };
 
   return (
-    <div className="no-scrollbar container mx-auto max-w-3xl overflow-y-scroll">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-primary-text">
-          Share Your Feedback
-        </h1>
-        <p className="text-accent">
-          Help us improve the system by sharing your suggestions
-        </p>
-      </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Feedback Form</CardTitle>
-          <CardDescription>
-            Your feedback is valuable in helping us enhance your experience.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="category"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Category</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a category" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {feedbackCategories.map((category) => (
-                            <SelectItem
-                              key={category.value}
-                              value={category.value}
-                            >
-                              {category.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Share your suggestions for improvement..."
-                          className="min-h-[220px] resize-none"
-                          {...field}
-                          onChange={(e) => {
-                            field.onChange(e);
-                            setCharacterCount(e.target.value.length);
-                          }}
+    <div className="no-scrollbar container h-dvh max-w-full overflow-y-scroll">
+      <div className="mx-auto max-w-4xl">
+        <div>
+          <div className="mt-4">
+            <Button
+              variant="ghost"
+              onClick={() => navigate("/")} // Navigate to the home page
+              className="text-primary-text"
+            >
+              <Icon icon="mingcute:home-3-line" className="mr-2 h-4 w-4" />
+              Home
+            </Button>
+          </div>
+          <div className="dark:bg-secondary-background flex flex-col justify-between rounded-lg bg-white p-6 shadow-md dark:text-primary-text sm:p-8">
+            <div>
+              <div className="mb-6">
+                <h1 className="text-2xl font-bold text-primary-text">
+                  Share Your Feedback
+                </h1>
+                <p className="text-accent">
+                  Help us improve the system by sharing your suggestions
+                </p>
+              </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Feedback Form</CardTitle>
+                  <CardDescription>
+                    Your feedback is valuable in helping us enhance your
+                    experience.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Form {...form}>
+                    <form
+                      onSubmit={form.handleSubmit(onSubmit)}
+                      className="space-y-6"
+                    >
+                      <div className="space-y-4">
+                        <FormField
+                          control={form.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>
+                                Name{" "}
+                                <span className="text-accent/50">
+                                  (optional)
+                                </span>
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Enter your name"
+                                  {...field}
+                                  onChange={(e) => {
+                                    field.onChange(e);
+                                  }}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
                         />
-                      </FormControl>
-                      <div className="flex justify-between">
-                        <FormDescription>
-                          {`Please be specific about what you'd like to see
+                        <FormField
+                          control={form.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Email </FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="email"
+                                  placeholder="Enter your email"
+                                  {...field}
+                                  onChange={(e) => {
+                                    field.onChange(e);
+                                  }}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="subject"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Subject</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Enter the subject of your feedback..."
+                                  {...field}
+                                  onChange={(e) => {
+                                    field.onChange(e);
+                                  }}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="description"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>
+                                Description{" "}
+                                <span className="text-accent/50">
+                                  (optional)
+                                </span>
+                              </FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  placeholder="Share your suggestions for improvement..."
+                                  className="min-h-[220px] resize-none"
+                                  {...field}
+                                  onChange={(e) => {
+                                    field.onChange(e);
+                                    setCharacterCount(e.target.value.length);
+                                  }}
+                                />
+                              </FormControl>
+                              <div className="flex justify-between">
+                                <FormDescription>
+                                  {`Please be specific about what you'd like to see
                           improved.`}
-                        </FormDescription>
-                        <span
-                          className={`text-xs ${
-                            characterCount > 900
-                              ? "text-red-600"
-                              : characterCount > 0
-                                ? "text-primary-text"
-                                : "text-muted-foreground"
-                          }`}
-                        >
-                          {characterCount}/1000
-                        </span>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                                </FormDescription>
+                                <span
+                                  className={`text-xs ${
+                                    characterCount > 900
+                                      ? "text-red-600"
+                                      : characterCount > 0
+                                        ? "text-primary-text"
+                                        : "text-muted-foreground"
+                                  }`}
+                                >
+                                  {characterCount}/1000
+                                </span>
+                              </div>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="images"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>
+                                Attach Image(s)
+                                <span className="text-accent/50">
+                                  {" "}
+                                  (optional)
+                                </span>
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  id="file-input"
+                                  type="file"
+                                  accept="image/*" // Restrict to images only
+                                  className="hidden"
+                                  multiple // Allow multiple image uploads
+                                  onChange={(e) => {
+                                    const files = e.target.files;
+                                    if (!files || files.length === 0) return; // Prevent errors
 
-              <div className="rounded-lg border border-accent/20 p-4">
-                <h4 className="mb-2 flex items-center gap-1 text-sm font-medium text-primary-text">
-                  <Icon
-                    icon="mingcute:bulb-fill"
-                    className="text-primary-text"
-                  />
-                  What kind of feedback is helpful?
-                </h4>
-                <ul className="list-disc space-y-1 pl-4 text-xs">
-                  {feedbackAdditionalInformation.map((item, index) => (
-                    <li key={index} className="text-primary-text">
-                      {item.description}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-        <CardFooter className="flex-start flex flex-col justify-between gap-y-2 sm:flex-row">
-          <Button
-            variant="outline"
-            onClick={handleResetForm}
-            className="self-end"
-          >
-            Reset Form
-          </Button>
-          <Button onClick={form.handleSubmit(onSubmit)} className="self-end">
-            <Icon icon="mingcute:send-plane-fill" className="mr-2 h-4 w-4" />
-            Submit Feedback
-          </Button>
-        </CardFooter>
-      </Card>
+                                    const fileArray = Array.from(files);
+
+                                    // Update form state with selected files
+                                    field.onChange([
+                                      ...currentFiles,
+                                      ...fileArray,
+                                    ]);
+
+                                    // Update local state with selected files
+                                    setCurrentFiles((prevState) => [
+                                      ...prevState,
+                                      ...fileArray,
+                                    ]);
+
+                                    // Create image previews
+                                    setImagePreviews((prevState) => [
+                                      ...prevState,
+                                      ...fileArray.map((file) =>
+                                        URL.createObjectURL(file)
+                                      ),
+                                    ]);
+                                  }}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                              <div className="flex max-h-[110px] w-full gap-3 overflow-x-scroll">
+                                {imagePreviews.map((url, index) => (
+                                  <div
+                                    key={index}
+                                    className="relative flex h-[100px] w-[100px] flex-shrink-0 rounded-md"
+                                  >
+                                    <img
+                                      className="object-cover"
+                                      src={url}
+                                      alt={`Preview ${index + 1}`}
+                                    />
+                                    <Icon
+                                      onClick={() => {
+                                        // Remove the selected image
+                                        setImagePreviews((prevState) =>
+                                          prevState.filter(
+                                            (_, i) => i !== index
+                                          )
+                                        );
+                                        setCurrentFiles((prevState) =>
+                                          prevState.filter(
+                                            (_, i) => i !== index
+                                          )
+                                        );
+                                      }}
+                                      className="absolute right-1 top-1 text-xl text-accent hover:cursor-pointer"
+                                      icon={"mingcute:close-circle-fill"}
+                                    />
+                                  </div>
+                                ))}
+                                <Label htmlFor="file-input">
+                                  <div className="flex h-[100px] w-[100px] flex-shrink-0 items-center justify-center rounded-md border border-primary-outline bg-[#F1E6E0] hover:cursor-pointer">
+                                    <Icon
+                                      className="h-9 w-9 text-accent"
+                                      icon={"mingcute:add-line"}
+                                    />
+                                  </div>
+                                </Label>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div className="rounded-lg border border-accent/20 p-4">
+                        <h4 className="mb-2 flex items-center gap-1 text-sm font-medium text-primary-text">
+                          <Icon
+                            icon="mingcute:bulb-fill"
+                            className="text-primary-text"
+                          />
+                          What kind of feedback is helpful?
+                        </h4>
+                        <ul className="list-disc space-y-1 pl-4 text-xs">
+                          {feedbackAdditionalInformation.map((item, index) => (
+                            <li key={index} className="text-primary-text">
+                              {item.description}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </form>
+                  </Form>
+                </CardContent>
+                <CardFooter className="flex-start flex flex-col justify-between gap-y-2 sm:flex-row">
+                  <Button
+                    variant="outline"
+                    onClick={handleResetForm}
+                    className="self-end"
+                  >
+                    Reset Form
+                  </Button>
+                  <Button
+                    onClick={form.handleSubmit(onSubmit)}
+                    className="self-end"
+                  >
+                    <Icon
+                      icon="mingcute:send-plane-fill"
+                      className="mr-2 h-4 w-4"
+                    />
+                    Submit Feedback
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

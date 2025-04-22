@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ParishionerRegister from "@/components/Home/Profile-Registration/ParishionerRegister";
 import Login from "@/components/Login";
-import WalkInRegistration from "@/components/Home/WalkInRegistration";
-import EditRegistration from "@/components/Home/EditRegistration";
+// import WalkInRegistration from "@/components/Home/WalkInRegistration";
+// import EditRegistration from "@/components/Home/EditRegistration";
 import { supabase } from "@/services/supabaseClient";
+import { Button } from "@/components/ui/button";
+import { Icon } from "@iconify/react";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -53,14 +55,14 @@ const Home = () => {
           ></a>
         </div>
         <div className="absolute bottom-[2.5dvw] right-[8.4dvw] z-30 h-[6dvw] w-[12dvw] bg-[url('@/assets/svg/mud.svg')] bg-contain bg-center bg-no-repeat"></div>
-        <div className="rtop-[calc(10rem_+_40dvw)] absolute top-10 z-50">
-          <div className="order-2 mx-auto max-w-xl justify-center rounded-[1.8rem] bg-white/60 backdrop-blur-sm sm:flex sm:space-x-3 sm:rounded-full md:order-1 md:col-span-2">
-            <div className="grid grid-cols-2 gap-2 p-2 sm:grid-cols-4">
-              <Login />
-              <ParishionerRegister />
-              <WalkInRegistration />
-              <EditRegistration />
-            </div>
+        <div className="absolute top-10 z-50 lg:right-20">
+          {/* <div className="order-2 mx-auto max-w-xl justify-center rounded-[1.8rem] bg-white/60 backdrop-blur-sm sm:flex sm:space-x-3 sm:rounded-full md:order-1 md:col-span-2"> */}
+          <div className="grid grid-cols-2 gap-2 p-2">
+            <ParishionerRegister />
+            <Login />
+            {/* <WalkInRegistration />
+              <EditRegistration /> */}
+            {/* </div> */}
           </div>
         </div>
         <div className="md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 lg:left-[27%]">
@@ -92,6 +94,21 @@ const Home = () => {
           ></iframe>
         </div> */}
       </div>
+      <div className="absolute bottom-6 left-0 z-50 w-full sm:bottom-10 sm:left-5 sm:w-auto">
+        <div className="flex justify-center">
+          <Button
+            className="bg-pink h-8 py-2 text-xs text-primary-text md:rounded-full"
+            variant="primary"
+            onClick={() => navigate("/feedback")}
+          >
+            <div>
+              <Icon icon="mingcute:edit-4-line" />
+            </div>
+            Feedback
+          </Button>
+        </div>
+      </div>
+
       <div className="relative z-10 flex h-[10rem] w-full items-end border-t border-gray/10 bg-[#663F30] pb-2 pl-4 sm:h-[1.8rem]">
         <p className="font-regular text-[0.8rem] text-[#FBCCC0]/40">
           Developed by{" "}
