@@ -26,6 +26,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import useFeedback from "@/hooks/useFeedbacks";
+import { Loader2 } from "lucide-react";
 
 const feedbackSchema = z.object({
   name: z.string().optional(),
@@ -60,6 +62,8 @@ const Feedback = () => {
   const [imagePreviews, setImagePreviews] = useState([]);
   const [currentFiles, setCurrentFiles] = useState([]);
 
+  const { createPublicFeedBack, isPublicFeedbackPending } = useFeedback();
+
   const form = useForm({
     resolver: zodResolver(feedbackSchema),
     defaultValues: {
@@ -72,7 +76,26 @@ const Feedback = () => {
   });
 
   const onSubmit = (data) => {
-    console.log(data);
+    try {
+      const formData = new FormData();
+
+      // Append form data to FormData object
+      formData.append("name", data.name);
+      formData.append("email", data.email);
+      formData.append("subject", data.subject);
+      formData.append("description", data.description);
+
+      //Append images to FormData
+      currentFiles.forEach((file) => {
+        formData.append("images", file);
+      });
+
+      createPublicFeedBack(formData, () => {
+        navigate("/feedback/success"); // Navigate to the success page
+      });
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+    }
   };
 
   const handleResetForm = () => {
@@ -94,7 +117,7 @@ const Feedback = () => {
               Home
             </Button>
           </div>
-          <div className="dark:bg-secondary-background flex flex-col justify-between rounded-lg bg-white p-6 shadow-md dark:text-primary-text sm:p-8">
+          <div className="dark:bg-secondary-background flex flex-col justify-between rounded-lg bg-white p-6 dark:text-primary-text sm:p-8">
             <div>
               <div className="mb-6">
                 <h1 className="text-2xl font-bold text-primary-text">
@@ -107,7 +130,7 @@ const Feedback = () => {
               <Card>
                 <CardHeader>
                   <CardTitle>Feedback Form</CardTitle>
-                  <CardDescription>
+                  <CardDescription className="sr-only">
                     Your feedback is valuable in helping us enhance your
                     experience.
                   </CardDescription>
@@ -246,7 +269,7 @@ const Feedback = () => {
                                   multiple // Allow multiple image uploads
                                   onChange={(e) => {
                                     const files = e.target.files;
-                                    if (!files || files.length === 0) return; // Prevent errors
+                                    if (!files || files.length === 0) return;
 
                                     const fileArray = Array.from(files);
 
@@ -344,14 +367,21 @@ const Feedback = () => {
                     Reset Form
                   </Button>
                   <Button
+                    disabled={isPublicFeedbackPending}
                     onClick={form.handleSubmit(onSubmit)}
                     className="self-end"
                   >
-                    <Icon
-                      icon="mingcute:send-plane-fill"
-                      className="mr-2 h-4 w-4"
-                    />
-                    Submit Feedback
+                    {isPublicFeedbackPending ? (
+                      <Loader2 className="animate-spin" />
+                    ) : (
+                      <>
+                        <Icon
+                          icon="mingcute:send-plane-fill"
+                          className="mr-2 h-4 w-4"
+                        />
+                        Submit Feedback
+                      </>
+                    )}
                   </Button>
                 </CardFooter>
               </Card>

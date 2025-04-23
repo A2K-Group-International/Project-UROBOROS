@@ -17,6 +17,7 @@ import { ROLES } from "@/constants/roles";
 import ResetPassword from "./pages/ResetPassword";
 import AcceptInvite from "./pages/AcceptInvite";
 import Feedback from "./pages/Feedback";
+import FeedBackSuccess from "./pages/FeedBackSuccess";
 
 const App = () => {
   return (
@@ -26,6 +27,7 @@ const App = () => {
         {/* Auth Routes */}
         <Route path="/" element={<Home />} />
         <Route path="/feedback" element={<Feedback />} />
+        <Route path="/feedback/success" element={<FeedBackSuccess />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/accept-invite" element={<AcceptInvite />} />
         {/* Privacy Policy Route */}
