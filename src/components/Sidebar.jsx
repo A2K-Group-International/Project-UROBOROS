@@ -194,7 +194,7 @@ const SidebarProfile = ({ availableRoles, onSwitchRole }) => {
           ))}
           {userData?.role !== ROLES[2] && <DropdownMenuSeparator />}
           <Link
-            to="/feedback"
+            to="/send-feedback"
             className="flex w-full items-center gap-2 hover:cursor-pointer"
           >
             <DropdownMenuItem className="w-full">

@@ -97,9 +97,9 @@ const Home = () => {
       <div className="absolute bottom-6 left-0 z-50 w-full sm:bottom-10 sm:left-5 sm:w-auto">
         <div className="flex justify-center">
           <Button
-            className="bg-pink h-8 py-2 text-xs text-primary-text md:rounded-full"
+            className="h-8 bg-pink py-2 text-xs text-primary-text md:rounded-full"
             variant="primary"
-            onClick={() => navigate("/feedback")}
+            onClick={() => navigate("/send-feedback")}
           >
             <div>
               <Icon icon="mingcute:edit-4-line" />
