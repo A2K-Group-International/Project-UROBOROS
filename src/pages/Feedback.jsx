@@ -26,8 +26,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import useFeedback from "@/hooks/useFeedbacks";
 
 const Feedback = () => {
+  const { updateFeedbackStatusHandler } = useFeedback();
+
   const {
     data,
     fetchNextPage,
@@ -66,6 +69,10 @@ const Feedback = () => {
     };
   }, [observerRef, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  const handleStatusUpdate = (id, status) => {
+    updateFeedbackStatusHandler(id, status);
+  };
+
   if (isLoading)
     return <p className="py-8 text-center">Loading feedbacks...</p>;
   if (isError)
@@ -75,6 +82,7 @@ const Feedback = () => {
 
   // Flatten all feedback items from all pages
   const allFeedback = data?.pages.flatMap((page) => page.data || page) || [];
+  console.log(allFeedback);
 
   return (
     <div className="container mx-auto py-6">
@@ -135,11 +143,19 @@ const Feedback = () => {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <Icon
-                        icon="material-symbols:circle"
-                        color="orange"
-                        width={12}
-                      />
+                      {feedback.status === "pending" ? (
+                        <Icon
+                          icon="material-symbols:circle"
+                          color="orange"
+                          width={12}
+                        />
+                      ) : (
+                        <Icon
+                          icon="material-symbols:circle"
+                          color="green"
+                          width={12}
+                        />
+                      )}
                       {feedback.status.charAt(0).toUpperCase() +
                         feedback.status.slice(1)}
                     </div>
@@ -150,7 +166,23 @@ const Feedback = () => {
                         <ThreeDotsIcon />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <DropdownMenuItem>Mark as resolved</DropdownMenuItem>
+                        {feedback.status === "pending" ? (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleStatusUpdate(feedback.id, "resolved")
+                            }
+                          >
+                            Mark as resolved
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleStatusUpdate(feedback.id, "pending")
+                            }
+                          >
+                            Mark as pending
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem>Delete</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

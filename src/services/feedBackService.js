@@ -24,7 +24,7 @@ const publicCreateFeedback = async (data) => {
   try {
     const { feedback } = data;
     const { data: result } = await axios.post(
-      `${import.meta.env.VITE_SPARKD_API_URL}/feedbacks/create`,
+      `${import.meta.env.VITE_SPARKD_API_URL}/feedback/create`,
       // `http://localhost:3000/feedback/create`,
       data,
       {
@@ -55,18 +55,51 @@ const getAllFeedback = async ({ pageParam = null }) => {
   if (pageParam) params.append("cursor", pageParam);
   params.append("limit", "12");
 
-  const response = await axios.get(
-    `${import.meta.env.VITE_SPARKD_API_URL}/feedback`,
-    // `http://localhost:3000/feedback`,
-    {
-      params,
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-
-  return response.data;
+  try {
+    const response = await axios.get(
+      `${import.meta.env.VITE_SPARKD_API_URL}/feedback`,
+      // `http://localhost:3000/feedback`,
+      {
+        params,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching feedback:", error);
+    throw new Error(
+      error.response?.data?.message || "Failed to fetch feedbacks"
+    );
+  }
 };
 
-export { publicCreateFeedback, getAllFeedback };
+const updateFeedbackStatus = async (id, status) => {
+  try {
+    const token = await getAuthToken();
+
+    const { data: result } = await axios.patch(
+      `${import.meta.env.VITE_SPARKD_API_URL}/feedback/${id}/status`,
+      // `http://localhost:3000/feedback/${id}/status`,
+      {
+        status,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return {
+      success: true,
+      message: "Status updated successfully",
+      details: result,
+    };
+  } catch (error) {
+    console.error("Failed to update feedback status", error);
+    throw error;
+  }
+};
+
+export { publicCreateFeedback, getAllFeedback, updateFeedbackStatus };

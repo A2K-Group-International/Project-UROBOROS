@@ -1,6 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "./use-toast";
-import { publicCreateFeedback } from "@/services/feedBackService";
+import {
+  publicCreateFeedback,
+  updateFeedbackStatus,
+} from "@/services/feedBackService";
 
 const useFeedback = () => {
   const queryClient = useQueryClient();
@@ -26,9 +29,36 @@ const useFeedback = () => {
     createPublicFeedBackMutation.mutate(data, { onSuccess });
   };
 
+  //Update feedback status
+  const updateFeedbackStatusMutation = useMutation({
+    mutationFn: async ({ id, status }) => {
+      return await updateFeedbackStatus(id, status);
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["feedbacks"] });
+      toast({
+        title: "Success",
+        description: `Feedback status updated to ${variables.status}.`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update feedback status.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateFeedbackStatusHandler = (id, status) => {
+    updateFeedbackStatusMutation.mutate({ id, status });
+  };
+
   return {
     createPublicFeedBack,
     isPublicFeedbackPending: createPublicFeedBackMutation.isPending,
+    updateFeedbackStatusHandler,
+    isUpdatingFeedbackStatus: updateFeedbackStatusMutation.isPending,
   };
 };
 
