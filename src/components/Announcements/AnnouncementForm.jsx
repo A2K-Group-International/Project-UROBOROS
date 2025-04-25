@@ -241,7 +241,7 @@ const AnnouncementForm = ({
                             ? "image/*"
                             : selectedFileType === "Video"
                               ? "video/*"
-                              : "application/pdf"
+                              : "application/*"
                         }
                         className="hidden"
                         multiple={selectedFileType === "Image(s)"}
@@ -273,7 +273,7 @@ const AnnouncementForm = ({
                             const file = files[0]; // Only one file for PDF or Video
                             const url = URL.createObjectURL(file);
 
-                            if (file.type === "application/pdf") {
+                            if (file.type.startsWith("application")) {
                               setSelectedPDF(url);
                             } else {
                               setSelectedVideo(url);
@@ -384,11 +384,11 @@ const AnnouncementForm = ({
                   ))}
                 {selectedFileType === "PDF Document" &&
                   (selectedPDF ? (
-                    <div className="flex max-h-[110px] w-full max-w-[420px] justify-center gap-3 overflow-x-scroll">
+                    <div className="flex max-h-[110px] w-full max-w-[420px] items-center justify-center gap-3 overflow-x-scroll">
                       <div className="relative h-[100px] w-[100px] flex-shrink-0 rounded-md">
                         <Icon
                           className="h-11 w-11 text-[#CDA996]"
-                          icon={"mingcute:pdf-fill"}
+                          icon={"mingcute:attachment-2-fill"}
                         />
                         <p className="text-2xs text-[#CDA996]">
                           {form.getValues("files")[0]?.name}
@@ -401,11 +401,11 @@ const AnnouncementForm = ({
                         <div className="flex flex-shrink-0 items-center justify-center rounded-md">
                           <Icon
                             className="h-11 w-11 text-[#CDA996]"
-                            icon={"mingcute:pdf-fill"}
+                            icon={"mingcute:attachment-2-fill"}
                           />
                         </div>
                         <p className="text-[12px] font-semibold text-[#CDA996]">
-                          Upload PDF
+                          Upload File
                         </p>
                       </div>
                     </Label>
