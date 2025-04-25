@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import useFeedback from "@/hooks/useFeedbacks";
+import { Loader2 } from "lucide-react";
 
 const Feedback = () => {
   const { updateFeedbackStatusHandler } = useFeedback();
@@ -81,7 +82,11 @@ const Feedback = () => {
   };
 
   if (isLoading)
-    return <p className="py-8 text-center">Loading feedbacks...</p>;
+    return (
+      <div className="grid h-full place-content-center">
+        <Loader2 className="animate-spin" />
+      </div>
+    );
   if (isError)
     return (
       <p className="py-8 text-center text-red-500">Error loading feedbacks!</p>
