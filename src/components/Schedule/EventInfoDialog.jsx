@@ -8,16 +8,18 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import PropTypes from "prop-types";
-import { useUser } from "@/context/useUser";
 import ManualAttendEvents from "../Events/ManualAttendEvents";
 import { ROLES } from "@/constants/roles";
 import { useMemo } from "react";
 import { formatEventDate, formatEventTime } from "@/lib/utils";
 
-const EventInfoDialog = ({ open, event, eventData, onClose }) => {
-  const { userData } = useUser();
-  const role = userData?.role;
-
+const EventInfoDialog = ({
+  open,
+  event,
+  eventData,
+  onClose,
+  temporaryRole,
+}) => {
   // Find the matching event in eventData that corresponds to the current event.id
   const currentEventDetails = useMemo(() => {
     if (!eventData || !Array.isArray(eventData) || !event?.id) return null;
@@ -45,14 +47,15 @@ const EventInfoDialog = ({ open, event, eventData, onClose }) => {
           <Button variant="outline" onClick={onClose}>
             Close
           </Button>
-          {role === ROLES[2] && currentEventDetails?.requires_attendance && (
-            <ManualAttendEvents
-              eventId={currentEventDetails?.id}
-              eventName={currentEventDetails?.event_name}
-              eventTime={currentEventDetails?.event_time}
-              eventDate={currentEventDetails?.event_date}
-            />
-          )}
+          {temporaryRole === ROLES[2] &&
+            currentEventDetails?.requires_attendance && (
+              <ManualAttendEvents
+                eventId={currentEventDetails?.id}
+                eventName={currentEventDetails?.event_name}
+                eventTime={currentEventDetails?.event_time}
+                eventDate={currentEventDetails?.event_date}
+              />
+            )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

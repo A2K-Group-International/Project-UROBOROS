@@ -757,14 +757,14 @@ export const getEventsByMinistryId = async (ministryIds) => {
 
   return events;
 };
-export const getEventsByCreatorId = async (creatorId) => {
-  const now = new Date(); // Get the current date and time
+export const getEventsByCreatorId = async (userId) => {
+  const now = new Date();
 
   const { data, error } = await supabase
     .from("events")
     .select("*")
     .gte("event_date", now.toISOString())
-    .eq("creator_id", creatorId)
+    .eq("creator_id", userId)
     .order("event_date", { ascending: false });
 
   if (error) {

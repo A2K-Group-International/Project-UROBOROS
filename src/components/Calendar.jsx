@@ -31,7 +31,7 @@ const Calendar = ({ events }) => {
   //   : [];
   const safeMeetings = Array.isArray(meetings) ? meetings : [];
 
-  const eventData = events.map((item) => {
+  const eventData = events?.map((item) => {
     // Create a default time (e.g., "00:00:00") if time is null
     const eventTime = item.event_time || "00:00:00";
 
@@ -64,7 +64,7 @@ const Calendar = ({ events }) => {
 
   return (
     <div className="h-full w-full">
-      {userData?.role === "admin" && (
+      {temporaryRole === "admin" && (
         <div className="flex gap-2">
           <Button
             onClick={() => setSelectedShowCalendar("Events")}

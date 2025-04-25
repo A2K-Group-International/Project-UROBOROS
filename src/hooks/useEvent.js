@@ -4,12 +4,13 @@ import {
   createEvent,
   getAllEvents,
   getEvents,
+  getEventsByCreatorId,
   getQuickAccessEvents,
   getWalkInEvents,
   updateEvent,
 } from "@/services/eventService";
 
-const useEvent = () => {
+const useEvent = (userId) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -76,19 +77,23 @@ const useEvent = () => {
     queryFn: getAllEvents,
   });
 
-  const { data: walkInEvents } = useQuery({
-    queryKey: ["walkinevents"], 
-    queryFn: getWalkInEvents, 
+  const { data: creatorEventId } = useQuery({
+    queryKey: ["creatorEvents", userId],
+    queryFn: () => getEventsByCreatorId(userId),
+    enabled: !!userId,
   });
 
-   const {
-      data:quickAccessEvents, // The data returned by the query
+  const { data: walkInEvents } = useQuery({
+    queryKey: ["walkinevents"],
+    queryFn: getWalkInEvents,
+  });
 
-    } = useQuery({
-      queryKey: ["quick_access_events"], // The query key
-      queryFn: getQuickAccessEvents, // The query function
-    });
-
+  const {
+    data: quickAccessEvents, // The data returned by the query
+  } = useQuery({
+    queryKey: ["quick_access_events"], // The query key
+    queryFn: getQuickAccessEvents, // The query function
+  });
 
   return {
     quickAccessEvents,
@@ -97,6 +102,7 @@ const useEvent = () => {
     walkInEvents,
     createEventMutation,
     updateEventMutation,
+    creatorEventId,
   };
 };
 
