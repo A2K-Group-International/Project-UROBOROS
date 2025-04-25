@@ -45,10 +45,14 @@ const CreateMeeting = () => {
   const { mutate: createMeeting, isLoading } = useCreateMeeting();
 
   // const { data: ministries } = useGetAllMinistries();
-  const { data: volunteers } = useUsersByRole("volunteer"); // Get volunteers
+  const { data: volunteers } = useUsersByRole("volunteer");
   const { data: admins } = useUsersByRole("admin");
   const { data: coordinators } = useUsersByRole("coordinator");
-  const participants = [...volunteers, ...admins, ...coordinators];
+  const participants = [
+    ...(volunteers || []),
+    ...(admins || []),
+    ...(coordinators || []),
+  ];
 
   const [isDialogOpen, setDialogOpen] = useState(false);
 
@@ -97,9 +101,9 @@ const CreateMeeting = () => {
 
   // Convert volunteers data into the format expected by react-select
   const participantOptions =
-    participants?.map((volunteer) => ({
-      value: volunteer.id,
-      label: `${volunteer.first_name} ${volunteer.last_name}`,
+    participants?.map((participant) => ({
+      value: participant.id,
+      label: `${participant.first_name} ${participant.last_name}`,
     })) || [];
 
   return (
@@ -150,11 +154,13 @@ const CreateMeeting = () => {
                       <CustomReactSelect
                         isMulti
                         options={participantOptions} // Use the dynamic volunteer options
-                        value={participantOptions.filter((option) =>
+                        value={participantOptions?.filter((option) =>
                           field.value.includes(option.value)
                         )}
                         onChange={(selected) =>
-                          field.onChange(selected.map((option) => option.value))
+                          field.onChange(
+                            selected?.map((option) => option.value)
+                          )
                         }
                         placeholder="Select participants"
                       />
