@@ -8,10 +8,10 @@ import EventInfoDialog from "./Schedule/EventInfoDialog";
 import { Button } from "./ui/button";
 import { useState } from "react";
 import useRoleSwitcher from "@/hooks/useRoleSwitcher";
-import useEvent from "@/hooks/useEvent";
+// import useEvent from "@/hooks/useEvent";
 
 const Calendar = ({ events }) => {
-  const { calendarEvents } = useEvent();
+  // const { calendarEvents } = useEvent();
   const [selectedShowCalendar, setSelectedShowCalendar] = useState("Events");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
@@ -25,25 +25,23 @@ const Calendar = ({ events }) => {
     enabled: !!userData?.id,
   });
 
-  // Make sure getEvents is available and is an array
-  const eventArray = Array.isArray(calendarEvents?.data)
-    ? calendarEvents.data
-    : [];
+  // // Make sure getEvents is available and is an array
+  // const eventArray = Array.isArray(calendarEvents?.data)
+  //   ? calendarEvents.data
+  //   : [];
   const safeMeetings = Array.isArray(meetings) ? meetings : [];
 
-  const eventData = events
-    ? events.map((item) => ({
-        title: item.event_name,
-        start: `${item.event_date}T${item.event_time}`,
-        description: item.event_description,
-        id: item.id,
-      }))
-    : eventArray.map((item) => ({
-        title: item.event_name,
-        start: `${item.event_date}T${item.event_time}`,
-        description: item.event_description,
-        id: item.id,
-      }));
+  const eventData = events.map((item) => {
+    // Create a default time (e.g., "00:00:00") if time is null
+    const eventTime = item.event_time || "00:00:00";
+
+    return {
+      title: item.event_name,
+      start: `${item.event_date}T${eventTime}`,
+      description: item.event_description,
+      id: item.id,
+    };
+  });
 
   const meetingData = safeMeetings.map((meeting) => ({
     title: meeting.meeting_name,
