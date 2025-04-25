@@ -12,7 +12,7 @@ const MainLayout = () => {
         <Sidebar />
         <div
           className={cn(
-            "flex-1 overflow-auto bg-white p-4 md:m-4 md:rounded-[20px] md:p-9 md:shadow-lg",
+            "no-scrollbar flex-1 overflow-auto bg-white p-4 md:m-4 md:rounded-[20px] md:p-9 md:shadow-lg",
             { "lg:p-0": url.pathname === "/ministries" }
           )}
         >

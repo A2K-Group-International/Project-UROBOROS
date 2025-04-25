@@ -15,6 +15,8 @@ const allowedMimeTypes = [
   "application/vnd.openxmlformats-officedocument.presentationml.presentation", // pptx
   "application/msword", // doc
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // docx
+  "application/excel", // xls
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // xlsx
 ];
 
 const AnnouncementSchema = z.object({
