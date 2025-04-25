@@ -49,11 +49,12 @@ const publicCreateFeedback = async (data) => {
   }
 };
 
-const getAllFeedback = async ({ pageParam = null }) => {
+const getAllFeedback = async ({ pageParam = null, status = "all" }) => {
   const token = await getAuthToken();
   const params = new URLSearchParams();
   if (pageParam) params.append("cursor", pageParam);
   params.append("limit", "12");
+  params.append("status", status);
 
   try {
     const response = await axios.get(
