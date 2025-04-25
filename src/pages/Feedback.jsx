@@ -1,6 +1,6 @@
 import { useRef, useEffect } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-
+import { useSearchParams } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -30,6 +30,8 @@ import useFeedback from "@/hooks/useFeedbacks";
 
 const Feedback = () => {
   const { updateFeedbackStatusHandler } = useFeedback();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const statusFilter = searchParams.get("status") || "all";
 
   const {
     data,
@@ -39,8 +41,9 @@ const Feedback = () => {
     isLoading,
     isError,
   } = useInfiniteQuery({
-    queryKey: ["feedbacks"],
-    queryFn: ({ pageParam = null }) => getAllFeedback({ pageParam }),
+    queryKey: ["feedbacks", statusFilter],
+    queryFn: ({ pageParam = null }) =>
+      getAllFeedback({ pageParam, status: statusFilter }),
     getNextPageParam: (lastPage) => lastPage.nextCursor || undefined,
   });
 
@@ -73,6 +76,10 @@ const Feedback = () => {
     updateFeedbackStatusHandler(id, status);
   };
 
+  const handleStatusChange = (value) => {
+    setSearchParams({ status: value }); // Update the URL with the new status
+  };
+
   if (isLoading)
     return <p className="py-8 text-center">Loading feedbacks...</p>;
   if (isError)
@@ -82,7 +89,6 @@ const Feedback = () => {
 
   // Flatten all feedback items from all pages
   const allFeedback = data?.pages.flatMap((page) => page.data || page) || [];
-  console.log(allFeedback);
 
   return (
     <div className="container mx-auto py-6">
@@ -90,7 +96,7 @@ const Feedback = () => {
 
       {/* Filter by status */}
       <div className="my-4 flex items-center gap-4">
-        <Select>
+        <Select value={statusFilter} onValueChange={handleStatusChange}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
@@ -183,7 +189,6 @@ const Feedback = () => {
                             Mark as pending
                           </DropdownMenuItem>
                         )}
-                        <DropdownMenuItem>Delete</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
