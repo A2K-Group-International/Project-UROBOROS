@@ -12,7 +12,7 @@ export const fileTypes = Object.freeze([
     value: "Video",
   },
   {
-    icon: "pdf-fill",
+    icon: "attachment-2-fill",
     value: "PDF Document",
   },
   // {

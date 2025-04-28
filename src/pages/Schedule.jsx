@@ -126,6 +126,7 @@ const Schedule = () => {
     setUrlPrms(urlPrms);
     setFilter(value);
   };
+
   return (
     <div className="flex h-full w-full xl:gap-8">
       <div className="no-scrollbar flex w-full flex-col gap-8 overflow-y-auto lg:min-w-[400px] xl:flex-1">

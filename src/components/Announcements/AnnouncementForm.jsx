@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
   AlertDialog,
@@ -40,7 +40,7 @@ const AnnouncementForm = ({
   content,
   announcementId,
   children,
-  subgroupId, // Add these props
+  subgroupId,
   groupId,
 }) => {
   const [searchParams] = useSearchParams();
@@ -49,6 +49,7 @@ const AnnouncementForm = ({
   // Use the props first, then fall back to URL params if needed
   const subgroupIdToUse = subgroupId || searchParams.get("subgroupId");
   const groupIdToUse = groupId || searchParams.get("groupId");
+  const fileInputRef = useRef(null);
 
   const [currentFiles, setCurrentFiles] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -71,7 +72,7 @@ const AnnouncementForm = ({
   const { addAnnouncementMutation, editAnnouncementMutation } =
     useAnnouncements({
       group_id: groupIdToUse,
-      subgroup_id: subgroupIdToUse, // Make sure to set subgroup_id
+      subgroup_id: subgroupIdToUse,
     });
 
   const onSubmit = (data) => {
@@ -80,20 +81,24 @@ const AnnouncementForm = ({
         data,
         announcementId,
         groupId: groupIdToUse,
-        subgroupId: subgroupIdToUse, // Use consistent naming (lowercase g)
+        subgroupId: subgroupIdToUse,
       });
     } else {
       addAnnouncementMutation.mutate({
         data,
         userId: userData?.id,
         groupId: groupIdToUse,
-        subgroupId: subgroupIdToUse, // Use consistent naming (lowercase g)
+        subgroupId: subgroupIdToUse,
       });
     }
 
     form.reset();
-    setIsOpen(false);
+    setCurrentFiles([]);
+    setSelectedFileTypes("None");
+    setSelectedVideo("");
+    setSelectedPDF("");
     setImagePreviews([]);
+    setIsOpen(false);
   };
 
   useEffect(() => {
@@ -128,6 +133,10 @@ const AnnouncementForm = ({
 
     // Update filePreviews state
     setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+    // Reset the file input value so the same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   return (
@@ -136,8 +145,13 @@ const AnnouncementForm = ({
       onOpenChange={(open) => {
         setIsOpen(open);
         if (!open) {
-          setCurrentFiles([]);
           form.reset();
+          setCurrentFiles([]);
+          setImagePreviews([]);
+          // Reset the file input value on close
+          if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+          }
         }
       }}
     >
@@ -219,6 +233,7 @@ const AnnouncementForm = ({
                   <FormItem>
                     <FormControl>
                       <Input
+                        ref={fileInputRef}
                         id="file-input"
                         type="file"
                         accept={
@@ -226,7 +241,7 @@ const AnnouncementForm = ({
                             ? "image/*"
                             : selectedFileType === "Video"
                               ? "video/*"
-                              : "application/pdf"
+                              : "application/*"
                         }
                         className="hidden"
                         multiple={selectedFileType === "Image(s)"}
@@ -250,17 +265,25 @@ const AnnouncementForm = ({
                                 URL.createObjectURL(file)
                               ),
                             ]);
+                            // Reset file input after selecting files
+                            if (fileInputRef.current) {
+                              fileInputRef.current.value = "";
+                            }
                           } else {
                             const file = files[0]; // Only one file for PDF or Video
                             const url = URL.createObjectURL(file);
 
-                            if (file.type === "application/pdf") {
+                            if (file.type.startsWith("application")) {
                               setSelectedPDF(url);
                             } else {
                               setSelectedVideo(url);
                             }
 
                             form.setValue("files", [file]);
+                            // Reset file input after selecting files
+                            if (fileInputRef.current) {
+                              fileInputRef.current.value = "";
+                            }
                           }
                         }}
                       />
@@ -361,11 +384,11 @@ const AnnouncementForm = ({
                   ))}
                 {selectedFileType === "PDF Document" &&
                   (selectedPDF ? (
-                    <div className="flex max-h-[110px] w-full max-w-[420px] justify-center gap-3 overflow-x-scroll">
+                    <div className="flex max-h-[110px] w-full max-w-[420px] items-center justify-center gap-3 overflow-x-scroll">
                       <div className="relative h-[100px] w-[100px] flex-shrink-0 rounded-md">
                         <Icon
                           className="h-11 w-11 text-[#CDA996]"
-                          icon={"mingcute:pdf-fill"}
+                          icon={"mingcute:attachment-2-fill"}
                         />
                         <p className="text-2xs text-[#CDA996]">
                           {form.getValues("files")[0]?.name}
@@ -378,29 +401,15 @@ const AnnouncementForm = ({
                         <div className="flex flex-shrink-0 items-center justify-center rounded-md">
                           <Icon
                             className="h-11 w-11 text-[#CDA996]"
-                            icon={"mingcute:pdf-fill"}
+                            icon={"mingcute:attachment-2-fill"}
                           />
                         </div>
                         <p className="text-[12px] font-semibold text-[#CDA996]">
-                          Upload PDF
+                          Upload File
                         </p>
                       </div>
                     </Label>
                   ))}
-                {/* {selectedFileType === "Hyperlink" && (
-                  <div className="flex h-[110px] flex-col items-center justify-center">
-                    <div className="flex flex-shrink-0 items-center justify-center rounded-md hover:cursor-pointer">
-                      <Input
-                        className="p-x-0 p-y-0 border-b-1 mb-2 h-6 w-72 rounded-none border-x-0 border-t-0 border-b-[#CDA996] bg-transparent text-accent"
-                        defaultValue="https://"
-                        icon={"mingcute:pdf-fill"}
-                      />
-                    </div>
-                    <p className="text-[12px] font-semibold text-[#CDA996]">
-                      Hyperlink
-                    </p>
-                  </div>
-                )} */}
               </div>
               {form.formState.errors.files && (
                 <p className="text-sm font-medium text-red-500">

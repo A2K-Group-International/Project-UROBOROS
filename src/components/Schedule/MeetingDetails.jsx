@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
-import { useState,memo } from "react";
+import { useState, memo } from "react";
 
 import { Description, Title } from "@/components/Title";
 import {
@@ -24,11 +24,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button"; // Assuming you have a Button component
-import { Icon } from "@iconify/react"; // Assuming you have an Icon component
-import useDeleteMeeting from "@/hooks/useDeleteMeeting"; // Import the delete hook
+import { Button } from "@/components/ui/button";
+import { Icon } from "@iconify/react";
+import useDeleteMeeting from "@/hooks/useDeleteMeeting";
 import Loading from "../Loading";
-
 
 const MeetingDetails = () => {
   const [urlPrms] = useSearchParams();
@@ -57,7 +56,7 @@ const MeetingDetails = () => {
   // Use the delete meeting hook
   const { mutate: deleteMeeting, isLoading: isDeleting } = useDeleteMeeting();
 
-  if (isLoading) return <Loading/>;
+  if (isLoading) return <Loading />;
 
   if (!meetingId)
     return (
@@ -65,7 +64,6 @@ const MeetingDetails = () => {
         <Description>Select a Meeting to view and configure</Description>
       </div>
     );
-
 
   const formatTime = (time) => {
     if (!time) return ""; // Handle null/undefined cases
@@ -130,18 +128,18 @@ const MeetingDetails = () => {
             </p>
             <div className="mt-4 flex justify-end gap-4">
               <Button
-                className="bg-gray-400 rounded-lg px-4 py-2 text-white"
-                onClick={() => setIsDialogOpen(false)} // Close the dialog
+                variant="secondary"
+                onClick={() => setIsDialogOpen(false)}
               >
                 Cancel
               </Button>
               <Button
-                className="rounded-lg bg-red-500 px-4 py-2 text-white"
+                variant="destructive"
                 onClick={() => {
-                  deleteMeeting(meetingId); // Call deleteMeeting mutation
-                  setIsDialogOpen(false); // Close the dialog
+                  deleteMeeting(meetingId);
+                  setIsDialogOpen(false);
                 }}
-                disabled={isDeleting} // Disable the button while the request is in progress
+                disabled={isDeleting}
               >
                 {isDeleting ? "Deleting..." : "Delete"}
               </Button>

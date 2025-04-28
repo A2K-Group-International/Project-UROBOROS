@@ -15,7 +15,7 @@ const useAnnouncements = ({ group_id, subgroup_id }) => {
   const queryClient = useQueryClient();
 
   // Create a unique query key that includes both group_id and subgroup_id
-  const queryKey = ["announcements", { group_id, subgroup_id }];
+  const queryKey = ["announcements", group_id, subgroup_id];
 
   const { data, hasNextPage, fetchNextPage, isLoading } = useInfiniteQuery({
     queryKey,
@@ -45,7 +45,7 @@ const useAnnouncements = ({ group_id, subgroup_id }) => {
         description: "Announcement created.",
       });
       // Invalidate the query with both parameters
-      queryClient.invalidateQueries({ queryKey });
+      queryClient.invalidateQueries({ queryKey: ["announcements"] });
     },
 
     onError: (error, context) => {
@@ -61,9 +61,7 @@ const useAnnouncements = ({ group_id, subgroup_id }) => {
     },
 
     onSettled: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["announcements", group_id],
-      });
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 

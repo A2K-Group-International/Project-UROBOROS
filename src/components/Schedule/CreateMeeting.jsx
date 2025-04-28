@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import Select from "react-select";
 import TimePicker from "./TimePicker";
 import { createMeetingSchema } from "@/zodSchema/CreateMeetingSchema";
 import {
@@ -35,6 +34,7 @@ import useCreateMeeting from "@/hooks/useCreateMeeting";
 import { useUser } from "@/context/useUser";
 
 import useUsersByRole from "@/hooks/useUsersByRole";
+import CustomReactSelect from "../CustomReactSelect";
 // import useGetAllMinistries from "@/hooks/useGetAllMinistries";
 
 // Dummy participants removed and using real volunteers
@@ -45,7 +45,14 @@ const CreateMeeting = () => {
   const { mutate: createMeeting, isLoading } = useCreateMeeting();
 
   // const { data: ministries } = useGetAllMinistries();
-  const { data: volunteers } = useUsersByRole("volunteer"); // Get volunteers
+  const { data: volunteers } = useUsersByRole("volunteer");
+  const { data: admins } = useUsersByRole("admin");
+  const { data: coordinators } = useUsersByRole("coordinator");
+  const participants = [
+    ...(volunteers || []),
+    ...(admins || []),
+    ...(coordinators || []),
+  ];
 
   const [isDialogOpen, setDialogOpen] = useState(false);
 
@@ -93,10 +100,10 @@ const CreateMeeting = () => {
   };
 
   // Convert volunteers data into the format expected by react-select
-  const volunteerOptions =
-    volunteers?.map((volunteer) => ({
-      value: volunteer.id,
-      label: `${volunteer.first_name} ${volunteer.last_name}`,
+  const participantOptions =
+    participants?.map((participant) => ({
+      value: participant.id,
+      label: `${participant.first_name} ${participant.last_name}`,
     })) || [];
 
   return (
@@ -144,14 +151,16 @@ const CreateMeeting = () => {
                   <FormItem>
                     <FormLabel>Participants</FormLabel>
                     <FormControl>
-                      <Select
+                      <CustomReactSelect
                         isMulti
-                        options={volunteerOptions} // Use the dynamic volunteer options
-                        value={volunteerOptions.filter((option) =>
+                        options={participantOptions} // Use the dynamic volunteer options
+                        value={participantOptions?.filter((option) =>
                           field.value.includes(option.value)
                         )}
                         onChange={(selected) =>
-                          field.onChange(selected.map((option) => option.value))
+                          field.onChange(
+                            selected?.map((option) => option.value)
+                          )
                         }
                         placeholder="Select participants"
                       />

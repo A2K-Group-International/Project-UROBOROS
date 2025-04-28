@@ -175,22 +175,39 @@ const Announcement = ({ announcement, deleteAnnouncementMutation }) => {
                   onClick={() => setSelectedImageIndex(i)}
                   key={i}
                   className={cn(
-                    "flex-1 border border-primary-outline hover:cursor-pointer",
+                    "w-full border border-primary-outline hover:cursor-pointer",
                     {
                       relative: i === 2,
                     },
-                    { "rounded-s-md": i === 0 },
                     {
-                      "relative z-20 rounded-e-md bg-black":
-                        i === 2 && announcement.announcement_files.length > 3,
+                      "overflow-hidden rounded-md":
+                        i === 0 && announcement.announcement_files.length === 1,
+                    },
+                    {
+                      "overflow-hidden rounded-s-md":
+                        i === 0 && announcement.announcement_files.length > 1,
+                    },
+                    {
+                      "relative z-20 overflow-hidden rounded-e-md bg-black":
+                        i === 2 && announcement.announcement_files.length > 2,
+                    },
+                    {
+                      "relative z-20 overflow-hidden rounded-e-md bg-black":
+                        i === 1 && announcement.announcement_files.length > 1,
                     }
                   )}
                 >
                   <img
-                    className={cn("h-[223px] min-w-0 bg-black object-cover", {
-                      "bg-red-400 opacity-45":
-                        i === 2 && announcement.announcement_files.length > 3,
-                    })}
+                    className={cn(
+                      "h-[223px] w-full min-w-0 object-cover",
+                      {
+                        "bg-red-400 opacity-45":
+                          i === 2 && announcement.announcement_files.length > 3,
+                      },
+                      {
+                        "h-full": announcement.announcement_files.length === 1,
+                      }
+                    )}
                     src={file.url}
                     alt="file"
                   />
@@ -249,7 +266,7 @@ const Announcement = ({ announcement, deleteAnnouncementMutation }) => {
                         <img
                           className="h-[100dvh] w-full object-contain"
                           src={file.url}
-                          alt="an image of announcement object-ccover"
+                          alt="an image of announcement "
                         />
                       </CardContent>
                     </Card>

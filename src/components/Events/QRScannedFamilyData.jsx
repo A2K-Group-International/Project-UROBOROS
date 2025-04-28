@@ -212,7 +212,6 @@ const QRScannedFamilyData = ({ userId, selectedEvent }) => {
         registered_by: userId,
         time_attended: new Date().toISOString(),
       };
-      console.log(attendeeData);
 
       guardianManualAttend(attendeeData, {
         onSettled: () => setSelectedParentId(null),

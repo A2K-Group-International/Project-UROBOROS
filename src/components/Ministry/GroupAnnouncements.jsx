@@ -24,8 +24,8 @@ const GroupAnnouncements = ({ groupId, subgroupId }) => {
     isLoading,
   } = useAnnouncements({
     user_id: userData?.id,
-    group_id: subgroupIdToUse ? null : groupIdToUse, // Use groupId only if no subgroupId
-    subgroup_id: subgroupIdToUse, // Pass subgroupId if available
+    group_id: subgroupIdToUse ? null : groupIdToUse, 
+    subgroup_id: subgroupIdToUse, 
   });
 
   const { ref } = useInterObserver(fetchNextPage);

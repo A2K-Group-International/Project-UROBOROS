@@ -1,17 +1,24 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-
-import { Icon } from "@iconify/react/dist/iconify.js";
+import { useRef, useEffect } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { getAllFeedback } from "@/services/feedBackService";
+import { Title } from "@/components/Title";
+import { Icon } from "@iconify/react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ThreeDotsIcon } from "@/assets/icons/icons";
 import {
   Select,
   SelectContent,
@@ -19,197 +26,188 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-
-const feedbackSchema = z.object({
-  category: z.string().min(1, "Please select a feedback category"),
-  description: z
-    .string()
-    .min(10, "Please provide at least 10 characters of description")
-    .max(1000, "Feedback must be less than 1000 characters"),
-});
-
-const feedbackCategories = [
-  { value: "bug", label: "🐞 Bug Report" },
-  { value: "feature", label: "✨ Feature Request" },
-  { value: "ui", label: "🎨 UI Issue" },
-  { value: "performance", label: "⚡ Performance Issue" },
-  { value: "general", label: "💬 General Feedback" },
-  { value: "account", label: "🔐 Account/Login Issue" },
-  { value: "event", label: "📅 Event-Related Feedback" },
-  { value: "notification", label: "🔔 Notification Issue" },
-  { value: "other", label: "❓ Other" },
-];
-
-const feedbackAdditionalInformation = [
-  {
-    description: "Feature requests that would make your experience better",
-  },
-  {
-    description: "Suggestions to improve existing functionalities",
-  },
-  {
-    description: "Reports of confusing or difficult to use interfaces",
-  },
-  {
-    description: "Ideas for new features or reports you'd like to see",
-  },
-];
+import useFeedback from "@/hooks/useFeedbacks";
+import { Loader2 } from "lucide-react";
 
 const Feedback = () => {
-  const [characterCount, setCharacterCount] = useState(0);
+  const { updateFeedbackStatusHandler } = useFeedback();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const statusFilter = searchParams.get("status") || "all";
 
-  const form = useForm({
-    resolver: zodResolver(feedbackSchema),
-    defaultValues: {
-      category: "",
-      description: "",
-    },
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+  } = useInfiniteQuery({
+    queryKey: ["feedbacks", statusFilter],
+    queryFn: ({ pageParam = null }) =>
+      getAllFeedback({ pageParam, status: statusFilter }),
+    getNextPageParam: (lastPage) => lastPage.nextCursor || undefined,
   });
 
-  const onSubmit = (data) => {
-    console.log(data);
+  const observerRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    const currentRef = observerRef.current;
+
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [observerRef, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const handleStatusUpdate = (id, status) => {
+    updateFeedbackStatusHandler(id, status);
   };
 
-  const handleResetForm = () => {
-    form.reset();
-    setCharacterCount(0);
+  const handleStatusChange = (value) => {
+    setSearchParams({ status: value }); // Update the URL with the new status
   };
+
+  if (isLoading)
+    return (
+      <div className="grid h-full place-content-center">
+        <Loader2 className="animate-spin" />
+      </div>
+    );
+  if (isError)
+    return (
+      <p className="py-8 text-center text-red-500">Error loading feedbacks!</p>
+    );
+
+  // Flatten all feedback items from all pages
+  const allFeedback = data?.pages.flatMap((page) => page.data || page) || [];
 
   return (
-    <div className="no-scrollbar container mx-auto max-w-3xl overflow-y-scroll">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-primary-text">
-          Share Your Feedback
-        </h1>
-        <p className="text-accent">
-          Help us improve the system by sharing your suggestions
-        </p>
-      </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Feedback Form</CardTitle>
-          <CardDescription>
-            Your feedback is valuable in helping us enhance your experience.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="category"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Category</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a category" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {feedbackCategories.map((category) => (
-                            <SelectItem
-                              key={category.value}
-                              value={category.value}
-                            >
-                              {category.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Share your suggestions for improvement..."
-                          className="min-h-[220px] resize-none"
-                          {...field}
-                          onChange={(e) => {
-                            field.onChange(e);
-                            setCharacterCount(e.target.value.length);
-                          }}
-                        />
-                      </FormControl>
-                      <div className="flex justify-between">
-                        <FormDescription>
-                          {`Please be specific about what you'd like to see
-                          improved.`}
-                        </FormDescription>
-                        <span
-                          className={`text-xs ${
-                            characterCount > 900
-                              ? "text-red-600"
-                              : characterCount > 0
-                                ? "text-primary-text"
-                                : "text-muted-foreground"
-                          }`}
-                        >
-                          {characterCount}/1000
-                        </span>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+    <div className="container mx-auto py-6">
+      <Title className="mb-2">Feedback</Title>
 
-              <div className="rounded-lg border border-accent/20 p-4">
-                <h4 className="mb-2 flex items-center gap-1 text-sm font-medium text-primary-text">
-                  <Icon
-                    icon="mingcute:bulb-fill"
-                    className="text-primary-text"
-                  />
-                  What kind of feedback is helpful?
-                </h4>
-                <ul className="list-disc space-y-1 pl-4 text-xs">
-                  {feedbackAdditionalInformation.map((item, index) => (
-                    <li key={index} className="text-primary-text">
-                      {item.description}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-        <CardFooter className="flex-start flex flex-col justify-between gap-y-2 sm:flex-row">
-          <Button
-            variant="outline"
-            onClick={handleResetForm}
-            className="self-end"
-          >
-            Reset Form
-          </Button>
-          <Button onClick={form.handleSubmit(onSubmit)} className="self-end">
-            <Icon icon="mingcute:send-plane-fill" className="mr-2 h-4 w-4" />
-            Submit Feedback
-          </Button>
-        </CardFooter>
-      </Card>
+      {/* Filter by status */}
+      <div className="my-4 flex items-center gap-4">
+        <Select value={statusFilter} onValueChange={handleStatusChange}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="resolved">Resolved</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <Table>
+          <TableHeader className="bg-primary">
+            <TableRow>
+              <TableHead className="w-[200px]">Subject</TableHead>
+              <TableHead className="w-[400px]">Description</TableHead>
+              <TableHead>Attachment</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="w-[150px]">Action</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {allFeedback.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="py-6 text-center">
+                  No feedback submissions found
+                </TableCell>
+              </TableRow>
+            ) : (
+              allFeedback.map((feedback) => (
+                <TableRow key={feedback.id}>
+                  <TableCell className="font-medium">
+                    {feedback.subject}
+                  </TableCell>
+                  <TableCell>{feedback.description}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-2">
+                      {feedback.feedback_files?.map((file) => (
+                        <img
+                          key={file.id}
+                          src={file.url}
+                          alt={file.name}
+                          className="h-16 w-16 rounded border object-cover"
+                        />
+                      ))}
+                      {!feedback.feedback_files?.length && (
+                        <span className="text-gray-400">No attachment</span>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {feedback.status === "pending" ? (
+                        <Icon
+                          icon="material-symbols:circle"
+                          color="orange"
+                          width={12}
+                        />
+                      ) : (
+                        <Icon
+                          icon="material-symbols:circle"
+                          color="green"
+                          width={12}
+                        />
+                      )}
+                      {feedback.status.charAt(0).toUpperCase() +
+                        feedback.status.slice(1)}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger>
+                        <ThreeDotsIcon />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        {feedback.status === "pending" ? (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleStatusUpdate(feedback.id, "resolved")
+                            }
+                          >
+                            Mark as resolved
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleStatusUpdate(feedback.id, "pending")
+                            }
+                          >
+                            Mark as pending
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      {hasNextPage && (
+        <div ref={observerRef} className="text-gray-400 py-4 text-center">
+          {isFetchingNextPage && "Loading..."}
+        </div>
+      )}
     </div>
   );
 };
