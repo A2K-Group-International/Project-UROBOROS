@@ -409,7 +409,7 @@ const ScheduleDetails = () => {
     }
 
     const eventDate = event?.event_date;
-    const eventTime = event?.event_time || "00:00:00";
+    const eventTime = event?.event_time || "12:00:00";
 
     const eventDateTime = new Date(`${eventDate}T${eventTime}Z`);
     const currentDateTime = new Date();
