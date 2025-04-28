@@ -20,6 +20,7 @@ import { SIDEBAR_LINKS } from "@/constants/sidebarLinks";
 import { ChevronUp } from "@/assets/icons/icons";
 import useRoleSwitcher from "@/hooks/useRoleSwitcher";
 import { ROLES } from "@/constants/roles";
+import { useState } from "react";
 
 const Sidebar = () => {
   const url = useLocation();
@@ -60,7 +61,6 @@ const Sidebar = () => {
               ) {
                 return null;
               }
-
               return (
                 <SidebarLink
                   key={index}
@@ -72,7 +72,6 @@ const Sidebar = () => {
                 />
               );
             })}
-
           <div className="flex flex-col items-center justify-center">
             <DropdownMenu>
               <DropdownMenuTrigger className="lg:hidden lg:px-6">
@@ -124,10 +123,13 @@ const Sidebar = () => {
             </p>
           </div>
         </ul>
-        <SidebarProfile
-          availableRoles={availableRoles}
-          onSwitchRole={onSwitchRole}
-        />
+        <div className="ml-9 hidden flex-col items-start gap-y-2 lg:flex">
+          <Notification />
+          <SidebarProfile
+            availableRoles={availableRoles}
+            onSwitchRole={onSwitchRole}
+          />
+        </div>
       </div>
     </div>
   );
@@ -151,7 +153,7 @@ const SidebarProfile = ({ availableRoles, onSwitchRole }) => {
 
   if (!userData) {
     return (
-      <div className="ml-9 hidden h-10 max-w-56 items-center justify-between rounded-[20px] bg-white p-1 lg:flex">
+      <div className="hidden h-10 max-w-56 items-center justify-between rounded-[20px] bg-white p-1 lg:flex">
         <div className="flex items-center gap-2">
           <Avatar className="h-8 w-8">
             <AvatarFallback>?</AvatarFallback>
@@ -168,7 +170,7 @@ const SidebarProfile = ({ availableRoles, onSwitchRole }) => {
     "Guest";
 
   return (
-    <div className="ml-9 hidden h-10 w-56 items-center justify-between rounded-[20px] bg-white p-1 lg:flex">
+    <div className="hidden h-10 w-56 items-center justify-between rounded-[20px] bg-white p-1 lg:flex">
       <div className="flex items-center gap-2">
         {/* Avatar (Future Avatar Image) */}
         <Avatar className="h-8 w-8">
@@ -249,6 +251,36 @@ SidebarLink.propTypes = {
 SidebarProfile.propTypes = {
   availableRoles: PropTypes.array,
   onSwitchRole: PropTypes.func,
+};
+
+const Notification = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleToggle = () => {
+    setIsOpen((prev) => !prev);
+  };
+
+  return (
+    <div className="relative w-full select-none">
+      <div
+        className="flex h-10 cursor-pointer items-center justify-between rounded-full bg-white p-1 text-[16px] font-medium text-accent"
+        onClick={handleToggle}
+      >
+        <div className="flex w-full items-center gap-x-2">
+          <Icon icon="mingcute:notification-line" className="h-6 w-6" />
+          <span>Notifications</span>
+        </div>
+        <span className="w-11 rounded-full bg-red-500 text-center text-white">
+          3
+        </span>
+      </div>
+      {isOpen && (
+        <div className="absolute bottom-0 left-[14rem] z-50 h-[36rem] w-[40rem] rounded-2xl bg-white drop-shadow-xl">
+          test
+        </div>
+      )}
+    </div>
+  );
 };
 
 export { SidebarLink, SidebarProfile };
