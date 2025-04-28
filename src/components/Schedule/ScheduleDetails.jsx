@@ -407,7 +407,11 @@ const ScheduleDetails = () => {
     if (!event || !temporaryRole) {
       return;
     }
-    const eventDateTime = new Date(`${event?.event_date}T${event?.event_time}`);
+
+    const eventDate = event?.event_date;
+    const eventTime = event?.event_time || "12:00:00";
+
+    const eventDateTime = new Date(`${eventDate}T${eventTime}Z`);
     const currentDateTime = new Date();
 
     let offset = 0;
@@ -419,9 +423,9 @@ const ScheduleDetails = () => {
       offset = 7 * 24 * 60 * 60 * 1000;
     }
 
-    const adjustedEventDateTime = new Date(eventDateTime.getTime() + offset);
+    const eventOffset = new Date(eventDateTime.getTime() + offset);
 
-    if (currentDateTime > adjustedEventDateTime) {
+    if (currentDateTime > eventOffset) {
       setDisableSchedule(true);
     } else {
       setDisableSchedule(false);
