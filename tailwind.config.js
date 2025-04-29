@@ -58,8 +58,10 @@ export default {
         blue: "#2394FE",
         "secondary-accent": "#F4E2D9",
         "primary-outline": "#E8DAD3",
+        "primary-blue-light": "#2C4FFF",
         gray: "#E9E9E9",
         pink: "#FBCCC0",
+        red: "#FF0051",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -77,6 +79,9 @@ export default {
       fontSize: {
         "2xs": "10px",
         heading: "26px",
+      },
+      borderColor: {
+        primary: "#F1E8E4",
       },
     },
   },

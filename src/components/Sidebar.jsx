@@ -20,7 +20,8 @@ import { SIDEBAR_LINKS } from "@/constants/sidebarLinks";
 import { ChevronUp } from "@/assets/icons/icons";
 import useRoleSwitcher from "@/hooks/useRoleSwitcher";
 import { ROLES } from "@/constants/roles";
-import { useState } from "react";
+
+import Notification from "./Notification";
 
 const Sidebar = () => {
   const url = useLocation();
@@ -170,8 +171,8 @@ const SidebarProfile = ({ availableRoles, onSwitchRole }) => {
     "Guest";
 
   return (
-    <div className="hidden h-10 w-56 items-center justify-between rounded-[20px] bg-white p-1 lg:flex">
-      <div className="flex items-center gap-2">
+    <div className="hidden h-10 w-full items-center justify-between rounded-[20px] bg-white p-1 lg:flex">
+      <div className="flex items-center gap-1">
         {/* Avatar (Future Avatar Image) */}
         <Avatar className="h-8 w-8">
           <AvatarFallback>{initials}</AvatarFallback>
@@ -182,7 +183,7 @@ const SidebarProfile = ({ availableRoles, onSwitchRole }) => {
         {/* </Link> */}
       </div>
       <DropdownMenu>
-        <DropdownMenuTrigger className="ml-2 flex h-7 w-11 items-center justify-center rounded-[18.5px] bg-accent px-2 text-white hover:cursor-pointer">
+        <DropdownMenuTrigger className="flex h-full w-10 items-center justify-center rounded-full border-none bg-accent px-2 py-1 text-white hover:cursor-pointer">
           <ChevronUp className="h-5 w-5 text-white" />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
@@ -251,36 +252,6 @@ SidebarLink.propTypes = {
 SidebarProfile.propTypes = {
   availableRoles: PropTypes.array,
   onSwitchRole: PropTypes.func,
-};
-
-const Notification = () => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const handleToggle = () => {
-    setIsOpen((prev) => !prev);
-  };
-
-  return (
-    <div className="relative w-full select-none">
-      <div
-        className="flex h-10 cursor-pointer items-center justify-between rounded-full bg-white p-1 text-[16px] font-medium text-accent"
-        onClick={handleToggle}
-      >
-        <div className="flex w-full items-center gap-x-2">
-          <Icon icon="mingcute:notification-line" className="h-6 w-6" />
-          <span>Notifications</span>
-        </div>
-        <span className="w-11 rounded-full bg-red-500 text-center text-white">
-          3
-        </span>
-      </div>
-      {isOpen && (
-        <div className="absolute bottom-0 left-[14rem] z-50 h-[36rem] w-[40rem] rounded-2xl bg-white drop-shadow-xl">
-          test
-        </div>
-      )}
-    </div>
-  );
 };
 
 export { SidebarLink, SidebarProfile };
