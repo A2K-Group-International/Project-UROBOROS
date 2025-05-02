@@ -3,63 +3,20 @@ import PropTypes from "prop-types";
 
 import { Icon } from "@iconify/react";
 import { Label } from "./ui/label";
-
-const notificationsData = [
-  {
-    id: 1,
-    title: "New Comment",
-    description: "John Doe commented on your post.",
-    timestamp: "2025-04-29T10:30:00Z",
-    type: "comment",
-    read: false,
-  },
-  {
-    id: 2,
-    title: "Reply to Your Comment",
-    description: "Jane Smith replied to your comment.",
-    timestamp: "2025-04-29T09:15:00Z",
-    type: "reply",
-    read: false,
-  },
-  {
-    id: 3,
-    title: "Assigned Event",
-    description: "You have been assigned to the 'Annual Meeting' event.",
-    timestamp: "2025-04-28T15:45:00Z",
-    type: "event",
-    read: true,
-  },
-  {
-    id: 4,
-    title: "New Like",
-    description: "Your comment received a like from Alex Johnson.",
-    timestamp: "2025-04-28T12:20:00Z",
-    type: "like",
-    read: true,
-  },
-  {
-    id: 5,
-    title: "Event Reminder",
-    description: "Reminder: 'Team Building Activity' starts tomorrow at 10 AM.",
-    timestamp: "2025-04-27T09:15:00Z",
-    type: "reminder",
-    read: false,
-  },
-  {
-    id: 6,
-    title: "Upcoming Event",
-    description: "Reminder: 'Team Building Activity' starts tomorrow at 10 AM.",
-    timestamp: "2025-04-27T09:15:00Z",
-    type: "reminder",
-    read: false,
-  },
-];
+import { useNotifications } from "@/hooks/useNotification";
+import { Loader2 } from "lucide-react";
 
 const Notification = () => {
   const [isOpen, setIsOpen] = useState(false);
   const notificationRef = useRef(null);
 
-  const unreadNotificationCount = notificationsData.filter(
+  const {
+    data: notifications = [],
+    isLoading: notificationsLoading,
+    error: notificationsError,
+  } = useNotifications();
+
+  const unreadNotificationCount = notifications.filter(
     (notification) => !notification.read
   ).length;
 
@@ -93,7 +50,12 @@ const Notification = () => {
         toggle={handleToggle}
         count={unreadNotificationCount}
       />
-      <NotificationContent isOpen={isOpen} />
+      <NotificationContent
+        isOpen={isOpen}
+        notifications={notifications}
+        notificationsLoading={notificationsLoading}
+        notificationsError={notificationsError}
+      />
     </div>
   );
 };
@@ -108,7 +70,7 @@ const NotificationButton = ({ btnName, toggle, count }) => {
         <Icon icon="mingcute:notification-line" className="h-6 w-6" />
         <span>{btnName}</span>
       </div>
-      <span className="bg-red flex h-full w-12 items-center justify-center rounded-full text-white">
+      <span className="flex h-full w-12 items-center justify-center rounded-full bg-red text-white">
         {count}
       </span>
     </div>
@@ -121,18 +83,35 @@ NotificationButton.propTypes = {
   count: PropTypes.number.isRequired,
 };
 
-const NotificationContent = ({ isOpen }) => {
+const NotificationContent = ({
+  isOpen,
+  notifications,
+  notificationsLoading,
+  notificationsError,
+}) => {
   const notificationIcons = {
-    comment: "mdi:comment-outline",
+    announcement_created: "mdi:comment-outline",
     reply: "mdi:comment-outline",
     event: "mingcute:calendar-line",
     like: "mingcute:thumb-up-2-fill",
     reminder: "carbon:reminder",
   };
 
+  if (notificationsError) {
+    return (
+      <div
+        className={`absolute bottom-0 left-[14rem] z-50 h-[36rem] w-[35rem] rounded-2xl bg-white drop-shadow-xl transition-all duration-150 ${isOpen ? "translate-x-0 opacity-100" : "pointer-events-none -translate-x-5 opacity-0"}`}
+      >
+        <div className="text-red-500 flex h-full items-center justify-center">
+          <p>Error loading notifications: {notificationsError.message}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
-      className={`absolute bottom-0 left-[14rem] z-50 h-[36rem] w-[38rem] rounded-2xl bg-white drop-shadow-xl transition-all duration-150 ${isOpen ? "translate-x-0 opacity-100" : "pointer-events-none -translate-x-5 opacity-0"}`}
+      className={`absolute bottom-0 left-[14rem] z-50 h-[36rem] w-[35rem] rounded-2xl bg-white drop-shadow-xl transition-all duration-150 ${isOpen ? "translate-x-0 opacity-100" : "pointer-events-none -translate-x-5 opacity-0"}`}
     >
       {/* Header */}
       <div className="border-b border-b-primary">
@@ -140,49 +119,61 @@ const NotificationContent = ({ isOpen }) => {
           <Label className="text-lg font-bold">Notifications</Label>
         </div>
       </div>
-      {/* Parent div */}
+      {/* Notification item */}
       <div className="no-scrollbar h-[31rem] overflow-y-scroll px-8">
-        {notificationsData.map((notification) => (
-          <div
-            key={notification.id}
-            className={`flex w-full cursor-pointer gap-x-2 border-b border-primary/40 py-4 ${notification.read ? "opacity-50" : "opacity-100"}`}
-          >
-            {/* Icon */}
-            <div className="flex h-12 w-16 items-center justify-center rounded-full bg-primary-text">
-              <Icon
-                icon={
-                  notificationIcons[notification.type] || "mdi:bell-outline"
-                }
-                width={24}
-                color="white"
-              />
-            </div>
-            {/* Description */}
-            <div className="flex w-full flex-col gap-y-1 text-primary-text">
-              <Label className="text-sm font-bold">{notification.title}</Label>
-              <p className="font-medium">{notification.description}</p>
-              <p className="text-primary-blue-light text-xs font-semibold">
-                {new Intl.DateTimeFormat("en-US", {
-                  month: "long",
-                  day: "2-digit",
-                  year: "numeric",
-                }).format(new Date(notification.timestamp))}
-                ;{" "}
-                {new Intl.DateTimeFormat("en-US", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: true,
-                }).format(new Date(notification.timestamp))}
-              </p>
-            </div>
-            {/* Dot */}
-            <div className="w-20">
-              {!notification.read && (
-                <Icon icon="mdi:dot" width={52} color="#FF0051" />
-              )}
-            </div>
+        {notificationsLoading ? (
+          <div className="flex h-full items-center justify-center">
+            <Loader2 className="h-6 w-6 animate-spin" />
           </div>
-        ))}
+        ) : notifications.length === 0 ? (
+          <div className="flex h-full items-center justify-center">
+            <p>No notifications yet</p>
+          </div>
+        ) : (
+          notifications.map((notification) => (
+            <div
+              key={notification.id}
+              className={`flex w-full cursor-pointer gap-x-2 border-b border-b-primary/40 py-4 ${notification.read ? "opacity-50" : "opacity-100"}`}
+            >
+              {/* Icon */}
+              <div className="flex h-12 w-16 items-center justify-center rounded-full bg-primary-text">
+                <Icon
+                  icon={
+                    notificationIcons[notification.type] || "mdi:bell-outline"
+                  }
+                  width={24}
+                  color="white"
+                />
+              </div>
+              {/* Description */}
+              <div className="flex w-full flex-col gap-y-1 text-primary-text">
+                <Label className="text-sm font-bold">
+                  {notification.title}
+                </Label>
+                <p className="font-medium">{notification.body}</p>
+                <p className="text-xs font-semibold text-primary-blue-light">
+                  {new Intl.DateTimeFormat("en-US", {
+                    month: "long",
+                    day: "2-digit",
+                    year: "numeric",
+                  }).format(new Date(notification.created_at))}
+                  ;{" "}
+                  {new Intl.DateTimeFormat("en-US", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true,
+                  }).format(new Date(notification.created_at))}
+                </p>
+              </div>
+              {/* Dot */}
+              <div className="w-20">
+                {!notification.read && (
+                  <Icon icon="mdi:dot" width={52} color="#FF0051" />
+                )}
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
@@ -190,6 +181,18 @@ const NotificationContent = ({ isOpen }) => {
 
 NotificationContent.propTypes = {
   isOpen: PropTypes.bool.isRequired,
+  notifications: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      title: PropTypes.string.isRequired,
+      body: PropTypes.string.isRequired,
+      created_at: PropTypes.string.isRequired,
+      type: PropTypes.string.isRequired,
+      read: PropTypes.bool.isRequired,
+    })
+  ).isRequired,
+  notificationsLoading: PropTypes.bool.isRequired,
+  notificationsError: PropTypes.object,
 };
 
 export default Notification;
