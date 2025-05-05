@@ -61,7 +61,7 @@ export default {
         "primary-blue-light": "#2C4FFF",
         gray: "#E9E9E9",
         pink: "#FBCCC0",
-        red: "#FF0051",
+        danger: "#FF0051",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

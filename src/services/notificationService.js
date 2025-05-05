@@ -14,6 +14,16 @@ export const getNotifications = async () => {
   return data;
 };
 
+export const getUnreadNotificationCount = async () => {
+  const { count, error } = await supabase
+    .from("notifications")
+    .select("*", { count: "exact", head: true })
+    .eq("read", false);
+
+  if (error) throw new Error(error.message);
+  return count;
+};
+
 /**
  * Creates a real-time subscription to notification changes
  * @param {Function} onInsert Callback function triggered when a new notification is inserted

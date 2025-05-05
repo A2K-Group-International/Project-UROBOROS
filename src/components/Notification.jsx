@@ -3,8 +3,12 @@ import PropTypes from "prop-types";
 
 import { Icon } from "@iconify/react";
 import { Label } from "./ui/label";
-import { useNotifications } from "@/hooks/useNotification";
 import { Loader2 } from "lucide-react";
+
+import {
+  useNotifications,
+  useUnreadNotificationCount,
+} from "@/hooks/useNotification";
 
 const Notification = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,11 +18,10 @@ const Notification = () => {
     data: notifications = [],
     isLoading: notificationsLoading,
     error: notificationsError,
-  } = useNotifications();
+  } = useNotifications({ enabled: isOpen });
 
-  const unreadNotificationCount = notifications.filter(
-    (notification) => !notification.read
-  ).length;
+  const { data: unreadCount = 0, isLoading: countLoading } =
+    useUnreadNotificationCount();
 
   const handleToggle = () => {
     setIsOpen((prev) => !prev);
@@ -48,7 +51,8 @@ const Notification = () => {
       <NotificationButton
         btnName="Notifications"
         toggle={handleToggle}
-        count={unreadNotificationCount}
+        count={unreadCount || 0}
+        countLoading={countLoading}
       />
       <NotificationContent
         isOpen={isOpen}
@@ -60,7 +64,7 @@ const Notification = () => {
   );
 };
 
-const NotificationButton = ({ btnName, toggle, count }) => {
+const NotificationButton = ({ btnName, toggle, count, countLoading }) => {
   return (
     <div
       className="flex h-10 cursor-pointer select-none items-center justify-between rounded-full bg-white py-1 pl-3 pr-1 text-[16px] font-medium text-accent"
@@ -70,8 +74,8 @@ const NotificationButton = ({ btnName, toggle, count }) => {
         <Icon icon="mingcute:notification-line" className="h-6 w-6" />
         <span>{btnName}</span>
       </div>
-      <span className="flex h-full w-12 items-center justify-center rounded-full bg-red text-white">
-        {count}
+      <span className="bg-danger flex h-full w-12 items-center justify-center rounded-full text-white">
+        {countLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : count}
       </span>
     </div>
   );
@@ -81,6 +85,7 @@ NotificationButton.propTypes = {
   btnName: PropTypes.string.isRequired,
   toggle: PropTypes.func.isRequired,
   count: PropTypes.number.isRequired,
+  countLoading: PropTypes.bool.isRequired,
 };
 
 const NotificationContent = ({
@@ -90,11 +95,19 @@ const NotificationContent = ({
   notificationsError,
 }) => {
   const notificationIcons = {
-    announcement_created: "mdi:comment-outline",
-    reply: "mdi:comment-outline",
-    event: "mingcute:calendar-line",
+    announcement_created: "mingcute:announcement-line",
+    comment: "mdi:comment-outline",
+    event_created: "mingcute:calendar-line",
     like: "mingcute:thumb-up-2-fill",
     reminder: "carbon:reminder",
+  };
+
+  const limitString = (str, maxLength) => {
+    if (str.length <= maxLength) {
+      return str;
+    } else {
+      return `${str.slice(0, maxLength)}...`;
+    }
   };
 
   if (notificationsError) {
@@ -127,7 +140,7 @@ const NotificationContent = ({
           </div>
         ) : notifications.length === 0 ? (
           <div className="flex h-full items-center justify-center">
-            <p>No notifications yet</p>
+            <Label className="text-primary-text">No notifications yet</Label>
           </div>
         ) : (
           notifications.map((notification) => (
@@ -147,10 +160,19 @@ const NotificationContent = ({
               </div>
               {/* Description */}
               <div className="flex w-full flex-col gap-y-1 text-primary-text">
+                <Label className="text-xs">
+                  {{
+                    announcement_created: "Announcement",
+                    event_created: "Upcoming event",
+                    comment: "Comment",
+                  }[notification.type] || ""}
+                </Label>
                 <Label className="text-sm font-bold">
                   {notification.title}
                 </Label>
-                <p className="font-medium">{notification.body}</p>
+                <p className="font-medium">
+                  {limitString(notification.body || "", 70)}
+                </p>
                 <p className="text-xs font-semibold text-primary-blue-light">
                   {new Intl.DateTimeFormat("en-US", {
                     month: "long",
@@ -184,8 +206,8 @@ NotificationContent.propTypes = {
   notifications: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.string.isRequired,
-      title: PropTypes.string.isRequired,
-      body: PropTypes.string.isRequired,
+      title: PropTypes.string,
+      body: PropTypes.string,
       created_at: PropTypes.string.isRequired,
       type: PropTypes.string.isRequired,
       read: PropTypes.bool.isRequired,
