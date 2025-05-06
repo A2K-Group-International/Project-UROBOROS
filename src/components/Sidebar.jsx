@@ -51,7 +51,7 @@ const Sidebar = () => {
           `Welcome, ${userData?.first_name ?? ""} ${userData?.last_name ?? ""}`}
         {temporaryRole === ROLES[4] && `Parish Management Centre`}
       </Title>
-      <div className="no-scrollbar mb-2 flex flex-1 justify-between overflow-x-scroll lg:mb-0 lg:flex-col lg:overflow-x-visible">
+      <div className="mb-2 flex flex-1 justify-between lg:mb-0 lg:flex-col">
         <ul className="flex w-full items-center justify-evenly gap-0 pt-1 sm:gap-2 lg:ml-4 lg:mr-8 lg:flex-col lg:items-start">
           {userData &&
             SIDEBAR_LINKS[temporaryRole]?.map((link, index) => {
@@ -73,17 +73,7 @@ const Sidebar = () => {
                 />
               );
             })}
-          <div className="flex h-full flex-col items-center justify-end lg:hidden">
-            <Icon
-              icon="mingcute:notification-line"
-              width={22}
-              height={22}
-              className="text-primary-text"
-            />
-            <p className="mt-2 text-center text-[8px] font-bold text-accent">
-              Notifications
-            </p>
-          </div>
+          <Notification isMobile={true} />
           <div className="flex flex-col items-center justify-center">
             <DropdownMenu>
               <DropdownMenuTrigger className="lg:hidden lg:px-6">
@@ -136,7 +126,7 @@ const Sidebar = () => {
           </div>
         </ul>
         <div className="ml-9 hidden flex-col items-start gap-y-2 lg:flex">
-          <Notification />
+          <Notification isMobile={false} />
           <SidebarProfile
             availableRoles={availableRoles}
             onSwitchRole={onSwitchRole}
