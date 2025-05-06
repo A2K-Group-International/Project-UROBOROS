@@ -4,7 +4,7 @@ import { supabase } from "./supabaseClient";
  * Fetches notifications from Supabase
  * @returns {Promise<Array>} Notifications array sorted by created_at descending
  */
-export const getNotifications = async () => {
+export const getUnreadNotifications = async () => {
   const { data, error } = await supabase
     .from("notifications")
     .select("*")

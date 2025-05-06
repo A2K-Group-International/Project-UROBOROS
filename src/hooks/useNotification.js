@@ -1,8 +1,8 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import {
-  getNotifications,
   getUnreadNotificationCount,
+  getUnreadNotifications,
   subscribeToNotifications,
   unsubscribeFromNotifications,
 } from "../services/notificationService";
@@ -11,12 +11,12 @@ import {
  * Hook to fetch and subscribe to real-time notifications
  * @returns {Object} React Query result object
  */
-export const useNotifications = ({ enabled = true }) => {
+export const useUnreadNotifications = ({ enabled = true }) => {
   const queryClient = useQueryClient();
 
   const query = useQuery({
     queryKey: ["notifications"],
-    queryFn: getNotifications,
+    queryFn: () => getUnreadNotifications(),
     enabled,
   });
 

@@ -6,9 +6,21 @@ import { Label } from "./ui/label";
 import { Loader2 } from "lucide-react";
 
 import {
-  useNotifications,
   useUnreadNotificationCount,
+  useUnreadNotifications,
 } from "@/hooks/useNotification";
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "./ui/button";
 
 const Notification = ({ isMobile = false }) => {
@@ -19,7 +31,7 @@ const Notification = ({ isMobile = false }) => {
     data: notifications = [],
     isLoading: notificationsLoading,
     error: notificationsError,
-  } = useNotifications({ enabled: isOpen });
+  } = useUnreadNotifications({ enabled: isOpen });
 
   const { data: unreadCount = 0, isLoading: countLoading } =
     useUnreadNotificationCount();
@@ -31,6 +43,13 @@ const Notification = ({ isMobile = false }) => {
   // Close the notification when clicking outside of it
   useEffect(() => {
     const handleClickOutside = (event) => {
+      const alertDialog = document.querySelector("[role='alertdialog']");
+
+      if (alertDialog && alertDialog.contains(event.target)) {
+        // Click was inside alert dialog, don't close notification
+        return;
+      }
+
       if (
         notificationRef.current &&
         !notificationRef.current.contains(event.target)
@@ -127,7 +146,7 @@ NotificationButton.propTypes = {
   isMobile: PropTypes.bool.isRequired,
 };
 
-export const NotificationContent = ({
+const NotificationContent = ({
   isOpen,
   notifications,
   notificationsLoading,
@@ -177,16 +196,15 @@ export const NotificationContent = ({
   if (isMobile) {
     return (
       <div
-        className={`no-scrollbar absolute left-1/2 top-1/2 z-50 h-full max-h-[35rem] w-[calc(100%-1rem)] max-w-[35rem] -translate-y-[58%] transform overflow-y-scroll rounded-2xl border border-accent/20 bg-white transition-all duration-150 ${isOpen ? "-translate-x-1/2 opacity-100" : "pointer-events-none -translate-x-5 opacity-0"}`}
+        className={`no-scrollbar absolute left-1/2 top-1/2 z-50 w-[calc(100%-1rem)] max-w-[35rem] -translate-y-[58%] transform overflow-y-scroll rounded-2xl border border-accent/20 bg-white transition-all duration-150 ${isOpen ? "-translate-x-1/2 opacity-100" : "pointer-events-none -translate-x-5 opacity-0"}`}
       >
         {/* Header */}
-        <div className="border-b border-b-primary">
-          <div className="p-4">
-            <Label className="text-md font-bold">Notifications</Label>
-          </div>
+        <div className="flex items-center justify-between p-4">
+          <Label className="text-md font-bold">Notifications</Label>
+          <MarkAllAsRead />
         </div>
         {/* Notification item */}
-        <div className="no-scrollbar h-[31rem] overflow-y-scroll px-4">
+        <div className="no-scrollbar h-[30rem] overflow-y-scroll border-y border-y-primary px-4">
           {notificationsLoading ? (
             <div className="flex h-full items-center justify-center">
               <Loader2 className="h-6 w-6 animate-spin" />
@@ -199,7 +217,9 @@ export const NotificationContent = ({
             notifications.map((notification) => (
               <div
                 key={notification.id}
-                className={`flex w-full cursor-pointer gap-x-2 border-b border-b-primary/40 py-4 ${notification.read ? "opacity-50" : "opacity-100"}`}
+                className={
+                  "flex w-full cursor-pointer gap-x-2 border-b border-b-primary/40 py-4"
+                }
               >
                 {/* Icon */}
                 <div className="flex h-11 w-16 items-center justify-center rounded-full bg-primary-text">
@@ -242,13 +262,20 @@ export const NotificationContent = ({
                 </div>
                 {/* Dot */}
                 <div className="w-20">
-                  {!notification.read && (
-                    <Icon icon="mdi:dot" width={52} color="#FF0051" />
-                  )}
+                  <Icon icon="mdi:dot" width={52} color="#FF0051" />
                 </div>
               </div>
             ))
           )}
+        </div>
+        {/* Notification Footer */}
+        <div className="p-4 text-center">
+          <Button
+            variant="link"
+            className="text-md decoration-inherit/50 h-auto p-0 text-primary-text hover:underline"
+          >
+            See past notifications
+          </Button>
         </div>
       </div>
     );
@@ -256,16 +283,17 @@ export const NotificationContent = ({
 
   return (
     <div
-      className={`absolute z-50 h-[36rem] w-[35rem] rounded-2xl bg-white drop-shadow-xl transition-all duration-150 lg:bottom-0 lg:left-[14rem] ${isOpen ? "translate-x-0 opacity-100" : "pointer-events-none -translate-x-5 opacity-0"}`}
+      className={`absolute z-50 w-[35rem] rounded-2xl bg-white drop-shadow-xl transition-all duration-150 lg:bottom-0 lg:left-[14rem] ${isOpen ? "translate-x-0 opacity-100" : "pointer-events-none -translate-x-5 opacity-0"}`}
     >
       {/* Header */}
-      <div className="border-b border-b-primary">
-        <div className="p-6">
+      <div>
+        <div className="flex items-center justify-between p-6">
           <Label className="text-lg font-bold">Notifications</Label>
+          <MarkAllAsRead />
         </div>
       </div>
       {/* Notification item */}
-      <div className="no-scrollbar h-[31rem] overflow-y-scroll px-8">
+      <div className="no-scrollbar h-[31rem] overflow-y-scroll border-y border-y-primary px-8">
         {notificationsLoading ? (
           <div className="flex h-full items-center justify-center">
             <Loader2 className="h-6 w-6 animate-spin" />
@@ -278,7 +306,9 @@ export const NotificationContent = ({
           notifications.map((notification) => (
             <div
               key={notification.id}
-              className={`flex w-full cursor-pointer gap-x-2 border-b border-b-primary/40 py-4 ${notification.read ? "opacity-50" : "opacity-100"}`}
+              className={
+                "flex w-full cursor-pointer gap-x-2 border-b border-b-primary/40 py-4"
+              }
             >
               {/* Icon */}
               <div className="flex h-12 w-16 items-center justify-center rounded-full bg-primary-text">
@@ -321,13 +351,20 @@ export const NotificationContent = ({
               </div>
               {/* Dot */}
               <div className="w-20">
-                {!notification.read && (
-                  <Icon icon="mdi:dot" width={52} color="#FF0051" />
-                )}
+                <Icon icon="mdi:dot" width={52} color="#FF0051" />
               </div>
             </div>
           ))
         )}
+      </div>
+      {/* Notification Footer */}
+      <div className="p-4 text-center">
+        <Button
+          variant="link"
+          className="text-md h-auto p-0 text-primary-text decoration-inherit hover:underline"
+        >
+          See past notifications
+        </Button>
       </div>
     </div>
   );
@@ -348,6 +385,39 @@ NotificationContent.propTypes = {
   notificationsLoading: PropTypes.bool.isRequired,
   notificationsError: PropTypes.object,
   isMobile: PropTypes.bool.isRequired,
+};
+
+const MarkAllAsRead = () => {
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button
+          variant="outline"
+          className="rounded-3xl border-accent/20 p-2 text-xs font-semibold text-primary-text hover:bg-primary-text hover:text-white"
+          onClick={(e) => e.stopPropagation()}
+        >
+          Mark all as read
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This action cannot be undone. This will permanently delete your
+            account and remove your data from our servers.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={(e) => e.stopPropagation()}>
+            Cancel
+          </AlertDialogCancel>
+          <AlertDialogAction onClick={(e) => e.stopPropagation()}>
+            Continue
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
 };
 
 export default Notification;
