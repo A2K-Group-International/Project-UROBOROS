@@ -210,6 +210,7 @@ const NotificationContent = ({
     announcement_created: "mingcute:announcement-line",
     comment: "mdi:comment-outline",
     event_created: "mingcute:calendar-line",
+    event_assigned: "mingcute:task-2-line",
     event_volunteer_replaced: "mingcute:transfer-3-line",
     event_volunteer_removed: "mingcute:forbid-circle-line",
     like: "mingcute:thumb-up-2-fill",
@@ -282,6 +283,9 @@ const NotificationContent = ({
           ) : (
             notifications.map((notification) => (
               <div
+                onClick={() =>
+                  handleClick(notification.type, notification.entity_id)
+                }
                 key={notification.id}
                 className={
                   "flex w-full cursor-pointer gap-x-2 border-b border-b-primary/40 py-4"
@@ -303,14 +307,15 @@ const NotificationContent = ({
                     {{
                       announcement_created: "Announcement",
                       event_created: "Upcoming event",
+                      event_assigned: "Assigned event",
                       comment: "Comment",
                     }[notification.type] || ""}
                   </Label>
-                  <Label className="text-sm font-bold">
+                  <Label className="text-xs font-bold">
                     {notification.title || ""}
                   </Label>
-                  <p className="font-medium">
-                    {limitString(notification?.body || "", 70)}
+                  <p className="text-xs font-medium">
+                    {limitString(notification?.body || "", 100)}
                   </p>
                   <p className="text-xs font-semibold text-primary-blue-light">
                     {new Intl.DateTimeFormat("en-US", {
@@ -419,6 +424,7 @@ const NotificationContent = ({
                   {{
                     announcement_created: "Announcement",
                     event_created: "Upcoming event",
+                    event_assigned: "Assigned event",
                     comment: "Comment",
                   }[notification.type] || ""}
                 </Label>
@@ -426,7 +432,7 @@ const NotificationContent = ({
                   {notification.title || ""}
                 </Label>
                 <p className="font-medium">
-                  {limitString(notification?.body || "", 70)}
+                  {limitString(notification?.body || "", 100)}
                 </p>
                 <p className="text-xs font-semibold text-primary-blue-light">
                   {new Intl.DateTimeFormat("en-US", {
