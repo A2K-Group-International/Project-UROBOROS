@@ -196,6 +196,9 @@ const NotificationContent = ({
         navigate(`/announcements?announcementId=${entity_id}`);
         break;
       case "event_created":
+      case "event_assigned":
+      case "event_volunteer_replaced":
+      case "event_volunteer_removed":
         navigate(`/schedule?event=${entity_id}`);
         break;
       case "comment":
@@ -204,7 +207,7 @@ const NotificationContent = ({
       default:
         break;
     }
-    setIsOpen(false); // Close the notification panel
+    setIsOpen(false);
   };
   const notificationIcons = {
     announcement_created: "mingcute:announcement-line",

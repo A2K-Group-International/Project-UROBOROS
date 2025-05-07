@@ -455,7 +455,8 @@ const ScheduleDetails = () => {
   });
 
   const addVolunteerMutation = useMutation({
-    mutationFn: async (data) => addAssignedVolunteer(data),
+    mutationFn: async (data) =>
+      addAssignedVolunteer({ ...data, userId: userData?.id }),
     onSuccess: () => {
       toast({
         title: "Volunteer added successfully",
@@ -734,7 +735,9 @@ const ScheduleDetails = () => {
                       <Button
                         onClick={() =>
                           removeAssignedVolunteerMutation.mutate(
-                            volunteer.volunteer_id
+                            volunteer.replaced
+                              ? volunteer.replacedby_id
+                              : volunteer.volunteer_id
                           )
                         }
                         className="rounded-lg"
