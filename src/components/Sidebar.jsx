@@ -22,6 +22,7 @@ import useRoleSwitcher from "@/hooks/useRoleSwitcher";
 import { ROLES } from "@/constants/roles";
 
 import Notification from "./Notification";
+import { Loader2 } from "lucide-react";
 
 const Sidebar = () => {
   const url = useLocation();
@@ -155,10 +156,12 @@ const SidebarProfile = ({ availableRoles, onSwitchRole }) => {
 
   if (!userData) {
     return (
-      <div className="hidden h-10 max-w-56 items-center justify-between rounded-[20px] bg-white p-1 lg:flex">
+      <div className="hidden h-10 w-full items-center justify-between rounded-[20px] bg-white p-1 lg:flex">
         <div className="flex items-center gap-2">
           <Avatar className="h-8 w-8">
-            <AvatarFallback>?</AvatarFallback>
+            <AvatarFallback>
+              <Loader2 className="animate-spin" />
+            </AvatarFallback>
           </Avatar>
           <p className="text-[16px] font-medium capitalize">Loading...</p>
         </div>

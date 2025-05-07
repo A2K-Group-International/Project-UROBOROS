@@ -115,3 +115,70 @@ export const subscribeToNotifications = (onInsert, userId) => {
 export const unsubscribeFromNotifications = (channel) => {
   supabase.removeChannel(channel);
 };
+
+/**
+ * Marks a single notification as read
+ * @param {string} notificationId - The ID of the user_notification to mark as read
+ * @returns {Promise<Object>} The updated notification data
+ */
+export const markSingleNotificationAsRead = async (notificationId) => {
+  const { data, error } = await supabase
+    .from("user_notifications")
+    .update({ is_read: true })
+    .eq("id", notificationId)
+    .select();
+
+  if (error)
+    throw new Error(`Failed to mark notification as read: ${error.message}`);
+
+  return data[0];
+};
+
+/**
+ * Marks a single notification as read
+ * @param {string} notificationId - The ID of the user_notification to mark as read
+ * @returns {Promise<Object>} The updated notification data
+ */
+export const deleteSingleNotification = async (notificationId) => {
+  const { data, error } = await supabase
+    .from("user_notifications")
+    .delete()
+    .eq("id", notificationId);
+
+  if (error) {
+    throw new Error(`Failed to delete notification: ${error.message}`);
+  }
+  return data;
+};
+
+/**
+ * Deletes all notifications for the current user
+ * @returns {Promise<Object>} Supabase response
+ */
+export const deleteAllUserNotifications = async (receiverId) => {
+  const { data, error } = await supabase
+    .from("user_notifications")
+    .delete()
+    .eq("receiver_id", receiverId)
+    .eq("is_read", true);
+
+  if (error) {
+    throw new Error(`Failed to delete all notifications: ${error.message}`);
+  }
+
+  return data;
+};
+
+export const markAllAsRead = async (receiverId) => {
+  const { data, error } = await supabase
+    .from("user_notifications")
+    .update({ is_read: true })
+    .eq("receiver_id", receiverId)
+    .eq("is_read", false);
+
+  if (error) {
+    throw new Error(`Failed to mark all as read: ${error.message}`);
+  }
+
+  return data;
+};

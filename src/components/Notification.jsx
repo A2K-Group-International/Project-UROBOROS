@@ -8,6 +8,10 @@ import { Loader2 } from "lucide-react";
 import {
   useUnreadNotificationCount,
   useNotifications,
+  useMarkNotificationAsRead,
+  useDeleteNotification,
+  useClearAllNotifications,
+  useMarkAllAsRead,
 } from "@/hooks/useNotification";
 
 import {
@@ -53,6 +57,20 @@ const Notification = ({ isMobile = false }) => {
 
   const { data: unreadCount = 0, isLoading: countLoading } =
     useUnreadNotificationCount();
+
+  const { mutate: clearAllNotifications } = useClearAllNotifications(
+    userData?.id
+  );
+
+  const handleClearAll = () => {
+    clearAllNotifications();
+  };
+
+  const { mutate: markAllAsRead } = useMarkAllAsRead(userData?.id);
+
+  const handleMarkAllAsRead = () => {
+    markAllAsRead();
+  };
 
   const handleToggle = () => {
     setIsOpen((prev) => !prev);
@@ -116,6 +134,8 @@ const Notification = ({ isMobile = false }) => {
         isMobile={isMobile}
         viewingReadNotifications={viewingReadNotifications}
         toggleNotificationView={toggleNotificationView}
+        handleClearAll={handleClearAll}
+        handleMarkAllAsRead={handleMarkAllAsRead}
       />
     </div>
   );
@@ -163,9 +183,11 @@ const NotificationButton = ({
         <Icon icon="mingcute:notification-line" className="h-6 w-6" />
         <span>{btnName}</span>
       </div>
-      <span className="flex h-full w-12 items-center justify-center rounded-full bg-danger text-white">
-        {countLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : count}
-      </span>
+      {count > 0 && (
+        <span className="flex h-full w-12 items-center justify-center rounded-full bg-danger text-white">
+          {countLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : count}
+        </span>
+      )}
     </div>
   );
 };
@@ -187,8 +209,26 @@ const NotificationContent = ({
   isMobile,
   viewingReadNotifications,
   toggleNotificationView,
+  handleClearAll,
+  handleMarkAllAsRead,
 }) => {
   const navigate = useNavigate();
+
+  // Get mark as read mutation
+  const { mutate: markAsRead, isPending: isMarkingAsRead } =
+    useMarkNotificationAsRead();
+
+  const handleMarkAsRead = (notificationId) => {
+    markAsRead(notificationId);
+  };
+
+  // Add the delete mutation
+  const { mutate: deleteNotification, isPending: isDeleting } =
+    useDeleteNotification();
+
+  const handleDelete = (notificationId) => {
+    deleteNotification(notificationId);
+  };
 
   const handleClick = (notificationType, entity_id) => {
     switch (notificationType) {
@@ -258,8 +298,8 @@ const NotificationContent = ({
         className={`absolute left-1/2 top-0 z-50 h-[calc(100%-6rem)] w-[calc(100%-1rem)] max-w-[35rem] -translate-x-1/2 transform rounded-2xl border border-accent/20 bg-white transition-all duration-150 ${isOpen ? "opacity-100" : "pointer-events-none -translate-x-5 opacity-0"}`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4">
-          {viewingReadNotifications ? (
+        {viewingReadNotifications ? (
+          <div className="flex items-center justify-between p-6">
             <Button
               variant="link"
               onClick={toggleNotificationView}
@@ -268,11 +308,14 @@ const NotificationContent = ({
               <Icon icon="mingcute:arrow-left-line" />
               Back
             </Button>
-          ) : (
+            <ClearReadNotifications handleClearAll={handleClearAll} />
+          </div>
+        ) : (
+          <div className="flex items-center justify-between p-6">
             <Label className="text-md font-bold">Notifications</Label>
-          )}
-          <MarkAllAsRead />
-        </div>
+            <MarkAllAsRead handleMarkAllAsRead={handleMarkAllAsRead} />
+          </div>
+        )}
         {/* Notification item */}
         <div className="no-scrollbar h-[calc(100%-8rem)] overflow-y-scroll border-y border-y-primary px-4">
           {notificationsLoading ? (
@@ -281,7 +324,11 @@ const NotificationContent = ({
             </div>
           ) : !notifications || notifications.length === 0 ? (
             <div className="flex h-full items-center justify-center">
-              <Label className="text-primary-text">No notifications yet</Label>
+              <Label className="text-primary-text">
+                {viewingReadNotifications
+                  ? "No past notifications"
+                  : "No notifications"}
+              </Label>
             </div>
           ) : (
             notifications.map((notification) => (
@@ -338,6 +385,12 @@ const NotificationContent = ({
                 <div className="w-20 self-center">
                   <NotificationActionMenu
                     viewingReadNotifications={viewingReadNotifications}
+                    markAsRead={() => handleMarkAsRead(notification.id)}
+                    deleteSingleNotification={() =>
+                      handleDelete(notification.id)
+                    }
+                    isMarkingAsRead={isMarkingAsRead}
+                    isDeleting={isDeleting}
                   />
                 </div>
               </div>
@@ -346,7 +399,7 @@ const NotificationContent = ({
         </div>
         {/* Notification Footer */}
         {!viewingReadNotifications && (
-          <div className="p-4 text-center">
+          <div className="p-2 text-center">
             <Button
               variant="link"
               className="text-md decoration-inherit/50 h-auto p-0 text-primary-text hover:underline"
@@ -359,7 +412,6 @@ const NotificationContent = ({
       </div>
     );
   }
-
   // Desktop View
   return (
     <div
@@ -377,12 +429,12 @@ const NotificationContent = ({
               <Icon icon="mingcute:arrow-left-line" />
               Back
             </Button>
-            <ClearReadNotifications />
+            <ClearReadNotifications handleClearAll={handleClearAll} />
           </div>
         ) : (
           <div className="flex items-center justify-between p-6">
             <Label className="text-md font-bold">Notifications</Label>
-            <MarkAllAsRead />
+            <MarkAllAsRead handleMarkAllAsRead={handleMarkAllAsRead} />
           </div>
         )}
       </div>
@@ -397,7 +449,7 @@ const NotificationContent = ({
             <Label className="text-primary-text">
               {viewingReadNotifications
                 ? "No past notifications"
-                : "No notifications yet"}
+                : "No notifications"}
             </Label>
           </div>
         ) : (
@@ -455,6 +507,10 @@ const NotificationContent = ({
               <div className="w-20 self-center">
                 <NotificationActionMenu
                   viewingReadNotifications={viewingReadNotifications}
+                  markAsRead={() => handleMarkAsRead(notification.id)}
+                  deleteSingleNotification={() => handleDelete(notification.id)}
+                  isMarkingAsRead={isMarkingAsRead}
+                  isDeleting={isDeleting}
                 />
               </div>
             </div>
@@ -495,9 +551,11 @@ NotificationContent.propTypes = {
   isMobile: PropTypes.bool.isRequired,
   viewingReadNotifications: PropTypes.bool.isRequired,
   toggleNotificationView: PropTypes.func.isRequired,
+  handleClearAll: PropTypes.func.isRequired,
+  handleMarkAllAsRead: PropTypes.func.isRequired,
 };
 
-const MarkAllAsRead = () => {
+const MarkAllAsRead = ({ handleMarkAllAsRead }) => {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
@@ -511,17 +569,21 @@ const MarkAllAsRead = () => {
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete your
-            account and remove your data from our servers.
+            This action will mark all notifications as read.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel onClick={(e) => e.stopPropagation()}>
             Cancel
           </AlertDialogCancel>
-          <AlertDialogAction onClick={(e) => e.stopPropagation()}>
+          <AlertDialogAction
+            onClick={(e) => {
+              e.stopPropagation();
+              handleMarkAllAsRead();
+            }}
+          >
             Continue
           </AlertDialogAction>
         </AlertDialogFooter>
@@ -530,7 +592,11 @@ const MarkAllAsRead = () => {
   );
 };
 
-const ClearReadNotifications = () => {
+MarkAllAsRead.propTypes = {
+  handleMarkAllAsRead: PropTypes.func,
+};
+
+const ClearReadNotifications = ({ handleClearAll }) => {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
@@ -544,17 +610,21 @@ const ClearReadNotifications = () => {
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete your
-            account and remove your data from our servers.
+            This action will delete all past notifications.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel onClick={(e) => e.stopPropagation()}>
             Cancel
           </AlertDialogCancel>
-          <AlertDialogAction onClick={(e) => e.stopPropagation()}>
+          <AlertDialogAction
+            onClick={(e) => {
+              e.stopPropagation();
+              handleClearAll();
+            }}
+          >
             Continue
           </AlertDialogAction>
         </AlertDialogFooter>
@@ -563,7 +633,17 @@ const ClearReadNotifications = () => {
   );
 };
 
-const NotificationActionMenu = ({ viewingReadNotifications }) => {
+ClearReadNotifications.propTypes = {
+  handleClearAll: PropTypes.func,
+};
+
+const NotificationActionMenu = ({
+  viewingReadNotifications,
+  markAsRead,
+  deleteSingleNotification,
+  isMarkingAsRead,
+  isDeleting,
+}) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -575,11 +655,23 @@ const NotificationActionMenu = ({ viewingReadNotifications }) => {
         <DropdownMenuLabel>Action</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {!viewingReadNotifications && (
-          <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+          <DropdownMenuItem
+            onClick={(e) => {
+              e.stopPropagation();
+              markAsRead();
+            }}
+            disabled={isMarkingAsRead}
+          >
             Mark as read
           </DropdownMenuItem>
         )}
-        <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+        <DropdownMenuItem
+          onClick={(e) => {
+            e.stopPropagation();
+            deleteSingleNotification();
+          }}
+          disabled={isDeleting}
+        >
           Delete
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -589,6 +681,10 @@ const NotificationActionMenu = ({ viewingReadNotifications }) => {
 
 NotificationActionMenu.propTypes = {
   viewingReadNotifications: PropTypes.bool.isRequired,
+  markAsRead: PropTypes.func,
+  deleteSingleNotification: PropTypes.func,
+  isMarkingAsRead: PropTypes.bool.isRequired,
+  isDeleting: PropTypes.bool.isRequired,
 };
 
 export default Notification;
