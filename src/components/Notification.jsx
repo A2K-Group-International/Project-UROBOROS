@@ -21,6 +21,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@/context/useUser";
@@ -28,29 +36,47 @@ import { useUser } from "@/context/useUser";
 const Notification = ({ isMobile = false }) => {
   const { userData } = useUser();
   const [isOpen, setIsOpen] = useState(false);
+  const [viewingReadNotifications, setViewingReadNotifications] =
+    useState(false);
   const notificationRef = useRef(null);
 
   const {
     data: notifications = [],
     isLoading: notificationsLoading,
     error: notificationsError,
-  } = useNotifications({ enabled: isOpen, userId: userData?.id });
+    refetch: refetchNotifications,
+  } = useNotifications({
+    enabled: isOpen,
+    userId: userData?.id,
+    isRead: viewingReadNotifications,
+  });
 
   const { data: unreadCount = 0, isLoading: countLoading } =
     useUnreadNotificationCount();
 
   const handleToggle = () => {
     setIsOpen((prev) => !prev);
+    if (!isOpen) {
+      setViewingReadNotifications(false);
+    }
+  };
+
+  const toggleNotificationView = () => {
+    setViewingReadNotifications((prev) => !prev);
+    refetchNotifications();
   };
 
   // Close the notification when clicking outside of it
   useEffect(() => {
     const handleClickOutside = (event) => {
       const alertDialog = document.querySelector("[role='alertdialog']");
+      const menuContent = document.querySelector("[role='menu']");
 
-      if (alertDialog && alertDialog.contains(event.target)) {
-        // Click was inside alert dialog, don't close notification
-        return;
+      if (
+        alertDialog?.contains(event.target) ||
+        menuContent?.contains(event.target)
+      ) {
+        return; // Click was inside alert dialog or menu, don't close notification
       }
 
       if (
@@ -88,6 +114,8 @@ const Notification = ({ isMobile = false }) => {
         notificationsLoading={notificationsLoading}
         notificationsError={notificationsError}
         isMobile={isMobile}
+        viewingReadNotifications={viewingReadNotifications}
+        toggleNotificationView={toggleNotificationView}
       />
     </div>
   );
@@ -157,6 +185,8 @@ const NotificationContent = ({
   notificationsError,
   setIsOpen,
   isMobile,
+  viewingReadNotifications,
+  toggleNotificationView,
 }) => {
   const navigate = useNavigate();
 
@@ -221,15 +251,26 @@ const NotificationContent = ({
   if (isMobile) {
     return (
       <div
-        className={`no-scrollbar absolute left-1/2 top-1/2 z-50 w-[calc(100%-1rem)] max-w-[35rem] -translate-y-[58%] transform overflow-y-scroll rounded-2xl border border-accent/20 bg-white transition-all duration-150 ${isOpen ? "-translate-x-1/2 opacity-100" : "pointer-events-none -translate-x-5 opacity-0"}`}
+        className={`absolute left-1/2 top-0 z-50 h-[calc(100%-6rem)] w-[calc(100%-1rem)] max-w-[35rem] -translate-x-1/2 transform rounded-2xl border border-accent/20 bg-white transition-all duration-150 ${isOpen ? "opacity-100" : "pointer-events-none -translate-x-5 opacity-0"}`}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4">
-          <Label className="text-md font-bold">Notifications</Label>
+          {viewingReadNotifications ? (
+            <Button
+              variant="link"
+              onClick={toggleNotificationView}
+              className="text-primary-text"
+            >
+              <Icon icon="mingcute:arrow-left-line" />
+              Back
+            </Button>
+          ) : (
+            <Label className="text-md font-bold">Notifications</Label>
+          )}
           <MarkAllAsRead />
         </div>
         {/* Notification item */}
-        <div className="no-scrollbar h-[30rem] overflow-y-scroll border-y border-y-primary px-4">
+        <div className="no-scrollbar h-[calc(100%-8rem)] overflow-y-scroll border-y border-y-primary px-4">
           {notificationsLoading ? (
             <div className="flex h-full items-center justify-center">
               <Loader2 className="h-6 w-6 animate-spin" />
@@ -285,37 +326,57 @@ const NotificationContent = ({
                     }).format(new Date(notification.created_at))}
                   </p>
                 </div>
-                {/* Dot */}
-                <div className="w-20">
-                  <Icon icon="mdi:dot" width={52} color="#FF0051" />
+                {/* Action */}
+                <div className="w-20 self-center">
+                  <NotificationActionMenu
+                    viewingReadNotifications={viewingReadNotifications}
+                  />
                 </div>
               </div>
             ))
           )}
         </div>
         {/* Notification Footer */}
-        <div className="p-4 text-center">
-          <Button
-            variant="link"
-            className="text-md decoration-inherit/50 h-auto p-0 text-primary-text hover:underline"
-          >
-            See past notifications
-          </Button>
-        </div>
+        {!viewingReadNotifications && (
+          <div className="p-4 text-center">
+            <Button
+              variant="link"
+              className="text-md decoration-inherit/50 h-auto p-0 text-primary-text hover:underline"
+              onClick={toggleNotificationView}
+            >
+              See past notifications
+            </Button>
+          </div>
+        )}
       </div>
     );
   }
 
+  // Desktop View
   return (
     <div
       className={`absolute z-50 w-[35rem] rounded-2xl bg-white drop-shadow-xl transition-all duration-150 lg:bottom-0 lg:left-[14rem] ${isOpen ? "translate-x-0 opacity-100" : "pointer-events-none -translate-x-5 opacity-0"}`}
     >
       {/* Header */}
       <div>
-        <div className="flex items-center justify-between p-6">
-          <Label className="text-lg font-bold">Notifications</Label>
-          <MarkAllAsRead />
-        </div>
+        {viewingReadNotifications ? (
+          <div className="flex items-center justify-between p-6">
+            <Button
+              variant="link"
+              onClick={toggleNotificationView}
+              className="text-primary-text"
+            >
+              <Icon icon="mingcute:arrow-left-line" />
+              Back
+            </Button>
+            <ClearReadNotifications />
+          </div>
+        ) : (
+          <div className="flex items-center justify-between p-6">
+            <Label className="text-md font-bold">Notifications</Label>
+            <MarkAllAsRead />
+          </div>
+        )}
       </div>
       {/* Notification item */}
       <div className="no-scrollbar h-[31rem] overflow-y-scroll border-y border-y-primary px-8">
@@ -325,7 +386,11 @@ const NotificationContent = ({
           </div>
         ) : !notifications || notifications.length === 0 ? (
           <div className="flex h-full items-center justify-center">
-            <Label className="text-primary-text">No notifications yet</Label>
+            <Label className="text-primary-text">
+              {viewingReadNotifications
+                ? "No past notifications"
+                : "No notifications yet"}
+            </Label>
           </div>
         ) : (
           notifications.map((notification) => (
@@ -377,23 +442,28 @@ const NotificationContent = ({
                   }).format(new Date(notification.created_at))}
                 </p>
               </div>
-              {/* Dot */}
-              <div className="w-20">
-                <Icon icon="mdi:dot" width={52} color="#FF0051" />
+              {/* Action */}
+              <div className="w-20 self-center">
+                <NotificationActionMenu
+                  viewingReadNotifications={viewingReadNotifications}
+                />
               </div>
             </div>
           ))
         )}
       </div>
       {/* Notification Footer */}
-      <div className="p-4 text-center">
-        <Button
-          variant="link"
-          className="text-md h-auto p-0 text-primary-text decoration-inherit hover:underline"
-        >
-          See past notifications
-        </Button>
-      </div>
+      {!viewingReadNotifications && (
+        <div className="p-6 text-center">
+          <Button
+            variant="link"
+            className="text-md decoration-inherit/50 h-auto p-0 text-primary-text hover:underline"
+            onClick={toggleNotificationView}
+          >
+            See past notifications
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
@@ -414,6 +484,8 @@ NotificationContent.propTypes = {
   notificationsLoading: PropTypes.bool.isRequired,
   notificationsError: PropTypes.object,
   isMobile: PropTypes.bool.isRequired,
+  viewingReadNotifications: PropTypes.bool.isRequired,
+  toggleNotificationView: PropTypes.func.isRequired,
 };
 
 const MarkAllAsRead = () => {
@@ -447,6 +519,67 @@ const MarkAllAsRead = () => {
       </AlertDialogContent>
     </AlertDialog>
   );
+};
+
+const ClearReadNotifications = () => {
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button
+          variant="outline"
+          className="rounded-3xl border-accent/20 p-2 text-xs font-semibold text-primary-text hover:bg-primary-text hover:text-white"
+          onClick={(e) => e.stopPropagation()}
+        >
+          Clear All
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This action cannot be undone. This will permanently delete your
+            account and remove your data from our servers.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={(e) => e.stopPropagation()}>
+            Cancel
+          </AlertDialogCancel>
+          <AlertDialogAction onClick={(e) => e.stopPropagation()}>
+            Continue
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};
+
+const NotificationActionMenu = ({ viewingReadNotifications }) => {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="transparent" onClick={(e) => e.stopPropagation()}>
+          <Icon icon="tabler:dots-vertical" className="text-primary-text" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuLabel>Action</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {!viewingReadNotifications && (
+          <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+            Mark as read
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+          Delete
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
+NotificationActionMenu.propTypes = {
+  viewingReadNotifications: PropTypes.bool.isRequired,
 };
 
 export default Notification;

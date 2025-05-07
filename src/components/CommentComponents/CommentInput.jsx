@@ -71,8 +71,4 @@ CommentInput.propTypes = {
   isModal: PropTypes.bool,
 };
 
-CommentInput.defaultProps = {
-  isModal: false,
-};
-
 export default CommentInput;

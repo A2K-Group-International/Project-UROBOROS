@@ -4,7 +4,7 @@ import { supabase } from "./supabaseClient";
  * Fetches notifications from Supabase
  * @returns {Promise<Array>} Notifications array sorted by created_at descending
  */
-export const getNotifications = async (userId) => {
+export const getNotifications = async (userId, isRead = false) => {
   // Join the user_notifications with notifications to get both
   // the notification content and the user's read status
   const { data, error } = await supabase
@@ -25,7 +25,7 @@ export const getNotifications = async (userId) => {
     `
     )
     .eq("receiver_id", userId)
-    .eq("is_read", false)
+    .eq("is_read", isRead)
     .order("created_at", { ascending: false });
 
   if (error) throw new Error(error.message);
@@ -40,7 +40,7 @@ export const getNotifications = async (userId) => {
     title: item.notifications.title,
     body: item.notifications.body,
     entity_id: item.notifications.entity_id,
-    read: item.is_read,
+    is_read: item.is_read,
   }));
 };
 

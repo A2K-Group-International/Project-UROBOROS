@@ -70,8 +70,4 @@ Comments.propTypes = {
   isModal: PropTypes.bool,
 };
 
-Comments.defaultProps = {
-  isModal: false,
-};
-
 export default memo(Comments);

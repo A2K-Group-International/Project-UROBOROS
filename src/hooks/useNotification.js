@@ -11,20 +11,26 @@ import {
  * Hook to fetch and subscribe to real-time notifications
  * @returns {Object} React Query result object
  */
-export const useNotifications = ({ enabled = true, userId }) => {
+export const useNotifications = ({
+  enabled = true,
+  userId,
+  isRead = false,
+}) => {
   const queryClient = useQueryClient();
 
   const query = useQuery({
-    queryKey: ["notifications"],
-    queryFn: () => getNotifications(userId),
+    queryKey: ["notifications", { isRead }],
+    queryFn: () => getNotifications(userId, isRead),
     enabled,
   });
 
-  // real-time updates
+  // real-time updates - only apply for unread notifications
   useEffect(() => {
+    // Only subscribe to real-time updates for unread notifications
+    if (isRead) return;
     // Handler for new notifications
     const handleNewNotification = (newNotification) => {
-      queryClient.setQueryData(["notifications"], (old = []) => [
+      queryClient.setQueryData(["notifications", false], (old = []) => [
         newNotification,
         ...old,
       ]);
@@ -37,7 +43,7 @@ export const useNotifications = ({ enabled = true, userId }) => {
     return () => {
       unsubscribeFromNotifications(channel);
     };
-  }, [queryClient]);
+  }, [queryClient, userId, isRead]);
 
   return query;
 };

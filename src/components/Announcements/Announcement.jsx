@@ -357,12 +357,4 @@ Announcement.propTypes = {
   isModal: PropTypes.bool,
 };
 
-Announcement.defaultProps = {
-  deleteAnnouncementMutation: {
-    mutate: () => {},
-    isPending: false,
-  },
-  isModal: false,
-};
-
 export default Announcement;
