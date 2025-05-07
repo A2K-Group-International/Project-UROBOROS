@@ -880,7 +880,7 @@ export const addAssignedVolunteer = async ({ eventId, assignVolunteer }) => {
       ]);
 
       if (error) {
-        throw new Error("Error assigning volunteer");
+        throw new Error(error.message);
       }
     });
 

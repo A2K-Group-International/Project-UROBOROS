@@ -7,7 +7,7 @@ import { Loader2 } from "lucide-react";
 
 import {
   useUnreadNotificationCount,
-  useUnreadNotifications,
+  useNotifications,
 } from "@/hooks/useNotification";
 
 import {
@@ -22,8 +22,11 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "./ui/button";
+import { useNavigate } from "react-router-dom";
+import { useUser } from "@/context/useUser";
 
 const Notification = ({ isMobile = false }) => {
+  const { userData } = useUser();
   const [isOpen, setIsOpen] = useState(false);
   const notificationRef = useRef(null);
 
@@ -31,7 +34,7 @@ const Notification = ({ isMobile = false }) => {
     data: notifications = [],
     isLoading: notificationsLoading,
     error: notificationsError,
-  } = useUnreadNotifications({ enabled: isOpen });
+  } = useNotifications({ enabled: isOpen, userId: userData?.id });
 
   const { data: unreadCount = 0, isLoading: countLoading } =
     useUnreadNotificationCount();
@@ -80,6 +83,7 @@ const Notification = ({ isMobile = false }) => {
       />
       <NotificationContent
         isOpen={isOpen}
+        setIsOpen={setIsOpen}
         notifications={notifications}
         notificationsLoading={notificationsLoading}
         notificationsError={notificationsError}
@@ -151,12 +155,33 @@ const NotificationContent = ({
   notifications,
   notificationsLoading,
   notificationsError,
+  setIsOpen,
   isMobile,
 }) => {
+  const navigate = useNavigate();
+
+  const handleClick = (notificationType, entity_id) => {
+    switch (notificationType) {
+      case "announcement_created":
+        navigate(`/announcements?announcementId=${entity_id}`);
+        break;
+      case "event_created":
+        navigate(`/schedule?event=${entity_id}`);
+        break;
+      case "comment":
+        navigate("/announcements");
+        break;
+      default:
+        break;
+    }
+    setIsOpen(false); // Close the notification panel
+  };
   const notificationIcons = {
     announcement_created: "mingcute:announcement-line",
     comment: "mdi:comment-outline",
     event_created: "mingcute:calendar-line",
+    event_volunteer_replaced: "mingcute:transfer-3-line",
+    event_volunteer_removed: "mingcute:forbid-circle-line",
     like: "mingcute:thumb-up-2-fill",
     reminder: "carbon:reminder",
   };
@@ -305,6 +330,9 @@ const NotificationContent = ({
         ) : (
           notifications.map((notification) => (
             <div
+              onClick={() =>
+                handleClick(notification.type, notification.entity_id)
+              }
               key={notification.id}
               className={
                 "flex w-full cursor-pointer gap-x-2 border-b border-b-primary/40 py-4"
@@ -329,7 +357,7 @@ const NotificationContent = ({
                     comment: "Comment",
                   }[notification.type] || ""}
                 </Label>
-                <Label className="text-sm font-bold">
+                <Label className="cursor-pointer text-sm font-bold">
                   {notification.title || ""}
                 </Label>
                 <p className="font-medium">
@@ -372,6 +400,7 @@ const NotificationContent = ({
 
 NotificationContent.propTypes = {
   isOpen: PropTypes.bool.isRequired,
+  setIsOpen: PropTypes.func.isRequired,
   notifications: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.string.isRequired,
@@ -379,7 +408,7 @@ NotificationContent.propTypes = {
       body: PropTypes.string,
       created_at: PropTypes.string.isRequired,
       type: PropTypes.string.isRequired,
-      read: PropTypes.bool.isRequired,
+      is_read: PropTypes.bool.isRequired,
     })
   ).isRequired,
   notificationsLoading: PropTypes.bool.isRequired,

@@ -60,7 +60,6 @@ const Family = () => {
     setEditParentForm(null);
     setDeleteParentForm(null);
   };
-  console.log(parentData);
 
   if (error) {
     return <div>Error: {error.message}</div>;
