@@ -34,8 +34,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "./ui/button";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useUser } from "@/context/useUser";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
+import useRoleSwitcher from "@/hooks/useRoleSwitcher";
+import { ROLES } from "@/constants/roles";
 
 const Notification = ({ isMobile = false }) => {
   const { userData } = useUser();
@@ -213,10 +224,24 @@ const NotificationContent = ({
   handleMarkAllAsRead,
 }) => {
   const navigate = useNavigate();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const temporaryRole = localStorage.getItem("temporaryRole");
+  const location = useLocation();
+  const { onSwitchRole } = useRoleSwitcher();
+  const [roleToSwitch, setRoleToSwitch] = useState(null);
+  const [link, setLink] = useState(null);
+  const [notificationId, setNotificationId] = useState(null);
 
   // Get mark as read mutation
   const { mutate: markAsRead, isPending: isMarkingAsRead } =
     useMarkNotificationAsRead();
+
+  const handleSwitchRole = () => {
+    onSwitchRole(roleToSwitch);
+    setIsDialogOpen(false);
+    navigate(link);
+    markAsRead(notificationId);
+  };
 
   const handleMarkAsRead = (notificationId) => {
     markAsRead(notificationId);
@@ -230,19 +255,53 @@ const NotificationContent = ({
     deleteNotification(notificationId);
   };
 
-  const handleClick = (notificationType, entity_id) => {
+  const handleClick = (notificationType, entity_id, notificationId) => {
     switch (notificationType) {
       case "announcement_created":
         navigate(`/announcements?announcementId=${entity_id}`);
+        markAsRead(notificationId);
         break;
       case "event_created":
+        setIsDialogOpen(true);
+        setRoleToSwitch(ROLES[2]);
+        setLink(`/events?id=${entity_id}`);
+        setNotificationId(notificationId);
+
+        break;
       case "event_assigned":
       case "event_volunteer_replaced":
       case "event_volunteer_removed":
-        navigate(`/schedule?event=${entity_id}`);
+        if (
+          !location.pathname.startsWith("/schedule") &&
+          temporaryRole != ROLES[1]
+        ) {
+          setIsDialogOpen(true);
+          setRoleToSwitch(ROLES[1]);
+          setLink(`/schedule?event=${entity_id}`);
+          setNotificationId(notificationId);
+        } else {
+          navigate(`/schedule?event=${entity_id}`);
+          markAsRead(notificationId);
+        }
         break;
       case "comment":
         navigate("/announcements");
+        markAsRead(notificationId);
+        break;
+      case "ministry_assigned":
+      case "ministry_coordinator_removed":
+        if (
+          !location.pathname.startsWith("/ministries") &&
+          temporaryRole != ROLES[0]
+        ) {
+          setIsDialogOpen(true);
+          setRoleToSwitch(ROLES[0]);
+          setLink(`/ministries`);
+          setNotificationId(notificationId);
+        } else {
+          navigate(`/ministries`);
+          markAsRead(notificationId);
+        }
         break;
       default:
         break;
@@ -334,7 +393,11 @@ const NotificationContent = ({
             notifications.map((notification) => (
               <div
                 onClick={() =>
-                  handleClick(notification.type, notification.entity_id)
+                  handleClick(
+                    notification.type,
+                    notification.entity_id,
+                    notification.id
+                  )
                 }
                 key={notification.id}
                 className={
@@ -417,6 +480,22 @@ const NotificationContent = ({
     <div
       className={`absolute z-50 w-[35rem] rounded-2xl bg-white drop-shadow-xl transition-all duration-150 lg:bottom-0 lg:left-[14rem] ${isOpen ? "translate-x-0 opacity-100" : "pointer-events-none -translate-x-5 opacity-0"}`}
     >
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="w-full max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-accent">
+              Change Role to view notification
+            </DialogTitle>
+            <DialogDescription>Do you want to change role?</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose>
+              <Button close>Cancel</Button>
+            </DialogClose>
+            <Button onClick={handleSwitchRole}>Switch Role</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       {/* Header */}
       <div>
         {viewingReadNotifications ? (
@@ -456,7 +535,11 @@ const NotificationContent = ({
           notifications.map((notification) => (
             <div
               onClick={() =>
-                handleClick(notification.type, notification.entity_id)
+                handleClick(
+                  notification.type,
+                  notification.entity_id,
+                  notification.id
+                )
               }
               key={notification.id}
               className={

@@ -22,6 +22,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getInitial } from "@/lib/utils";
 import CreateMinistry from "./CreateMinistry";
 import { Icon } from "@iconify/react";
+import { useUser } from "@/context/useUser";
 
 const ConfigureMinistry = ({
   coordinators,
@@ -30,7 +31,7 @@ const ConfigureMinistry = ({
   ministryDescription,
   ministryImage,
 }) => {
-  // Separate editing states for title and description
+  const { userData } = useUser();
 
   const { deleteMutation } = useMinistry({
     ministryId,
@@ -90,7 +91,10 @@ const ConfigureMinistry = ({
             <div className="flex-1 space-y-2">
               <div className="flex items-start justify-between text-[#663F30]/70">
                 <Label className="font-bold text-accent">Coordinators</Label>
-                <AddCoordinators ministryId={ministryId} />
+                <AddCoordinators
+                  ministryId={ministryId}
+                  userId={userData?.id}
+                />
               </div>
               <div className="max-h-[calc(100%-40px)] space-y-2 overflow-y-auto">
                 {coordinators?.map((coordinator) => (
@@ -99,8 +103,8 @@ const ConfigureMinistry = ({
                     className="flex items-center justify-between rounded-xl bg-primary-outline/15 p-4"
                   >
                     <Label className="font-semibold">
-                      {coordinator.users.first_name}{" "}
-                      {coordinator.users.last_name}
+                      {coordinator.users?.first_name}{" "}
+                      {coordinator.users?.last_name}
                     </Label>
                     <RemoveCoordinator
                       ministryId={ministryId}

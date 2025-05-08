@@ -7,7 +7,6 @@ import { fetchMeetingByCreatorId } from "@/services/meetingService";
 import EventInfoDialog from "./Schedule/EventInfoDialog";
 import { Button } from "./ui/button";
 import { useState } from "react";
-import useRoleSwitcher from "@/hooks/useRoleSwitcher";
 // import useEvent from "@/hooks/useEvent";
 
 const Calendar = ({ events }) => {
@@ -17,7 +16,7 @@ const Calendar = ({ events }) => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const { userData } = useUser();
 
-  const temporaryRole = useRoleSwitcher();
+  const temporaryRole = localStorage.getItem("temporaryRole");
 
   const { data: meetings } = useQuery({
     queryKey: ["meetings", userData?.id],

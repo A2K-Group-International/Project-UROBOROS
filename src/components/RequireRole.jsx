@@ -17,7 +17,6 @@ const RequireRole = ({ roles }) => {
   const loc = useLocation();
   const { setUserData } = useUser();
 
-
   // Fetch user data based on the auth token
   const { data, isSuccess } = useQuery({
     queryKey: ["user"],
@@ -31,7 +30,6 @@ const RequireRole = ({ roles }) => {
 
   useEffect(() => {
     const checkAuth = async () => {
-
       supabase.auth.onAuthStateChange((event) => {
         if (event === "PASSWORD_RECOVERY") {
           // Redirect to reset password screen
@@ -53,18 +51,18 @@ const RequireRole = ({ roles }) => {
     checkAuth();
 
     if (isSuccess && data) {
+      if (!localStorage.getItem("temporaryRole")) {
+        localStorage.setItem("temporaryRole", data.role);
+      }
       setUserData(data);
-    
+
       if (!roles.includes(data.role)) {
         nav("/announcements", { replace: true });
-  
-      } 
-    } 
-
+      }
+    }
 
     // Ensure user is authorized based on their role
   }, [auth, data, isSuccess, roles, setUserData, nav, loc.pathname]);
-
 
   // If authorized, render child routes
   return <Outlet />;

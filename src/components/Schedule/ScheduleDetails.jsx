@@ -75,7 +75,6 @@ import { Input } from "../ui/input";
 import { Search } from "@/assets/icons/icons";
 import { useDebounce } from "@/hooks/useDebounce";
 import AttendanceTable from "./AttendanceTable";
-import useRoleSwitcher from "@/hooks/useRoleSwitcher";
 import AddExistingRecord from "./AddExistingRecord";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import CustomReactSelect from "../CustomReactSelect";
@@ -116,7 +115,7 @@ const ScheduleDetails = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { temporaryRole } = useRoleSwitcher();
+  const temporaryRole = localStorage.getItem("temporaryRole");
   // Fetch volunteers and admins for assigning volunteers
   const { data: volunteers } = useUsersByRole("volunteer");
   const { data: admins } = useUsersByRole("admin");
@@ -575,8 +574,8 @@ const ScheduleDetails = () => {
                     setDeleteDialogOpen(isOpen);
                   }}
                 >
-                  {((!disableSchedule && temporaryRole === "admin") ||
-                    (!disableSchedule && temporaryRole === "coordinator")) && (
+                  {((!disableSchedule && temporaryRole === ROLES[4]) ||
+                    (!disableSchedule && temporaryRole === ROLES[0])) && (
                     <DialogTrigger asChild>
                       <Button className="rounded-xl px-3 py-3">
                         <Icon icon={"mingcute:delete-3-line"} />

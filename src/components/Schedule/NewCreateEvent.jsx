@@ -41,7 +41,6 @@ import { Icon } from "@iconify/react";
 
 import { convertTimeStringToDate, formatEventTime } from "@/lib/utils";
 import { getQuickAccessEvents } from "@/services/eventService";
-import useRoleSwitcher from "@/hooks/useRoleSwitcher";
 import {
   fetchAllMinistryVolunteers,
   getAssignedMinistries,
@@ -100,7 +99,7 @@ const NewCreateEventForm = () => {
 
   const { userData } = useUser();
   const userId = userData?.id;
-  const { temporaryRole } = useRoleSwitcher();
+  const temporaryRole = localStorage.getItem("temporaryRole");
 
   // Fetch users by role
   const { data: coordinators } = useUsersByRole("coordinator");

@@ -13,13 +13,8 @@ import { ROLES } from "@/constants/roles";
 import { useMemo } from "react";
 import { formatEventDate, formatEventTime } from "@/lib/utils";
 
-const EventInfoDialog = ({
-  open,
-  event,
-  eventData,
-  onClose,
-  temporaryRole,
-}) => {
+const EventInfoDialog = ({ open, event, eventData, onClose }) => {
+  const temporaryRole = localStorage.getItem("temporaryRole");
   // Find the matching event in eventData that corresponds to the current event.id
   const currentEventDetails = useMemo(() => {
     if (!eventData || !Array.isArray(eventData) || !event?.id) return null;
@@ -80,7 +75,6 @@ EventInfoDialog.propTypes = {
     })
   ),
   onClose: PropTypes.func.isRequired,
-  temporaryRole: PropTypes.string,
 };
 
 export default EventInfoDialog;

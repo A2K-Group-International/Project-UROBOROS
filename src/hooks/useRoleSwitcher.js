@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useUser } from "@/context/useUser";
 import { useNavigate } from "react-router-dom";
 import { ROLES } from "@/constants/roles";
@@ -7,20 +6,21 @@ const useRoleSwitcher = () => {
   const { userData } = useUser();
   const navigate = useNavigate();
 
-  const [temporaryRole, setTemporaryRole] = useState(
-    localStorage.getItem("temporaryRole")
-  );
+  // const [temporaryRole, setTemporaryRole] = useState(
+  //   localStorage.getItem("temporaryRole")
+  // );
 
-  useEffect(() => {
-    if (userData?.role && !temporaryRole) {
-      setTemporaryRole(userData.role);
-      localStorage.setItem("temporaryRole", userData.role);
-    }
-  }, [userData, temporaryRole]);
+  // useEffect(() => {
+  //   if (userData?.role) {
+  //     localStorage.setItem("temporaryRole", userData.role);
+  //   }
+  // }, [userData?.role]);
+
   const onSwitchRole = (role) => {
     if (!userData) return;
-    setTemporaryRole(role);
+
     localStorage.setItem("temporaryRole", role);
+    // setTemporaryRole(role);
 
     if (role === ROLES[4]) {
       navigate("/ministries");
@@ -38,7 +38,7 @@ const useRoleSwitcher = () => {
 
   const availableRoles = roles.filter((role) => {
     if (userData?.role === ROLES[1]) {
-      if (temporaryRole === ROLES[1]) {
+      if (localStorage.getItem("temporaryRole") === ROLES[1]) {
         // Exclude volunteer and show parishioner
         return (
           role.value !== ROLES[1] &&
@@ -46,7 +46,7 @@ const useRoleSwitcher = () => {
           role.value !== ROLES[4]
         );
       }
-      if (temporaryRole === ROLES[2]) {
+      if (localStorage.getItem("temporaryRole") === ROLES[2]) {
         // Exclude parishioner and show volunteer
         return (
           role.value !== ROLES[2] &&
@@ -59,13 +59,16 @@ const useRoleSwitcher = () => {
       return null;
     } else if (userData?.role === ROLES[0]) {
       // Returns all role except the current temporary role and superadmin
-      return role.value !== temporaryRole && role?.value !== ROLES[4];
+      return (
+        role.value !== localStorage.getItem("temporaryRole") &&
+        role?.value !== ROLES[4]
+      );
     } else {
       // Returns all role except the current temporary role
-      return role.value !== temporaryRole;
+      return role.value !== localStorage.getItem("temporaryRole");
     }
   });
-  return { availableRoles, onSwitchRole, temporaryRole };
+  return { availableRoles, onSwitchRole };
 };
 
 export default useRoleSwitcher;

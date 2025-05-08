@@ -13,6 +13,10 @@ import {
 
 /**
  * Hook to fetch and subscribe to real-time notifications
+
+ * @param {boolean} enabled - Whether the query is enabled
+ * @param {string} userId - User ID for fetching notifications
+ * @param {boolean} isRead - Whether to fetch read notifications
  * @returns {Object} React Query result object
  */
 export const useNotifications = ({
@@ -69,29 +73,9 @@ export const useMarkNotificationAsRead = () => {
 
   return useMutation({
     mutationFn: markSingleNotificationAsRead,
-    onSuccess: (updatedNotification) => {
-      // Remove the notification from unread list
-      queryClient.setQueryData(
-        ["notifications", { isRead: false }],
-        (oldData = []) =>
-          oldData.filter(
-            (notification) => notification.id !== updatedNotification.id
-          )
-      );
-
-      // Add the notification to the read list (if it's being viewed)
-      queryClient.setQueryData(
-        ["notifications", { isRead: true }],
-        (oldData = []) => {
-          // Only update if this query exists in cache
-          if (!oldData) return oldData;
-
-          // Add the updated notification to the read list
-          return [updatedNotification, ...oldData];
-        }
-      );
-
-      // Update the unread notification count
+    onSuccess: () => {
+      queryClient.invalidateQueries(["notifications", { isRead: false }]);
+      queryClient.invalidateQueries(["notifications", { isRead: true }]);
       queryClient.invalidateQueries(["unread-notification-count"]);
     },
   });

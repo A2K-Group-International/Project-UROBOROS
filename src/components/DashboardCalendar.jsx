@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchMeetingByCreatorId } from "@/services/meetingService";
 import { Button } from "./ui/button";
 import { useState, useMemo } from "react";
-import useRoleSwitcher from "@/hooks/useRoleSwitcher";
 import useEvent from "@/hooks/useEvent";
 import { formatEventDate, formatEventTime } from "@/lib/utils";
 import PropTypes from "prop-types";
@@ -93,7 +92,7 @@ const DashboardCalendar = () => {
   const { userData } = useUser();
   const { creatorEventId } = useEvent(userData?.id);
 
-  const temporaryRole = useRoleSwitcher();
+  const temporaryRole = localStorage.getItem("temporaryRole");
 
   const { data: meetings } = useQuery({
     queryKey: ["meetings", userData?.id],

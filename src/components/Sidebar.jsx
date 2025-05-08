@@ -27,7 +27,7 @@ import { Loader2 } from "lucide-react";
 const Sidebar = () => {
   const url = useLocation();
   const navigate = useNavigate();
-  const { availableRoles, onSwitchRole, temporaryRole } = useRoleSwitcher();
+  const { availableRoles, onSwitchRole } = useRoleSwitcher();
 
   const { userData, logout } = useUser();
 
@@ -46,34 +46,40 @@ const Sidebar = () => {
   return (
     <div className="flex lg:my-9 lg:w-64 lg:flex-col">
       <Title className="mb-12 ml-9 hidden max-w-[201px] lg:block">
-        {temporaryRole === ROLES[0] && "Coordinator Management Centre"}
-        {temporaryRole === ROLES[1] && "Volunteer Management Centre"}
-        {(temporaryRole === ROLES[2] || temporaryRole === ROLES[3]) &&
+        {localStorage.getItem("temporaryRole") === ROLES[0] &&
+          "Coordinator Management Centre"}
+        {localStorage.getItem("temporaryRole") === ROLES[1] &&
+          "Volunteer Management Centre"}
+        {(localStorage.getItem("temporaryRole") === ROLES[2] ||
+          localStorage.getItem("temporaryRole") === ROLES[3]) &&
           `Welcome, ${userData?.first_name ?? ""} ${userData?.last_name ?? ""}`}
-        {temporaryRole === ROLES[4] && `Parish Management Centre`}
+        {localStorage.getItem("temporaryRole") === ROLES[4] &&
+          `Parish Management Centre`}
       </Title>
       <div className="mb-2 flex flex-1 justify-between lg:mb-0 lg:flex-col">
         <ul className="flex w-full items-center justify-evenly gap-0 pt-1 sm:gap-2 lg:ml-4 lg:mr-8 lg:flex-col lg:items-start">
           {userData &&
-            SIDEBAR_LINKS[temporaryRole]?.map((link, index) => {
-              // Hide "Ministries" if temporaryRole is not equal to userData.role
-              if (
-                link.label === "Ministries" &&
-                temporaryRole !== userData?.role
-              ) {
-                return null;
+            SIDEBAR_LINKS[localStorage.getItem("temporaryRole")]?.map(
+              (link, index) => {
+                // Hide "Ministries" if temporaryRole is not equal to userData.role
+                if (
+                  link.label === "Ministries" &&
+                  localStorage.getItem("temporaryRole") !== userData?.role
+                ) {
+                  return null;
+                }
+                return (
+                  <SidebarLink
+                    key={index}
+                    label={link.label}
+                    link={link.link}
+                    icon={link.icon}
+                    selectedIcon={link.selectedIcon}
+                    isActive={url.pathname === link.link}
+                  />
+                );
               }
-              return (
-                <SidebarLink
-                  key={index}
-                  label={link.label}
-                  link={link.link}
-                  icon={link.icon}
-                  selectedIcon={link.selectedIcon}
-                  isActive={url.pathname === link.link}
-                />
-              );
-            })}
+            )}
           <Notification isMobile={true} />
           <div className="flex flex-col items-center justify-center">
             <DropdownMenu>

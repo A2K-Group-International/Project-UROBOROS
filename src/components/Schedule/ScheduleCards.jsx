@@ -5,11 +5,10 @@ import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
 import ScheduleDetails from "./ScheduleDetails";
 import { memo, useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import useRoleSwitcher from "@/hooks/useRoleSwitcher";
 import NewEditEvent from "./NewEditEvent";
 
 const ScheduleCards = ({ event, onEventClick, urlPrms, filter }) => {
-  const { temporaryRole } = useRoleSwitcher();
+  const temporaryRole = localStorage.getItem("temporaryRole");
   const [disableEdit, setDisabledEdit] = useState(false);
 
   useEffect(() => {
