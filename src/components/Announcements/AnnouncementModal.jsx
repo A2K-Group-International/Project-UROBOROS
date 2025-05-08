@@ -6,7 +6,6 @@ import { fetchSingleAnnouncement } from "@/services/AnnouncementsService";
 import { useSearchParams } from "react-router-dom";
 import { Skeleton } from "../ui/skeleton";
 
-// This is now a standalone modal that responds only to URL parameters
 const AnnouncementModal = () => {
   const [params, setParams] = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
@@ -20,7 +19,7 @@ const AnnouncementModal = () => {
     queryFn: () => fetchSingleAnnouncement(announcementId),
     enabled: !!announcementId,
   });
-
+  console.log(data);
   // Control modal open state based on URL parameter
   useEffect(() => {
     if (announcementId) {
@@ -39,7 +38,6 @@ const AnnouncementModal = () => {
     }
   };
 
-  // Rendering a standalone modal - NO DIALOG TRIGGER NEEDED
   if (!announcementId) {
     // Don't render anything if no ID in URL
     return null;
@@ -48,7 +46,7 @@ const AnnouncementModal = () => {
   if (isLoading) {
     return (
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-        <DialogContent className="w-full max-w-3xl">
+        <DialogContent className="h-[50%] w-full max-w-3xl">
           <div>
             <div className="mb-3 flex justify-between">
               <div>
@@ -97,8 +95,14 @@ const AnnouncementModal = () => {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="w-full max-w-3xl">
-        {data && <Announcement announcement={data} isModal={true} />}
+      <DialogContent className="no-scrollbar h-[50%] w-full max-w-3xl overflow-scroll">
+        {data ? (
+          <Announcement announcement={data} isModal={true} />
+        ) : (
+          <div className="flex items-center justify-center">
+            <p>No announcement found.</p>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
