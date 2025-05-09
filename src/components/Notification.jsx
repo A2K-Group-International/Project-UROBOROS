@@ -100,7 +100,6 @@ const Notification = ({ isMobile = false }) => {
     const handleClickOutside = (event) => {
       const alertDialog = document.querySelector("[role='alertdialog']");
       const menuContent = document.querySelector("[role='menu']");
-
       if (
         alertDialog?.contains(event.target) ||
         menuContent?.contains(event.target)
@@ -169,9 +168,20 @@ const NotificationButton = ({
         <div className="flex h-full flex-col items-center justify-end">
           <Button
             variant="ghost"
-            className="block h-auto p-0"
+            className="relative block h-auto p-0"
             onClick={toggleNotification}
           >
+            {count > 0 && (
+              <div className="absolute -right-4 -top-2">
+                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-danger text-[11px] text-white">
+                  {countLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    count
+                  )}
+                </div>
+              </div>
+            )}
             <Icon
               icon="mingcute:notification-line"
               className="text-primary-text"
@@ -354,8 +364,28 @@ const NotificationContent = ({
   if (isMobile) {
     return (
       <div
-        className={`absolute left-1/2 top-0 z-50 h-[calc(100%-6rem)] w-[calc(100%-1rem)] max-w-[35rem] -translate-x-1/2 transform rounded-2xl border border-accent/20 bg-white transition-all duration-150 ${isOpen ? "opacity-100" : "pointer-events-none -translate-x-5 opacity-0"}`}
+        className={`absolute left-1/2 top-0 z-50 h-[calc(100%-6rem)] w-[calc(100%-1rem)] -translate-x-1/2 transform rounded-2xl border border-accent/20 bg-white transition-all duration-150 lg:hidden ${isOpen ? "opacity-100" : "pointer-events-none -translate-x-5 opacity-0"}`}
       >
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="w-full max-w-xl">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold text-accent">
+                Change Role to view notification
+              </DialogTitle>
+              <DialogDescription>Do you want to change role?</DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="flex gap-y-2">
+              <DialogClose className="flex-1">
+                <Button close variant="outline" className="w-full">
+                  Cancel
+                </Button>
+              </DialogClose>
+              <Button onClick={handleSwitchRole} className="flex-1">
+                Switch Role
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
         {/* Header */}
         {viewingReadNotifications ? (
           <div className="flex items-center justify-between p-6">
@@ -478,7 +508,7 @@ const NotificationContent = ({
   // Desktop View
   return (
     <div
-      className={`absolute z-50 w-[35rem] rounded-2xl bg-white drop-shadow-xl transition-all duration-150 lg:bottom-0 lg:left-[14rem] ${isOpen ? "translate-x-0 opacity-100" : "pointer-events-none -translate-x-5 opacity-0"}`}
+      className={`hiden z-50 w-[35rem] rounded-2xl bg-white drop-shadow-xl transition-all duration-150 lg:absolute lg:bottom-0 lg:left-[14rem] ${isOpen ? "translate-x-0 opacity-100" : "pointer-events-none -translate-x-5 opacity-0"}`}
     >
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="w-full max-w-xl">
@@ -490,7 +520,9 @@ const NotificationContent = ({
           </DialogHeader>
           <DialogFooter>
             <DialogClose>
-              <Button close>Cancel</Button>
+              <Button close variant="outline">
+                Cancel
+              </Button>
             </DialogClose>
             <Button onClick={handleSwitchRole}>Switch Role</Button>
           </DialogFooter>
