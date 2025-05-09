@@ -21,7 +21,6 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useDebounce } from "@/hooks/useDebounce";
 import ScheduleCards from "@/components/Schedule/ScheduleCards";
 import MeetingCards from "@/components/Schedule/MeetingCards";
-import useRoleSwitcher from "@/hooks/useRoleSwitcher";
 import NewCreateEventForm from "@/components/Schedule/NewCreateEvent";
 
 const Schedule = () => {
@@ -29,8 +28,7 @@ const Schedule = () => {
     useState(false);
   const [editDialogOpenIndex, setEditDialogOpenIndex] = useState(null);
   const [urlPrms, setUrlPrms] = useSearchParams();
-
-  const { temporaryRole } = useRoleSwitcher();
+  const temporaryRole = localStorage.getItem("temporaryRole");
   const [filter, setFilter] = useState(
     urlPrms.get("filter")?.toString() || "events"
   );
@@ -144,7 +142,7 @@ const Schedule = () => {
           {/* {userData?.role === ROLES[1] && <VolunteerDialogCalendar />} */}
         </div>
         <div className="flex flex-col gap-3">
-          {(temporaryRole === ROLES[0] || userData?.role === ROLES[4]) && (
+          {(temporaryRole === ROLES[0] || temporaryRole === ROLES[4]) && (
             <div className="flex gap-1">
               <NewCreateEventForm />
               <CreateMeeting />

@@ -44,7 +44,7 @@ const CommentDetails = ({ announcement_id, comment, columnName }) => {
     isLoading,
     handleUpdateReply,
     handleDeleteReply,
-    handleAddReply,
+    addReplyMutation,
   } = useReply(comment.id, showReply, announcement_id);
 
   return (
@@ -174,7 +174,7 @@ const CommentDetails = ({ announcement_id, comment, columnName }) => {
           comment_id={comment.id}
           isReplying={isReplying}
           setIsReplying={setIsReplying}
-          handleAddReply={handleAddReply}
+          addReplyMutation={addReplyMutation}
           // replyTo={`${comment.users.first_name} ${comment.users.last_name}`}
         />
         {comment?.reply_count > 0 && (
@@ -199,7 +199,7 @@ const CommentDetails = ({ announcement_id, comment, columnName }) => {
                 reply={reply}
                 handleDeleteReply={handleDeleteReply}
                 handleUpdateReply={handleUpdateReply}
-                handleAddReply={handleAddReply}
+                addReplyMutation={addReplyMutation}
               />
             ))
           )}

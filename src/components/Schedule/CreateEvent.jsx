@@ -41,7 +41,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import useMinistry from "@/hooks/useMinistry";
 import useEvent from "@/hooks/useEvent";
 import CustomReactSelect from "../CustomReactSelect";
-import useRoleSwitcher from "@/hooks/useRoleSwitcher";
 import { ROLES } from "@/constants/roles";
 import {
   fetchAllMinistryVolunteers,
@@ -90,7 +89,7 @@ const CreateEvent = ({
   const { userData } = useUser();
 
   const userId = userData?.id;
-  const { temporaryRole } = useRoleSwitcher();
+  const temporaryRole = localStorage.getItem("temporaryRole");
 
   const { toast } = useToast();
   const queryClient = useQueryClient();

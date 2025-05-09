@@ -17,7 +17,7 @@ const useComment = (announcement_id, comment_id) => {
 
   const addCommentMutation = useMutation({
     mutationFn: addComment,
-    onSuccess: (data, { reset, setIsCommenting }) => {
+    onSuccess: (_, { reset, setIsCommenting }) => {
       reset();
       setIsCommenting(false);
     },
@@ -45,10 +45,10 @@ const useComment = (announcement_id, comment_id) => {
       const response = await fetchComments(pageParam, 1, announcement_id);
       return response;
     },
-    initialPageParam:1,
+    initialPageParam: 1,
     getNextPageParam: (lastPage) => {
-      if(lastPage.nextPage){
-        return lastPage.currentPage + 1
+      if (lastPage.nextPage) {
+        return lastPage.currentPage + 1;
       }
     },
 
@@ -75,7 +75,7 @@ const useComment = (announcement_id, comment_id) => {
   });
   const updateCommentMutation = useMutation({
     mutationFn: updateComment,
- 
+
     onError: (error) => {
       toast({
         title: "Something went wrong",
@@ -89,23 +89,23 @@ const useComment = (announcement_id, comment_id) => {
     },
   });
 
-  const HandleAddComment = (
-    data,
-    user_id,
-    post_id,
-    columnName,
-    setIsCommenting,
-    reset
-  ) => {
-    addCommentMutation.mutate({
-      comment: data[`comment${post_id}`],
-      user_id,
-      announcement_id,
-      columnName,
-      setIsCommenting,
-      reset,
-    });
-  };
+  // const HandleAddComment = (
+  //   data,
+  //   user_id,
+  //   post_id,
+  //   columnName,
+  //   setIsCommenting,
+  //   reset
+  // ) => {
+  //   addCommentMutation.mutate({
+  //     comment: data[`comment${post_id}`],
+  //     user_id,
+  //     announcement_id,
+  //     columnName,
+  //     setIsCommenting,
+  //     reset,
+  //   });
+  // };
 
   const handleDeleteComment = (comment_id) => {
     deleteCommentMutation.mutate(comment_id);
@@ -125,12 +125,13 @@ const useComment = (announcement_id, comment_id) => {
   return {
     handleDeleteComment,
     handleUpdateComment,
-    HandleAddComment,
+    // HandleAddComment,
     isError,
     isLoading,
     commentData,
     hasNextPage,
     fetchNextPage,
+    addCommentMutation,
   };
 };
 

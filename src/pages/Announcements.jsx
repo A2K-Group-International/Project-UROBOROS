@@ -5,6 +5,7 @@ import { useUser } from "@/context/useUser";
 import useInterObserver from "@/hooks/useInterObserver";
 import Loading from "@/components/Loading";
 import AnnouncementHeader from "@/components/Announcements/AnnouncementHeader";
+import AnnouncementModal from "@/components/Announcements/AnnouncementModal";
 
 const Announcements = () => {
   const { userData } = useUser();
@@ -26,6 +27,8 @@ const Announcements = () => {
 
   return (
     <div className="flex h-full w-full flex-col">
+      <AnnouncementModal />
+
       <div className="mb-2 flex w-3/4 items-end justify-between lg:mb-6">
         <div className="">
           <Title className="mb-0 lg:mb-3">Announcements</Title>
@@ -55,6 +58,7 @@ const Announcements = () => {
               data?.pages?.flatMap((page) =>
                 page?.items?.map((announcement) => (
                   <div
+                    id={announcement.id}
                     key={announcement.id}
                     className="mb-3 w-full rounded-lg border border-primary-outline bg-[#f9f7f7b9] px-4 pb-6 pt-3 md:bg-white md:px-8 md:pt-5"
                   >

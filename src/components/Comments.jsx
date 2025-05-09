@@ -8,7 +8,7 @@ import PropTypes from "prop-types";
 import useInterObserver from "@/hooks/useInterObserver";
 import { memo } from "react";
 
-const Comments = ({ announcement_id }) => {
+const Comments = ({ announcement_id, isModal }) => {
   const { userData } = useUser();
   const Initial = getInitial(userData?.first_name);
   const {
@@ -20,8 +20,6 @@ const Comments = ({ announcement_id }) => {
   } = useComment(announcement_id, null);
 
   const { ref } = useInterObserver(fetchNextPage);
-
-
 
   return (
     <div className="">
@@ -51,12 +49,15 @@ const Comments = ({ announcement_id }) => {
       <div className="flex w-full items-start justify-center gap-3">
         <Avatar className="h-8 w-8">
           <AvatarImage src={""} alt="@shadcn" />
-          <AvatarFallback className="bg-accent text-white">{Initial}</AvatarFallback>
+          <AvatarFallback className="bg-accent text-white">
+            {Initial}
+          </AvatarFallback>
         </Avatar>
         <CommentInput
           HandleAddComment={HandleAddComment}
           announcement_id={announcement_id}
           columnName="comment_id"
+          isModal={isModal}
         />
       </div>
     </div>
@@ -66,6 +67,7 @@ const Comments = ({ announcement_id }) => {
 Comments.propTypes = {
   announcement_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
     .isRequired,
+  isModal: PropTypes.bool,
 };
 
 export default memo(Comments);

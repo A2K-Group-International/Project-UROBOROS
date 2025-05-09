@@ -812,38 +812,59 @@ export const removeAssignedVolunteer = async (volunteerId, eventId) => {
   if (!volunteerId) {
     throw new Error("Volunteer ID is required");
   }
-  const { data, error: getError } = await supabase
+  const { data } = await supabase
     .from("event_volunteers")
     .select("*")
     .eq("volunteer_id", volunteerId)
+    .eq("replaced", false)
     .eq("event_id", eventId);
-  if (getError) {
-    throw new Error(error.message);
-  }
 
-  if (!data) {
-    throw new Error("No data found");
-  }
-
-  const { error } = await supabase
+  const { data: replacementData } = await supabase
     .from("event_volunteers")
-    .delete()
-    .eq("volunteer_id", volunteerId)
+    .select("*")
+    .eq("replacedby_id", volunteerId)
+    .eq("replaced", true)
     .eq("event_id", eventId);
 
-  if (error) {
-    throw new Error(error.message);
+  if (data.length > 0) {
+    const { error } = await supabase
+      .from("event_volunteers")
+      .delete()
+      .eq("volunteer_id", volunteerId)
+      .eq("replaced", false)
+      .eq("event_id", eventId);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+  }
+  if (replacementData.length > 0) {
+    const { error } = await supabase
+      .from("event_volunteers")
+      .delete()
+      .eq("replacedby_id", volunteerId)
+      .eq("replaced", true)
+
+      .eq("event_id", eventId);
+    if (error) {
+      throw new Error(error.message);
+    }
   }
 };
 
-export const addAssignedVolunteer = async ({ eventId, assignVolunteer }) => {
+export const addAssignedVolunteer = async ({
+  eventId,
+  assignVolunteer,
+  userId,
+}) => {
   try {
     const getPromises = assignVolunteer.map(async (volunteer_id) => {
       const { data, error } = await supabase
         .from("event_volunteers")
         .select("id")
         .eq("volunteer_id", volunteer_id)
-        .eq("event_id", eventId);
+        .eq("event_id", eventId)
+        .eq("replaced", false);
 
       if (error) {
         throw new Error("Error checking existence of volunteers!");
@@ -874,13 +895,14 @@ export const addAssignedVolunteer = async ({ eventId, assignVolunteer }) => {
       const { error } = await supabase.from("event_volunteers").insert([
         {
           event_id: eventId,
+          assigner_id: userId,
           volunteer_id,
           assigned_at: new Date().toISOString(),
         },
       ]);
 
       if (error) {
-        throw new Error("Error assigning volunteer");
+        throw new Error(error.message);
       }
     });
 
