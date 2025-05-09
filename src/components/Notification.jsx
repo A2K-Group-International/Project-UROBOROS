@@ -48,7 +48,7 @@ import {
 import useRoleSwitcher from "@/hooks/useRoleSwitcher";
 import { ROLES } from "@/constants/roles";
 
-const Notification = ({ isMobile = false }) => {
+const Notification = ({ isMobile = true }) => {
   const { userData } = useUser();
   const [isOpen, setIsOpen] = useState(false);
   const [viewingReadNotifications, setViewingReadNotifications] =
