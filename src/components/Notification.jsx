@@ -364,7 +364,7 @@ const NotificationContent = ({
   if (isMobile) {
     return (
       <div
-        className={`absolute left-1/2 top-0 z-50 h-[calc(100%-6rem)] w-[calc(100%-1rem)] -translate-x-1/2 transform rounded-2xl border border-accent/20 bg-white transition-all duration-150 lg:hidden ${isOpen ? "opacity-100" : "pointer-events-none -translate-x-5 opacity-0"}`}
+        className={`fixed left-1/2 top-0 z-50 h-[calc(100%-6rem)] w-[calc(100%-1rem)] -translate-x-1/2 transform rounded-2xl border border-accent/20 bg-white transition-all duration-150 lg:hidden ${isOpen ? "opacity-100" : "pointer-events-none -translate-x-5 opacity-0"}`}
       >
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="w-full max-w-xl">
