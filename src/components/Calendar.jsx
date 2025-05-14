@@ -110,7 +110,7 @@ Calendar.propTypes = {
       id: PropTypes.string.isRequired,
       event_name: PropTypes.string.isRequired,
       event_date: PropTypes.string.isRequired,
-      event_time: PropTypes.string.isRequired,
+      event_time: PropTypes.string,
       event_description: PropTypes.string,
     })
   ),

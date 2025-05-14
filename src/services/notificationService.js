@@ -122,9 +122,13 @@ export const unsubscribeFromNotifications = (channel) => {
  * @returns {Promise<Object>} The updated notification data
  */
 export const markSingleNotificationAsRead = async (notificationId) => {
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 7);
+  const expiresAtIso = expiresAt.toISOString();
+
   const { data, error } = await supabase
     .from("user_notifications")
-    .update({ is_read: true })
+    .update({ is_read: true, expires_at: expiresAtIso })
     .eq("id", notificationId)
     .select();
 
@@ -170,9 +174,13 @@ export const deleteAllUserNotifications = async (receiverId) => {
 };
 
 export const markAllAsRead = async (receiverId) => {
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 7);
+  const expiresAtIso = expiresAt.toISOString();
+
   const { data, error } = await supabase
     .from("user_notifications")
-    .update({ is_read: true })
+    .update({ is_read: true, expires_at: expiresAtIso })
     .eq("receiver_id", receiverId)
     .eq("is_read", false);
 

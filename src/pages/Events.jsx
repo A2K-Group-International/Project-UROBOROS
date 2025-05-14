@@ -33,7 +33,7 @@ const Events = () => {
         <ParishionerDialogCalendar events={parishionerEvents?.data} />
         <QrScannerEvents eventData={parishionerEvents?.data} />
       </div>
-      <div className="mt-5 grid place-items-center justify-center gap-2 sm:grid-cols-2 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
+      <div className="mt-5 grid place-items-center justify-center gap-2 sm:grid-cols-2 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
         {isLoading ? (
           <Loading />
         ) : parishionerEvents?.data?.length === 0 ? (
