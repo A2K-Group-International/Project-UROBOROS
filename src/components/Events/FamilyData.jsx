@@ -296,6 +296,6 @@ const FamilyData = ({ userId, selectedEvent }) => {
 
 FamilyData.propTypes = {
   userId: PropTypes.string.isRequired,
-  selectedEvent: PropTypes.string.isRequired,
+  selectedEvent: PropTypes.string,
 };
 export default FamilyData;

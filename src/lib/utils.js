@@ -22,153 +22,175 @@ const paginate = async ({
   key,
   page = 1,
   pageSize = 2,
-  query = {},
-  filters = {},
+  query = {}, // For .match()
+  filters = {}, // For .eq, .gte, .lte, .ilike, .in, .not, .or
   order = [],
-  inquery = {},
   select = "*",
 }) => {
   try {
-    // Calculate the range for pagination
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
 
-    // Initialize the query for paginated items
-    let supabaseQuery = supabase
-      .from(key)
-      .select(select)
-      .range(from, to)
-      .match(query);
+    // Helper function to apply all filters
+    const applyAllFiltersToQueryBuilder = (queryBuilderInstance) => {
+      let currentQuery = queryBuilderInstance;
 
-    // Apply ordering dynamically
+      // Apply .match() filter
+      if (Object.keys(query).length > 0) {
+        currentQuery = currentQuery.match(query);
+      }
+
+      // Apply gte and lte filters
+      if (filters.gte) {
+        for (const [column, value] of Object.entries(filters.gte)) {
+          currentQuery = currentQuery.gte(column, value);
+        }
+      }
+      if (filters.lte) {
+        for (const [column, value] of Object.entries(filters.lte)) {
+          currentQuery = currentQuery.lte(column, value);
+        }
+      }
+      // Apply ilike filters
+      if (filters.ilike) {
+        for (const [column, value] of Object.entries(filters.ilike)) {
+          currentQuery = currentQuery.ilike(column, `%${value}%`);
+        }
+      }
+      if (filters.is) {
+        for (const [column, value] of Object.entries(filters.is)) {
+          currentQuery = currentQuery.is(column, value);
+        }
+      }
+      // Apply eq filters
+      if (filters.eq) {
+        if (Array.isArray(filters.eq)) {
+          filters.eq.forEach(({ column, value }) => {
+            currentQuery = currentQuery.eq(column, value);
+          });
+        } else {
+          const { column, value } = filters.eq;
+          currentQuery = currentQuery.eq(column, value);
+        }
+      }
+      // Apply 'id' as a specific 'in' filter (if filters.id is an array)
+      if (filters.id && Array.isArray(filters.id)) {
+        currentQuery = currentQuery.in("id", filters.id);
+      }
+      // Apply general 'in' filters
+      if (filters.in) {
+        // Expects { column: 'colName', value: ['val1', 'val2'] }
+        const { column, value } = filters.in;
+        if (Array.isArray(value)) {
+          currentQuery = currentQuery.in(column, value);
+        }
+      }
+      // Apply 'not' filters
+      if (filters.not) {
+        // Expects { column, operator, value } e.g. { column: 'status', operator: 'eq', value: 'archived' }
+        const { column, operator, value } = filters.not;
+        currentQuery = currentQuery.not(column, operator, value);
+      }
+      // Apply 'or' filters
+      if (filters.or && Array.isArray(filters.or) && filters.or.length > 0) {
+        const orFiltersString = filters.or
+          .map((orFilter) => {
+            // Ensure orFilter has column, operator, value
+            if (
+              orFilter.column &&
+              orFilter.operator &&
+              typeof orFilter.value !== "undefined"
+            ) {
+              return `${orFilter.column}.${orFilter.operator}.${orFilter.value}`;
+            }
+            console.warn("Invalid 'or' filter object:", orFilter);
+            return null;
+          })
+          .filter(Boolean) // Remove any nulls from invalid filter objects
+          .join(",");
+        if (orFiltersString) {
+          currentQuery = currentQuery.or(orFiltersString);
+        }
+      }
+
+      // Apply is_confirmed filter (specific logic from original code)
+      // Consider making this a standard eq filter passed from the service
+      if (filters.active && filters.active !== "all") {
+        const isConfirmed = filters.active === "active";
+        currentQuery = currentQuery.eq("is_confirmed", isConfirmed);
+      }
+
+      return currentQuery;
+    };
+
+    // Initialize query for paginated items
+    let supabaseQuery = supabase.from(key).select(select);
+    supabaseQuery = applyAllFiltersToQueryBuilder(supabaseQuery);
+
+    // Apply ordering (only for data query)
     if (order.length > 0) {
       order.forEach(({ column, ascending }) => {
         supabaseQuery = supabaseQuery.order(column, { ascending });
       });
     }
-    if (inquery) {
-      if (Object.keys(inquery).length > 0) {
-        for (const [column, values] of Object.entries(inquery)) {
-          if (Array.isArray(values)) {
-            // Ensure values is an array before applying .in()
-            supabaseQuery = supabaseQuery.in(column, values);
-          } else {
-            console.error(
-              `Expected an array for column ${column}, but got:`,
-              values
-            );
-          }
-        }
-      }
-    }
+    // Apply range (only for data query)
+    supabaseQuery = supabaseQuery.range(from, to);
 
-    // Apply the is_confirmed filter if provided
-    if (filters.active && filters.active !== "all") {
-      const isConfirmed = filters.active === "active";
-      supabaseQuery = supabaseQuery.eq("is_confirmed", isConfirmed);
-    }
-
-    // Apply date filters (this is where the date filter is handled)
-    // if (filters.date) {
-    //   // Assuming filters.date is in the 'YYYY-MM' format
-    //   const [year, month] = filters.date.split("-");
-
-    //   // Get the first day of the month
-    //   const startOfMonth = `${year}-${month}-01`;
-
-    //   // Get the last day of the month
-    //   const lastDayOfMonth = new Date(year, month, 0).getDate(); // `month` is 0-indexed
-    //   const endOfMonth = `${year}-${month}-${lastDayOfMonth}`;
-
-    //   // Apply filtering based on the year and month
-    //   supabaseQuery = supabaseQuery
-    //     .gte("event_date", startOfMonth) // Filter events from the start of the month
-    //     .lte("event_date", endOfMonth); // Filter events until the last day of the month
-    // }
-
-    // Apply gte and lte filters if provided
-    if (filters.gte) {
-      for (const [column, value] of Object.entries(filters.gte)) {
-        supabaseQuery = supabaseQuery.gte(column, value);
-      }
-    }
-
-    if (filters.lte) {
-      for (const [column, value] of Object.entries(filters.lte)) {
-        supabaseQuery = supabaseQuery.lte(column, value);
-      }
-    }
-    // Apply distinct filters if provided
-
-    // Apply ilike filters if provided
-    if (filters.ilike) {
-      for (const [column, value] of Object.entries(filters.ilike)) {
-        supabaseQuery = supabaseQuery.ilike(column, `%${value}%`);
-      }
-    }
-
-    // Apply eq filters dynamically for both the items and the count
-    if (filters.eq) {
-      const { column, value } = filters.eq;
-      supabaseQuery = supabaseQuery.eq(column, value);
-    }
-
-    // Apply 'id' filters (this is where your fix is integrated)
-    if (filters.id) {
-      supabaseQuery = supabaseQuery.in("id", filters.id);
-    }
-    if (filters.in) {
-      const { column, value } = filters.in;
-      supabaseQuery = supabaseQuery.in(column, value);
-    }
-    if (filters.not) {
-      const { column, filter, value } = filters.not;
-      supabaseQuery = supabaseQuery.not(column, filter, value);
-    }
-    if (filters.or) {
-      const orFilters = filters.or
-        .map(({ column, filter, value }) => `${column}.${filter}.${value}`)
-        .join(",");
-      supabaseQuery = supabaseQuery.or(orFilters);
-    }
-
-    // Fetch the total count of items, applying eq filters here as well
+    // Initialize query for total count
     let countQuery = supabase
       .from(key)
       .select("*", { count: "exact", head: true });
-
-    // Apply eq filters to the count query
-    if (filters.eq) {
-      const { column, value } = filters.eq;
-      countQuery = countQuery.eq(column, value);
-    }
+    countQuery = applyAllFiltersToQueryBuilder(countQuery);
 
     const { count, error: countError } = await countQuery;
+    if (countError) {
+      console.error("Supabase count query error:", {
+        message: countError.message,
+        details: countError.details,
+        key,
+        query,
+        filters,
+      });
+      throw countError;
+    }
 
-    if (countError) throw countError;
-
-    // Fetch the paginated items
     const { data: items, error: itemsError } = await supabaseQuery;
+    if (itemsError) {
+      console.error("Supabase items query error:", {
+        message: itemsError.message,
+        details: itemsError.details,
+        key,
+        query,
+        filters,
+        select,
+        order,
+        from,
+        to,
+      });
+      throw itemsError;
+    }
 
-    if (itemsError) throw itemsError;
-
-    // Calculate the total number of pages
     const totalPages = Math.ceil(count / pageSize);
-
-    // Determine if there is a next page
     const nextPage = page < totalPages;
 
     return {
-      items, // data
-      currentPage: page, // page
-      nextPage, // true or false
+      items,
+      currentPage: page,
+      nextPage,
       totalPages,
       pageSize,
       totalItems: count,
     };
   } catch (error) {
-    console.error("Error paginating items:", error.message);
-    throw error;
+    console.error("Error in paginate function:", {
+      message: error.message,
+      key,
+      page,
+      pageSize,
+      query,
+      filters,
+    });
+    throw error; // Re-throw the error to be caught by the caller
   }
 };
 

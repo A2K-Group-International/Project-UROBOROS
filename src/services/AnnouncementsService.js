@@ -415,3 +415,27 @@ export const getAnnouncementMinistryId = async (announcement_id) => {
   }
   return ministryIds;
 };
+
+export const getAnnouncementByComment = async (commentId) => {
+  const { data, error } = await supabase
+    .from("comment_data")
+    .select(
+      "announcement(id, title, content, created_at, visibility, users(first_name, last_name, role), announcement_files(id, url, name, type))"
+    )
+    .eq("id", commentId)
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  // Transform file URLs to public URLs
+  data.announcement.announcement_files =
+    data.announcement.announcement_files.map((file) => ({
+      ...file,
+      url: supabase.storage.from("Uroboros").getPublicUrl(file.url).data
+        .publicUrl,
+    }));
+
+  return data;
+};

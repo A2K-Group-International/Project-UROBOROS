@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { getInitial } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Input } from "../ui/input";
@@ -12,17 +11,17 @@ const ReplyInput = ({
   isReplying,
   setIsReplying,
   setEditting,
-  replyTo,
   addReplyMutation,
+  announcement_id,
 }) => {
   const { userData } = useUser();
-  const { register, reset, handleSubmit, setValue } = useForm();
+  const { register, reset, handleSubmit } = useForm();
 
-  useEffect(() => {
-    if (replyTo) {
-      setValue("reply", `@${replyTo} `);
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (replyTo) {
+  //     setValue("reply", `@${replyTo} `);
+  //   }
+  // }, []);
 
   return (
     <div className="mr-2 mt-5 flex flex-col gap-2">
@@ -34,6 +33,7 @@ const ReplyInput = ({
                 reply: inputs.reply,
                 user_id: userData.id,
                 comment_id,
+                announcement_id,
               },
               {
                 onSuccess: () => {
@@ -52,7 +52,7 @@ const ReplyInput = ({
                 <AvatarImage
                   className=""
                   src={userData?.user_image ?? ""}
-                  alt="@shadcn"
+                  alt="user image"
                 />
                 <AvatarFallback className="bg-accent text-white">
                   {getInitial(userData?.first_name)}
@@ -97,6 +97,8 @@ ReplyInput.propTypes = {
   setEditting: PropTypes.func.isRequired,
   replyTo: PropTypes.string,
   addReplyMutation: PropTypes.object,
+  announcement_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+    .isRequired,
 };
 
 export default ReplyInput;

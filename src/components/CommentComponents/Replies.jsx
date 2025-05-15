@@ -18,29 +18,40 @@ import { Button } from "../ui/button";
 import EditReplyForm from "./EditReplyForm";
 import PropTypes from "prop-types";
 import { useUser } from "@/context/useUser";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import TriggerLikeIcon from "./TriggerLikeIcon";
+import { useSearchParams } from "react-router-dom";
 
 const Replies = ({
   reply,
   showReply,
   commentId,
+  announcement_id,
   handleUpdateReply,
   handleDeleteReply,
-  handleAddReply,
+  addReplyMutation,
+  setShowReply,
 }) => {
   const { userData } = useUser();
+  const [params] = useSearchParams();
   const [isReplying, setIsReplying] = useState(false);
   const [isEditting, setEditting] = useState(false);
 
+  useEffect(() => {
+    if (params.get("commentId")) {
+      setShowReply(true);
+    }
+  }, [params, reply.id, setShowReply]);
+
   return (
     <div
+      id={`comment-${reply.id}`}
       key={reply.id}
       className={cn(
-        "mb-2 flex flex-col gap-2 overflow-hidden text-xs transition-all duration-500",
+        "flex flex-col gap-2 overflow-hidden pb-3 text-xs transition-all duration-500",
         {
-          "h-fit": showReply === true,
-          "h-0": showReply === false,
+          flex: showReply || params.get("commentId") === reply.id,
+          hidden: !showReply,
         }
       )}
     >
@@ -63,7 +74,15 @@ const Replies = ({
             handleUpdateReply={handleUpdateReply}
           />
         ) : (
-          <div className="relative flex-grow rounded-3xl bg-primary px-5 py-4">
+          <div
+            className={cn(
+              "relative flex-grow rounded-3xl bg-primary px-5 py-4",
+              {
+                "border border-accent":
+                  params.get("commentId") === String(reply.id),
+              }
+            )}
+          >
             <div className="flex flex-grow justify-between">
               <div className="flex flex-col">
                 <p className="font-bold text-accent">{`${reply?.users?.first_name} ${reply?.users?.last_name}`}</p>
@@ -75,7 +94,12 @@ const Replies = ({
                   />
                 </div>
               </div>
-              <div></div>
+              <button
+                onClick={() => setIsReplying(true)}
+                className="ml-2 rounded-2xl"
+              >
+                <ReplyIcon className="h-5 w-5 text-accent hover:cursor-pointer" />
+              </button>
             </div>
             <div>
               <p className="break-all text-sm text-accent">
@@ -157,20 +181,15 @@ const Replies = ({
             </PopoverContent>
           </Popover>
         )}
-        <button
-          onClick={() => setIsReplying(true)}
-          className="ml-2 rounded-2xl"
-        >
-          <ReplyIcon className="h-5 w-5 text-accent hover:cursor-pointer" />
-        </button>
       </div>
       <ReplyInput
         replyTo={`${reply.users.first_name} ${reply.users.last_name}`}
         setEditting={setEditting}
         comment_id={commentId}
         isReplying={isReplying}
-        handleAddReply={handleAddReply}
         setIsReplying={setIsReplying}
+        announcement_id={announcement_id}
+        addReplyMutation={addReplyMutation}
       />
     </div>
   );
@@ -194,7 +213,10 @@ Replies.propTypes = {
     .isRequired,
   handleUpdateReply: PropTypes.func.isRequired,
   handleDeleteReply: PropTypes.func.isRequired,
-  handleAddReply: PropTypes.func.isRequired,
+  addReplyMutation: PropTypes.object.isRequired,
+  setShowReply: PropTypes.func.isRequired,
+  announcement_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+    .isRequired,
 };
 
 export default Replies;

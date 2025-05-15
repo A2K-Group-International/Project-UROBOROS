@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { Dialog, DialogContent } from "../ui/dialog";
 import Announcement from "./Announcement";
 import { useQuery } from "@tanstack/react-query";
-import { fetchSingleAnnouncement } from "@/services/AnnouncementsService";
+import {
+  fetchSingleAnnouncement,
+  getAnnouncementByComment,
+} from "@/services/AnnouncementsService";
 import { useSearchParams } from "react-router-dom";
 import { Skeleton } from "../ui/skeleton";
 
@@ -12,6 +15,7 @@ const AnnouncementModal = () => {
 
   // Get the announcement ID from URL
   const announcementId = params.get("announcementId");
+  const commentId = params.get("commentId");
 
   // Fetch announcement data only when ID exists in URL
   const { data, isLoading, error } = useQuery({
@@ -19,69 +23,73 @@ const AnnouncementModal = () => {
     queryFn: () => fetchSingleAnnouncement(announcementId),
     enabled: !!announcementId,
   });
-  console.log(data);
+
+  const {
+    data: announcementDataByComment,
+    isLoading: isLoadingByComment,
+    error: announcementByIdError,
+  } = useQuery({
+    queryKey: ["announcement", commentId],
+    queryFn: () => getAnnouncementByComment(commentId),
+    enabled: !!commentId,
+  });
+
+  if (announcementByIdError) {
+    console.error(
+      "Error fetching announcement by comment:",
+      announcementByIdError
+    );
+  }
+
   // Control modal open state based on URL parameter
   useEffect(() => {
-    if (announcementId) {
+    if (announcementId || commentId) {
       setIsOpen(true);
     } else {
       setIsOpen(false);
     }
-  }, [announcementId]);
+  }, [announcementId, commentId]);
 
   // Handle dialog close - remove the URL parameter
   const handleOpenChange = (open) => {
     setIsOpen(open);
-    if (!open && announcementId) {
-      // Remove the announcementId parameter when closing
+    if (!open) {
+      // Remove all parameters when closing
       setParams({}, { replace: true });
     }
   };
 
-  if (!announcementId) {
-    // Don't render anything if no ID in URL
+  // Don't render anything if neither ID exists in URL
+  if (!announcementId && !commentId) {
     return null;
   }
-
-  if (isLoading) {
+  // Show loading state if either query is loading
+  if (isLoading || (isLoadingByComment && commentId)) {
     return (
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-        <DialogContent className="h-[50%] w-full max-w-3xl">
+        <DialogContent className="h-fit w-full max-w-3xl">
           <div>
             <div className="mb-3 flex justify-between">
               <div>
-                <Skeleton className="bg-gray-200 h-6 w-48" />
+                <Skeleton className="h-6 w-48" />
                 <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <Skeleton className="bg-gray-200 h-4 w-24" />
-                  <Skeleton className="bg-gray-200 h-4 w-32" />
-                  <Skeleton className="bg-gray-200 h-4 w-4 rounded-full" />
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-4 w-4 rounded-full" />
                 </div>
               </div>
             </div>
 
-            <Skeleton className="bg-gray-200 mb-4 h-20 w-full" />
-            <Skeleton className="bg-gray-200 mb-6 h-48 w-full" />
-
-            <div className="flex items-end justify-between">
-              <Skeleton className="bg-gray-200 h-5 w-14 rounded-3xl" />
-            </div>
-
-            <Skeleton className="bg-gray-200 mt-6 h-1 w-full" />
-
-            <div className="mt-4">
-              <Skeleton className="bg-gray-200 mb-2 h-5 w-32" />
-              <div className="space-y-2">
-                <Skeleton className="bg-gray-200 h-16 w-full" />
-                <Skeleton className="bg-gray-200 h-16 w-full" />
-              </div>
-            </div>
+            <Skeleton className="mb-4 h-20 w-full" />
+            <Skeleton className="mb-6 h-48 w-full" />
           </div>
         </DialogContent>
       </Dialog>
     );
   }
 
-  if (error) {
+  // Show error if the primary query failed
+  if (error && announcementId) {
     return (
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogContent className="sm:max-w-[425px]">
@@ -95,9 +103,12 @@ const AnnouncementModal = () => {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="no-scrollbar h-[50%] w-full max-w-3xl overflow-scroll">
-        {data ? (
-          <Announcement announcement={data} isModal={true} />
+      <DialogContent className="no-scrollbar h-fit max-h-[90%] w-full max-w-3xl overflow-scroll">
+        {data || announcementDataByComment ? (
+          <Announcement
+            announcement={data ?? announcementDataByComment.announcement}
+            isModal={true}
+          />
         ) : (
           <div className="flex items-center justify-center">
             <p>No announcement found.</p>

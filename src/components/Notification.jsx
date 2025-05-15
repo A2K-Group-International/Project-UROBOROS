@@ -47,6 +47,7 @@ import {
 } from "./ui/dialog";
 import useRoleSwitcher from "@/hooks/useRoleSwitcher";
 import { ROLES } from "@/constants/roles";
+import { useQueryClient } from "@tanstack/react-query";
 
 const Notification = ({ isMobile = true }) => {
   const { userData } = useUser();
@@ -54,6 +55,7 @@ const Notification = ({ isMobile = true }) => {
   const [viewingReadNotifications, setViewingReadNotifications] =
     useState(false);
   const notificationRef = useRef(null);
+  const queryClient = useQueryClient();
 
   const {
     data: notifications = [],
@@ -65,6 +67,11 @@ const Notification = ({ isMobile = true }) => {
     userId: userData?.id,
     isRead: viewingReadNotifications,
   });
+
+  useEffect(() => {
+    //Invalidate number of unread notifications
+    queryClient.invalidateQueries(["unread-notification-count"]);
+  }, [notifications]);
 
   const { data: unreadCount = 0, isLoading: countLoading } =
     useUnreadNotificationCount();
@@ -244,7 +251,7 @@ const NotificationContent = ({
 
   // Get mark as read mutation
   const { mutate: markAsRead, isPending: isMarkingAsRead } =
-    useMarkNotificationAsRead();
+    useMarkNotificationAsRead({ isRead: viewingReadNotifications });
 
   const handleSwitchRole = () => {
     onSwitchRole(roleToSwitch);
@@ -259,7 +266,7 @@ const NotificationContent = ({
 
   // Add the delete mutation
   const { mutate: deleteNotification, isPending: isDeleting } =
-    useDeleteNotification();
+    useDeleteNotification({ isRead: viewingReadNotifications });
 
   const handleDelete = (notificationId) => {
     deleteNotification(notificationId);
@@ -272,10 +279,17 @@ const NotificationContent = ({
         markAsRead(notificationId);
         break;
       case "event_created":
-        setIsDialogOpen(true);
-        setRoleToSwitch(ROLES[2]);
-        setLink(`/events?id=${entity_id}`);
-        setNotificationId(notificationId);
+        if (
+          !location.pathname.startsWith("/events") &&
+          temporaryRole != ROLES[2]
+        ) {
+          setIsDialogOpen(true);
+          setRoleToSwitch(ROLES[2]);
+          setLink(`/events?id=${entity_id}`);
+          setNotificationId(notificationId);
+        }
+        navigate(`/events?id=${entity_id}`);
+        markAsRead(notificationId);
 
         break;
       case "event_assigned":
@@ -295,7 +309,7 @@ const NotificationContent = ({
         }
         break;
       case "comment":
-        navigate("/announcements");
+        navigate(`/announcements?commentId=${entity_id}`);
         markAsRead(notificationId);
         break;
       case "ministry_assigned":
@@ -508,7 +522,7 @@ const NotificationContent = ({
   // Desktop View
   return (
     <div
-      className={`hiden z-50 w-[35rem] rounded-2xl bg-white drop-shadow-xl transition-all duration-150 lg:absolute lg:bottom-0 lg:left-[14rem] ${isOpen ? "translate-x-0 opacity-100" : "pointer-events-none -translate-x-5 opacity-0"}`}
+      className={`z-50 h-auto w-[35rem] rounded-2xl bg-white drop-shadow-xl transition-all duration-150 lg:absolute lg:bottom-0 lg:left-[14rem] ${isOpen ? "translate-x-0 opacity-100" : "pointer-events-none -translate-x-5 opacity-0"}`}
     >
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="w-full max-w-xl">
@@ -550,7 +564,7 @@ const NotificationContent = ({
         )}
       </div>
       {/* Notification item */}
-      <div className="no-scrollbar h-[31rem] overflow-y-scroll border-y border-y-primary px-8">
+      <div className="no-scrollbar h-[25rem] max-h-[25rem] overflow-y-scroll border-y border-y-primary px-8">
         {notificationsLoading ? (
           <div className="flex h-full items-center justify-center">
             <Loader2 className="h-6 w-6 animate-spin" />

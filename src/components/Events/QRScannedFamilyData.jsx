@@ -315,6 +315,6 @@ const QRScannedFamilyData = ({ userId, selectedEvent }) => {
 
 QRScannedFamilyData.propTypes = {
   userId: PropTypes.string.isRequired,
-  selectedEvent: PropTypes.string.isRequired,
+  selectedEvent: PropTypes.string,
 };
 export default QRScannedFamilyData;

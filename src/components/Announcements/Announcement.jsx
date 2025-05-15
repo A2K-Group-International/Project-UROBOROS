@@ -52,7 +52,7 @@ import AutoLinkText from "@/lib/AutoLinkText";
 const Announcement = ({
   announcement,
   deleteAnnouncementMutation,
-  isModal,
+  isModal = false,
 }) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState();
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -71,7 +71,7 @@ const Announcement = ({
       <div className="mb-3 flex justify-between">
         <div>
           <h2 className="text-lg font-bold text-accent">
-            {announcement.title}
+            {announcement?.title}
           </h2>
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-[0.7rem] font-bold text-accent md:text-sm">
@@ -80,23 +80,23 @@ const Announcement = ({
               userData?.id === announcement?.user_id
                 ? `${announcement?.users?.first_name} ${announcement?.users?.last_name}`
                 : userData?.role !== "admin" &&
-                  announcement.users.role.toFirstUpperCase()}
+                  announcement?.users?.role.toFirstUpperCase()}
             </p>
             {!isModal && (
               <p
                 onClick={handleParams.bind(null, announcement.id)}
                 className="text-[0.7rem] text-accent hover:cursor-pointer hover:underline md:text-sm"
               >
-                {new Date(announcement.created_at).toDateTime()}
+                {new Date(announcement?.created_at).toDateTime()}
               </p>
             )}
             {isModal && (
               <p className="text-[0.7rem] text-accent hover:cursor-pointer hover:underline md:text-sm">
-                {new Date(announcement.created_at).toDateTime()}
+                {new Date(announcement?.created_at).toDateTime()}
               </p>
             )}
             {/* <img src={GlobeIcon} alt="icon" /> */}
-            {announcement.visibility === "public" ? (
+            {announcement?.visibility === "public" ? (
               <GlobeIcon className="h-4 w-4 text-accent" />
             ) : (
               <PersonIcon className="h-4 w-4 text-accent" />
@@ -183,15 +183,15 @@ const Announcement = ({
         )}
       </div>
       <AutoLinkText
-        text={announcement.content}
+        text={announcement?.content}
         className="mb-4 block whitespace-pre-wrap break-words text-start leading-5 text-accent"
       />
       <Dialog className="border-none border-transparent">
         <div>
           <div className="flex w-full gap-2">
-            {announcement.announcement_files.length > 0 &&
-              announcement.announcement_files[0]?.type?.startsWith("image") &&
-              announcement.announcement_files.slice(0, 3).map((file, i) => (
+            {announcement?.announcement_files?.length > 0 &&
+              announcement?.announcement_files[0]?.type?.startsWith("image") &&
+              announcement?.announcement_files.slice(0, 3).map((file, i) => (
                 <DialogTrigger
                   onClick={() => setSelectedImageIndex(i)}
                   key={i}
@@ -202,19 +202,20 @@ const Announcement = ({
                     },
                     {
                       "overflow-hidden rounded-md":
-                        i === 0 && announcement.announcement_files.length === 1,
+                        i === 0 &&
+                        announcement?.announcement_files.length === 1,
                     },
                     {
                       "overflow-hidden rounded-s-md":
-                        i === 0 && announcement.announcement_files.length > 1,
+                        i === 0 && announcement?.announcement_files.length > 1,
                     },
                     {
                       "relative z-20 overflow-hidden rounded-e-md bg-black":
-                        i === 2 && announcement.announcement_files.length > 2,
+                        i === 2 && announcement?.announcement_files.length > 2,
                     },
                     {
                       "relative z-20 overflow-hidden rounded-e-md bg-black":
-                        i === 1 && announcement.announcement_files.length > 1,
+                        i === 1 && announcement?.announcement_files.length > 1,
                     }
                   )}
                 >
@@ -223,25 +224,26 @@ const Announcement = ({
                       "h-[223px] w-full min-w-0 object-cover",
                       {
                         "bg-red-400 opacity-45":
-                          i === 2 && announcement.announcement_files.length > 3,
+                          i === 2 &&
+                          announcement?.announcement_files.length > 3,
                       },
                       {
-                        "h-full": announcement.announcement_files.length === 1,
+                        "h-full": announcement?.announcement_files.length === 1,
                       }
                     )}
                     src={file.url}
                     alt="file"
                   />
-                  {i === 2 && announcement.announcement_files.length > 3 && (
+                  {i === 2 && announcement?.announcement_files.length > 3 && (
                     <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform text-base font-semibold text-white">
-                      +{announcement.announcement_files.length - 3} more
+                      +{announcement?.announcement_files.length - 3} more
                     </p>
                   )}
                 </DialogTrigger>
               ))}
           </div>
         </div>
-        {announcement.announcement_files.length > 0 &&
+        {announcement?.announcement_files?.length > 0 &&
           announcement.announcement_files[0]?.type?.startsWith("video") && (
             <div className="border border-primary-outline">
               <video
@@ -254,7 +256,7 @@ const Announcement = ({
             </div>
           )}
 
-        {announcement.announcement_files.length > 0 &&
+        {announcement?.announcement_files?.length > 0 &&
           announcement.announcement_files[0]?.type?.startsWith(
             "application"
           ) && (
@@ -279,7 +281,7 @@ const Announcement = ({
             className="w-full max-w-5xl"
           >
             <CarouselContent className="-ml-1 p-0">
-              {announcement.announcement_files.map((file, index) => (
+              {announcement?.announcement_files?.map((file, index) => (
                 <CarouselItem key={index} className="pl-0">
                   <div className="p-1">
                     <Card className="border-none bg-transparent">
@@ -305,7 +307,7 @@ const Announcement = ({
         <div className="relative h-5">
           <TriggerLikeIcon
             className={"absolute w-14 rounded-3xl bg-white p-1"}
-            comment_id={announcement.id}
+            comment_id={announcement?.id}
             user_id={userData?.id}
             columnName={"announcement_id"}
           />

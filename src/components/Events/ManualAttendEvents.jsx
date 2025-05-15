@@ -34,7 +34,9 @@ const ManualAttendEvents = ({ eventId, eventName, eventTime, eventDate }) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button onClick={handleSelectEvent}>Manage Attendance</Button>
+        <Button onClick={handleSelectEvent} className="w-full">
+          Manage Attendance
+        </Button>
       </DialogTrigger>
       <DialogContent className="no-scrollbar h-auto max-h-[37rem] overflow-scroll text-primary-text">
         <DialogHeader className="font-bold">

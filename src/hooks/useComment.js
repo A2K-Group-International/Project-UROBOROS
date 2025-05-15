@@ -38,11 +38,18 @@ const useComment = (announcement_id, comment_id) => {
     isError,
     hasNextPage,
     fetchNextPage,
+    isFetching,
     isLoading,
+    refetch,
   } = useInfiniteQuery({
     queryKey: ["comments", announcement_id],
+    staleTime: 1000 * 60 * 5, // 5 minutes - makes data fresh for longer
+    cacheTime: 1000 * 60 * 10, // How long to keep inactive data
+    refetchOnWindowFocus: false, // Crucial for preventing pinned comment from disappearing on tab switch
+    refetchOnMount: false, // May prevent reset if component remounts
+    refetchOnReconnect: false,
     queryFn: async ({ pageParam }) => {
-      const response = await fetchComments(pageParam, 1, announcement_id);
+      const response = await fetchComments(pageParam, 10, announcement_id);
       return response;
     },
     initialPageParam: 1,
@@ -131,7 +138,9 @@ const useComment = (announcement_id, comment_id) => {
     commentData,
     hasNextPage,
     fetchNextPage,
+    isFetching,
     addCommentMutation,
+    refetch,
   };
 };
 
