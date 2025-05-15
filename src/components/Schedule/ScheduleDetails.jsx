@@ -328,7 +328,7 @@ const ScheduleDetails = () => {
     },
   });
 
-  const debouncedSearch = useDebounce(search, 500);
+  const debouncedSearch = useDebounce(search, 300);
 
   const handleSearch = (e) => {
     setSearch(e.target.value);
@@ -346,19 +346,19 @@ const ScheduleDetails = () => {
         .includes(debouncedSearch.toLocaleLowerCase())
     );
 
-    if (filteredSearch?.length === allAttendance?.length) {
+    if (filteredSearch?.length === 0) {
       // If no search term or all attendees match, clear filters
       setFilteredParentAttendance([]);
       setFilteredChildAttendance([]);
     } else {
       // Separate filtered results into parents and children
       setFilteredParentAttendance(
-        filteredSearch.filter(
+        filteredSearch?.filter(
           (attendee) => attendee.attendee_type === "parents"
         )
       );
       setFilteredChildAttendance(
-        filteredSearch.filter(
+        filteredSearch?.filter(
           (attendee) => attendee.attendee_type === "children"
         )
       );
@@ -776,7 +776,7 @@ const ScheduleDetails = () => {
           <p>No Family registered yet.</p>
         </div>
       )}
-      {search !== "" ? (
+      {debouncedSearch !== "" ? (
         <Card className="">
           <CardHeader className="p-2">
             <CardDescription className="sr-only">

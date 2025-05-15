@@ -10,6 +10,7 @@ import {
   deleteAllUserNotifications,
   markAllAsRead,
 } from "../services/notificationService";
+import { toast } from "./use-toast";
 
 /**
  * Hook to fetch and subscribe to real-time notifications
@@ -19,11 +20,7 @@ import {
  * @param {boolean} isRead - Whether to fetch read notifications
  * @returns {Object} React Query result object
  */
-export const useNotifications = ({
-  enabled = true,
-  userId,
-  isRead = false,
-}) => {
+export const useNotifications = ({ enabled = true, userId, isRead }) => {
   const queryClient = useQueryClient();
 
   const query = useQuery({
@@ -38,10 +35,10 @@ export const useNotifications = ({
     if (isRead) return;
     // Handler for new notifications
     const handleNewNotification = (newNotification) => {
-      queryClient.setQueryData(["notifications", false], (old = []) => [
-        newNotification,
-        ...old,
-      ]);
+      queryClient.setQueryData(
+        ["notifications", { isRead: false }],
+        (old = []) => [newNotification, ...old]
+      );
     };
 
     // Create subscription
@@ -68,14 +65,50 @@ export const useUnreadNotificationCount = () => {
  * Hook to mark a notification as read
  * @returns {Object} Mutation object with markAsRead function
  */
-export const useMarkNotificationAsRead = () => {
+export const useMarkNotificationAsRead = ({ isRead }) => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: markSingleNotificationAsRead,
-    onSuccess: () => {
-      queryClient.invalidateQueries(["notifications", { isRead: false }]);
-      queryClient.invalidateQueries(["notifications", { isRead: true }]);
+    // Optimistic update
+    onMutate: async (notificationId) => {
+      // Cancel any outgoing refetches
+      // (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({
+        queryKey: ["notifications", { isRead }],
+      });
+      // Snapshot the previous value
+      const previousTodos = queryClient.getQueryData([
+        "notifications",
+        { isRead },
+      ]);
+      // Optimistically update to the new value
+      queryClient.setQueryData(["notifications", { isRead }], (oldData = []) =>
+        oldData.map((notification) =>
+          notification.id === notificationId
+            ? { ...notification, is_read: true }
+            : notification
+        )
+      );
+      // Return a context object with the snapshotted value
+      return { previousTodos };
+    },
+    onError: (err, newTodo, context) => {
+      toast({
+        title: "Error marking notification as read",
+        description: `${err.message}` || "Failed to mark notification as read",
+        variant: "destructive",
+      });
+
+      // Rollback to the previous value
+      queryClient.setQueryData(
+        ["notifications", { isRead }],
+        context.previousTodos
+      );
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries(["notifications", { isRead }]);
+
       queryClient.invalidateQueries(["unread-notification-count"]);
     },
   });
@@ -85,31 +118,52 @@ export const useMarkNotificationAsRead = () => {
  * Hook to delete a notification
  * @returns {Object} Mutation object with deleteNotification function
  */
-export const useDeleteNotification = () => {
+export const useDeleteNotification = ({ isRead }) => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: deleteSingleNotification,
-    onSuccess: (_, notificationId) => {
-      // Optimistically remove from both read and unread lists
-      queryClient.setQueryData(
-        ["notifications", { isRead: false }],
-        (oldData = []) =>
-          oldData.filter((notification) => notification.id !== notificationId)
+    // Optimistic update
+    onMutate: async (notificationId) => {
+      // Cancel any outgoing refetches
+      // (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({
+        queryKey: ["notifications", { isRead }],
+      });
+
+      // Snapshot the previous value
+      const previousTodos = queryClient.getQueryData([
+        "notifications",
+        { isRead },
+      ]);
+
+      // Optimistically update to the new value
+      queryClient.setQueryData(["notifications", { isRead }], (oldData = []) =>
+        oldData.filter((notification) => notification.id !== notificationId)
       );
 
-      queryClient.setQueryData(
-        ["notifications", { isRead: true }],
-        (oldData = []) =>
-          oldData.filter((notification) => notification.id !== notificationId)
-      );
+      // Return a context object with the snapshotted value
+      return { previousTodos };
+    },
+    // If the mutation fails,
+    // use the context returned from onMutate to roll back
+    onError: (err, newTodo, context) => {
+      toast({
+        title: "Error deleting notification",
+        description: `${err.message}` || "Failed to delete notification",
+        variant: "destructive",
+      });
 
+      queryClient.setQueryData(
+        ["notifications", { isRead }],
+        context.previousTodos
+      );
+    },
+    onSettled: () => {
+      // Invalidate the query to refetch notifications
+      queryClient.invalidateQueries(["notifications", { isRead }]);
       // Update the unread count if needed
       queryClient.invalidateQueries(["unread-notification-count"]);
-    },
-    onError: (error) => {
-      console.error("Error deleting notification:", error);
-      // You could add toast notifications here
     },
   });
 };
