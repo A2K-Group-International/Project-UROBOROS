@@ -287,9 +287,10 @@ const NotificationContent = ({
           setRoleToSwitch(ROLES[2]);
           setLink(`/events?id=${entity_id}`);
           setNotificationId(notificationId);
+        } else {
+          navigate(`/events?id=${entity_id}`);
+          markAsRead(notificationId);
         }
-        navigate(`/events?id=${entity_id}`);
-        markAsRead(notificationId);
 
         break;
       case "event_assigned":
