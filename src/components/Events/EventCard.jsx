@@ -116,7 +116,7 @@ const EventCard = ({
             </p>
           </div>
           <AlertDialogFooter className="p-6">
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Close</AlertDialogCancel>
             {requireAttendance && (
               <div onClick={(e) => e.stopPropagation()}>
                 <ManualAttendEvents
