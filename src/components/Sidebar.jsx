@@ -56,8 +56,8 @@ const Sidebar = () => {
         {localStorage.getItem("temporaryRole") === ROLES[4] &&
           `Parish Management Centre`}
       </Title>
-      <div className="mb-2 flex flex-1 justify-between lg:mb-0 lg:flex-col">
-        <ul className="flex w-full items-center justify-evenly gap-0 pt-1 sm:gap-2 lg:ml-4 lg:mr-8 lg:flex-col lg:items-start">
+      <div className="no-scrollbar mb-2 flex flex-1 justify-between overflow-x-scroll md:overflow-x-visible lg:mb-0 lg:flex-col">
+        <ul className="flex w-full min-w-96 items-center justify-evenly gap-0 pt-1 sm:gap-2 lg:ml-4 lg:mr-8 lg:flex-col lg:items-start">
           {userData &&
             SIDEBAR_LINKS[localStorage.getItem("temporaryRole")]?.map(
               (link, index) => {

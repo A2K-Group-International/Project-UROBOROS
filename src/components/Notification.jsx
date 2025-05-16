@@ -287,9 +287,10 @@ const NotificationContent = ({
           setRoleToSwitch(ROLES[2]);
           setLink(`/events?id=${entity_id}`);
           setNotificationId(notificationId);
+        } else {
+          navigate(`/events?id=${entity_id}`);
+          markAsRead(notificationId);
         }
-        navigate(`/events?id=${entity_id}`);
-        markAsRead(notificationId);
 
         break;
       case "event_assigned":
@@ -471,7 +472,7 @@ const NotificationContent = ({
                   <Label className="text-xs font-bold">
                     {notification.title || ""}
                   </Label>
-                  <p className="text-xs font-medium">
+                  <p className="text-pretty text-xs font-medium">
                     {limitString(notification?.body || "", 100)}
                   </p>
                   <p className="text-xs font-semibold text-primary-blue-light">
