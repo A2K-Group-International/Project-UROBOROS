@@ -79,6 +79,55 @@ export const createAnnouncements = async ({
   return fetchData;
 };
 
+export const fetchSingleAnnouncement = async (announcementId) => {
+  try {
+    if (!announcementId) {
+      throw new Error(
+        "Announcement ID is required to fetch a single announcement."
+      );
+    }
+
+    const { data: announcement, error } = await supabase
+      .from("announcement")
+      .select(
+        "*, users(first_name, last_name, role), announcement_files(id, url, name, type)"
+      )
+      .eq("id", announcementId)
+      .single(); // Use single() as we expect one announcement
+
+    if (error) {
+      if (error.code === "PGRST116") {
+        // PostgREST error for "No rows found"
+        return null; // Or throw new Error("Announcement not found");
+      }
+      console.error("Error fetching single announcement:", error.message);
+      throw error;
+    }
+
+    if (!announcement) {
+      return null; // Announcement not found
+    }
+
+    // Transform file URLs to public URLs
+    const transformedAnnouncement = {
+      ...announcement,
+      announcement_files: announcement.announcement_files.map((file) => ({
+        ...file,
+        url: supabase.storage.from("Uroboros").getPublicUrl(file.url).data
+          .publicUrl,
+      })),
+    };
+
+    return transformedAnnouncement;
+  } catch (err) {
+    console.error("Error in fetchSingleAnnouncement:", err.message);
+    throw new Error(
+      err.message ||
+        "An unexpected error occurred while fetching the announcement."
+    );
+  }
+};
+
 /**
  * Fetches a paginated list of announcements, optionally filtering by ministry.
  * Combines public announcements and announcements associated with specific ministries.
@@ -365,4 +414,28 @@ export const getAnnouncementMinistryId = async (announcement_id) => {
     throw new Error(error.message);
   }
   return ministryIds;
+};
+
+export const getAnnouncementByComment = async (commentId) => {
+  const { data, error } = await supabase
+    .from("comment_data")
+    .select(
+      "announcement(id, title, content, created_at, visibility, users(first_name, last_name, role), announcement_files(id, url, name, type))"
+    )
+    .eq("id", commentId)
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  // Transform file URLs to public URLs
+  data.announcement.announcement_files =
+    data.announcement.announcement_files.map((file) => ({
+      ...file,
+      url: supabase.storage.from("Uroboros").getPublicUrl(file.url).data
+        .publicUrl,
+    }));
+
+  return data;
 };

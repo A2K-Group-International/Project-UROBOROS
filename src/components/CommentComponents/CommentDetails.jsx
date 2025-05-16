@@ -14,7 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-import { getInitial } from "@/lib/utils";
+import { cn, getInitial } from "@/lib/utils";
 import CommentDate from "./CommentDate";
 import ReplyInput from "./ReplyInput";
 
@@ -28,9 +28,16 @@ import { useUser } from "@/context/useUser";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import Replies from "./Replies";
 import TriggerLikeIcon from "./TriggerLikeIcon";
-// import TriggerDislikeIcon from "./TriggerDislikeIcon";
-const CommentDetails = ({ announcement_id, comment, columnName }) => {
+import { useSearchParams } from "react-router-dom";
+
+const CommentDetails = ({
+  announcement_id,
+  comment,
+  columnName,
+  highlighted,
+}) => {
   const { userData } = useUser();
+  const [params] = useSearchParams();
   const [isReplying, setIsReplying] = useState(false);
   const [showReply, setShowReply] = useState(false);
   const [isEditting, setEditting] = useState(false);
@@ -44,8 +51,12 @@ const CommentDetails = ({ announcement_id, comment, columnName }) => {
     isLoading,
     handleUpdateReply,
     handleDeleteReply,
-    handleAddReply,
-  } = useReply(comment.id, showReply, announcement_id);
+    addReplyMutation,
+  } = useReply(
+    comment.id,
+    params.get("commentId") ? true : showReply,
+    announcement_id
+  );
 
   return (
     <div className="mt-2 flex items-start gap-2">
@@ -56,23 +67,28 @@ const CommentDetails = ({ announcement_id, comment, columnName }) => {
             alt="profile picture"
           />
           <AvatarFallback className="h-8 w-8 rounded-full bg-accent p-2 text-white">
-            {getInitial(comment.users.first_name)}
+            {getInitial(comment?.users?.first_name)}
           </AvatarFallback>
         </Avatar>
       </div>
       <div className="flex-grow">
         {!isEditting ? (
-          <div className="relative flex flex-col justify-between rounded-3xl bg-primary px-5 pb-5 pt-3">
+          <div
+            className={cn(
+              "relative flex flex-col justify-between rounded-3xl bg-primary px-5 pb-5 pt-3",
+              highlighted && "border border-accent"
+            )}
+          >
             <div className="flex items-center justify-between gap-2">
               <div>
-                <p className="text-sm font-bold text-accent opacity-80">{`${comment.users.first_name} ${comment.users.last_name}`}</p>
+                <p className="text-sm font-bold text-accent opacity-80">{`${comment.users?.first_name} ${comment.users?.last_name}`}</p>
                 <CommentDate
-                  date={comment.created_at}
-                  isEdited={comment.edited}
+                  date={comment?.created_at}
+                  isEdited={comment?.edited}
                 />
               </div>
               <div>
-                {userData?.id === comment.users.id && (
+                {userData?.id === comment.users?.id && (
                   <Popover>
                     <PopoverTrigger>
                       <KebabIcon className="h-5 w-5 text-accent" />
@@ -174,7 +190,7 @@ const CommentDetails = ({ announcement_id, comment, columnName }) => {
           comment_id={comment.id}
           isReplying={isReplying}
           setIsReplying={setIsReplying}
-          handleAddReply={handleAddReply}
+          addReplyMutation={addReplyMutation}
           // replyTo={`${comment.users.first_name} ${comment.users.last_name}`}
         />
         {comment?.reply_count > 0 && (
@@ -194,12 +210,13 @@ const CommentDetails = ({ announcement_id, comment, columnName }) => {
                 commentId={comment.id}
                 announcement_id={announcement_id}
                 showReply={showReply}
+                setShowReply={setShowReply}
                 isEditting={isEditting}
                 setEditting={setEditting}
                 reply={reply}
                 handleDeleteReply={handleDeleteReply}
                 handleUpdateReply={handleUpdateReply}
-                handleAddReply={handleAddReply}
+                addReplyMutation={addReplyMutation}
               />
             ))
           )}
@@ -226,6 +243,7 @@ CommentDetails.propTypes = {
     reply_count: PropTypes.number.isRequired,
   }).isRequired,
   columnName: PropTypes.string.isRequired,
+  highlighted: PropTypes.bool,
 };
 
 export default CommentDetails;

@@ -75,7 +75,6 @@ import { Input } from "../ui/input";
 import { Search } from "@/assets/icons/icons";
 import { useDebounce } from "@/hooks/useDebounce";
 import AttendanceTable from "./AttendanceTable";
-import useRoleSwitcher from "@/hooks/useRoleSwitcher";
 import AddExistingRecord from "./AddExistingRecord";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import CustomReactSelect from "../CustomReactSelect";
@@ -116,7 +115,7 @@ const ScheduleDetails = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { temporaryRole } = useRoleSwitcher();
+  const temporaryRole = localStorage.getItem("temporaryRole");
   // Fetch volunteers and admins for assigning volunteers
   const { data: volunteers } = useUsersByRole("volunteer");
   const { data: admins } = useUsersByRole("admin");
@@ -329,7 +328,7 @@ const ScheduleDetails = () => {
     },
   });
 
-  const debouncedSearch = useDebounce(search, 500);
+  const debouncedSearch = useDebounce(search, 300);
 
   const handleSearch = (e) => {
     setSearch(e.target.value);
@@ -347,19 +346,19 @@ const ScheduleDetails = () => {
         .includes(debouncedSearch.toLocaleLowerCase())
     );
 
-    if (filteredSearch?.length === allAttendance?.length) {
+    if (filteredSearch?.length === 0) {
       // If no search term or all attendees match, clear filters
       setFilteredParentAttendance([]);
       setFilteredChildAttendance([]);
     } else {
       // Separate filtered results into parents and children
       setFilteredParentAttendance(
-        filteredSearch.filter(
+        filteredSearch?.filter(
           (attendee) => attendee.attendee_type === "parents"
         )
       );
       setFilteredChildAttendance(
-        filteredSearch.filter(
+        filteredSearch?.filter(
           (attendee) => attendee.attendee_type === "children"
         )
       );
@@ -455,7 +454,8 @@ const ScheduleDetails = () => {
   });
 
   const addVolunteerMutation = useMutation({
-    mutationFn: async (data) => addAssignedVolunteer(data),
+    mutationFn: async (data) =>
+      addAssignedVolunteer({ ...data, userId: userData?.id }),
     onSuccess: () => {
       toast({
         title: "Volunteer added successfully",
@@ -574,8 +574,8 @@ const ScheduleDetails = () => {
                     setDeleteDialogOpen(isOpen);
                   }}
                 >
-                  {((!disableSchedule && temporaryRole === "admin") ||
-                    (!disableSchedule && temporaryRole === "coordinator")) && (
+                  {((!disableSchedule && temporaryRole === ROLES[4]) ||
+                    (!disableSchedule && temporaryRole === ROLES[0])) && (
                     <DialogTrigger asChild>
                       <Button className="rounded-xl px-3 py-3">
                         <Icon icon={"mingcute:delete-3-line"} />
@@ -734,7 +734,9 @@ const ScheduleDetails = () => {
                       <Button
                         onClick={() =>
                           removeAssignedVolunteerMutation.mutate(
-                            volunteer.volunteer_id
+                            volunteer.replaced
+                              ? volunteer.replacedby_id
+                              : volunteer.volunteer_id
                           )
                         }
                         className="rounded-lg"
@@ -774,7 +776,7 @@ const ScheduleDetails = () => {
           <p>No Family registered yet.</p>
         </div>
       )}
-      {search !== "" ? (
+      {debouncedSearch !== "" ? (
         <Card className="">
           <CardHeader className="p-2">
             <CardDescription className="sr-only">

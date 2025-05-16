@@ -38,7 +38,9 @@ export const getMinistryVolunteers = async (ministryId) => {
   const { data: ministryCoordinators, error: ministryCoordinatorsError } =
     await supabase
       .from("ministry_coordinators")
-      .select(`users(id, first_name, last_name)`)
+      .select(
+        `users!ministry_coordinators_coordinator_id_fkey(id, first_name, last_name)`
+      )
       .eq("ministry_id", ministryId);
 
   if (ministryCoordinatorsError) {
@@ -183,7 +185,9 @@ export const getMinistryById = async (id) => {
 export const getMinistryCoordinators = async (ministryId) => {
   const { data, error } = await supabase
     .from("ministry_coordinators")
-    .select("id,users(id, first_name,last_name)")
+    .select(
+      "id,users!ministry_coordinators_coordinator_id_fkey(id, first_name,last_name)"
+    )
     .eq("ministry_id", ministryId);
 
   if (error) {
@@ -218,7 +222,7 @@ export const addCoordinators = async ({ ministryId, coordinatorsData }) => {
     .insert(coordinatorsData);
 
   if (insertError) {
-    throw new Error("Error assigning coordinators");
+    throw new Error(insertError.message);
   }
 };
 
@@ -583,7 +587,9 @@ export const fetchAllMinistryVolunteers = async (userId) => {
       (async () => {
         const { data: coordinators, error: coordError } = await supabase
           .from("ministry_coordinators")
-          .select("users(id, first_name, last_name)")
+          .select(
+            "users!ministry_coordinators_coordinator_id_fkey(id, first_name, last_name)"
+          )
           .in("ministry_id", ministryIds);
 
         if (coordError) {

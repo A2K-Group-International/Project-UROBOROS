@@ -35,7 +35,7 @@ import { getUsersByRole } from "@/services/userService";
 import PropTypes from "prop-types";
 import { useMemo } from "react";
 
-const AddCoordinators = ({ ministryId }) => {
+const AddCoordinators = ({ ministryId, userId }) => {
   const queryClient = useQueryClient();
 
   const { data: coordinators, isLoading: coordinatorLoading } = useQuery({
@@ -123,9 +123,10 @@ const AddCoordinators = ({ ministryId }) => {
     const coordinatorsData = coordinators.map((coordinator) => ({
       ministry_id: ministryId,
       coordinator_id: coordinator,
+      assigner_id: userId,
     }));
 
-    mutate({ ministryId, coordinatorsData });
+    mutate({ ministryId, coordinatorsData, userId });
   };
 
   return (
@@ -191,6 +192,7 @@ const AddCoordinators = ({ ministryId }) => {
 
 AddCoordinators.propTypes = {
   ministryId: PropTypes.string.isRequired,
+  userId: PropTypes.string.isRequired,
 };
 
 export default AddCoordinators;

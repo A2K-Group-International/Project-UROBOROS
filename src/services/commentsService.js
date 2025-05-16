@@ -2,8 +2,6 @@ import { paginate } from "@/lib/utils";
 import { supabase } from "./supabaseClient";
 
 export const addComment = async ({ comment, user_id, announcement_id }) => {
-  // console.log("inputs", comment, user_id, announcement_id);
-
   if (!user_id || !announcement_id) {
     throw new Error("User ID and Post ID are required!");
   }
@@ -23,44 +21,34 @@ export const addComment = async ({ comment, user_id, announcement_id }) => {
 };
 
 export const fetchComments = async (page, pageSize, announcement_id) => {
+  if (!announcement_id) {
+    throw new Error("announcement_id is required!");
+  }
 
-    if (!announcement_id) {
-      throw new Error("announcement_id is required!");
-    }
+  const select = " *, users(id,first_name, last_name)";
+  const order = [{ column: "created_at", ascending: false }];
 
-    const query = {};
-    const select = " *, users(id,first_name, last_name)";
+  const filters = {
+    eq: [{ column: "entity_id", value: announcement_id }],
+    is: {
+      parent_id: null, // Use .is() for NULL values
+    },
+  };
 
-    const order = [
-      {
-        column: "created_at",
-        ascending: false,
-      },
-    ];
+  // With the updated paginate, `query` (for .match) and `filters` (for .eq, etc.)
+  // will both be applied to the count and data queries.
+  const data = await paginate({
+    key: "comment_data",
+    page,
+    pageSize,
+    query: {},
+    filters,
+    order,
+    select,
+  });
 
-    if (announcement_id) {
-      query.entity_id = announcement_id;
-    }
-    const filters = {
-      eq: {
-        column: 'entity_id',
-        value: announcement_id
-      }
-    };
-
-    const data =  await paginate({
-      key: "comment_data",
-      page,
-      pageSize,
-      query,
-      filters,
-      order,
-      select
-    })
-
-    return data
+  return data;
 };
-
 export const deleteComment = async (comment_id) => {
   if (!comment_id) {
     throw new Error("comment_id is required!");
@@ -95,13 +83,19 @@ export const updateComment = async ({ comment, comment_id }) => {
     throw new Error(error.message || "Unknown Error.");
   }
 };
-export const addReply = async ({ reply, user_id, comment_id }) => {
+export const addReply = async ({
+  reply,
+  user_id,
+  comment_id,
+  announcement_id,
+}) => {
   if (!user_id || !comment_id) {
     throw new Error("User ID and comment ID are required!");
   }
 
   const { error: insertError } = await supabase.from("comment_data").insert([
     {
+      entity_id: announcement_id,
       comment_content: reply,
       user_id,
       parent_id: comment_id,
@@ -382,4 +376,23 @@ export const getDislikeCount = async ({ comment_id, columnName }) => {
   }
 
   return count;
+};
+
+export const fetchComment = async (comment_id) => {
+  if (!comment_id) {
+    throw new Error("comment_id is required!");
+  }
+
+  const { data, error } = await supabase
+    .from("comment_data")
+    .select("*, users(first_name, last_name)")
+    .eq("id", comment_id)
+    .single();
+
+  if (error) {
+    console.error("Supabase error:", error);
+    throw new Error(error.message || "Unknown Error.");
+  }
+
+  return data;
 };

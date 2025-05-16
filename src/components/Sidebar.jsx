@@ -21,10 +21,13 @@ import { ChevronUp } from "@/assets/icons/icons";
 import useRoleSwitcher from "@/hooks/useRoleSwitcher";
 import { ROLES } from "@/constants/roles";
 
+import Notification from "./Notification";
+import { Loader2 } from "lucide-react";
+
 const Sidebar = () => {
   const url = useLocation();
   const navigate = useNavigate();
-  const { availableRoles, onSwitchRole, temporaryRole } = useRoleSwitcher();
+  const { availableRoles, onSwitchRole } = useRoleSwitcher();
 
   const { userData, logout } = useUser();
 
@@ -43,36 +46,41 @@ const Sidebar = () => {
   return (
     <div className="flex lg:my-9 lg:w-64 lg:flex-col">
       <Title className="mb-12 ml-9 hidden max-w-[201px] lg:block">
-        {temporaryRole === ROLES[0] && "Coordinator Management Centre"}
-        {temporaryRole === ROLES[1] && "Volunteer Management Centre"}
-        {(temporaryRole === ROLES[2] || temporaryRole === ROLES[3]) &&
+        {localStorage.getItem("temporaryRole") === ROLES[0] &&
+          "Coordinator Management Centre"}
+        {localStorage.getItem("temporaryRole") === ROLES[1] &&
+          "Volunteer Management Centre"}
+        {(localStorage.getItem("temporaryRole") === ROLES[2] ||
+          localStorage.getItem("temporaryRole") === ROLES[3]) &&
           `Welcome, ${userData?.first_name ?? ""} ${userData?.last_name ?? ""}`}
-        {temporaryRole === ROLES[4] && `Parish Management Centre`}
+        {localStorage.getItem("temporaryRole") === ROLES[4] &&
+          `Parish Management Centre`}
       </Title>
-      <div className="mb-2 flex flex-1 justify-between lg:mb-0 lg:flex-col">
-        <ul className="flex w-full items-center justify-evenly gap-0 pt-1 sm:gap-2 lg:ml-4 lg:mr-8 lg:flex-col lg:items-start">
+      <div className="no-scrollbar mb-2 flex flex-1 justify-between overflow-x-scroll md:overflow-x-visible lg:mb-0 lg:flex-col">
+        <ul className="flex w-full min-w-96 items-center justify-evenly gap-0 pt-1 sm:gap-2 lg:ml-4 lg:mr-8 lg:flex-col lg:items-start">
           {userData &&
-            SIDEBAR_LINKS[temporaryRole]?.map((link, index) => {
-              // Hide "Ministries" if temporaryRole is not equal to userData.role
-              if (
-                link.label === "Ministries" &&
-                temporaryRole !== userData?.role
-              ) {
-                return null;
+            SIDEBAR_LINKS[localStorage.getItem("temporaryRole")]?.map(
+              (link, index) => {
+                // Hide "Ministries" if temporaryRole is not equal to userData.role
+                if (
+                  link.label === "Ministries" &&
+                  localStorage.getItem("temporaryRole") !== userData?.role
+                ) {
+                  return null;
+                }
+                return (
+                  <SidebarLink
+                    key={index}
+                    label={link.label}
+                    link={link.link}
+                    icon={link.icon}
+                    selectedIcon={link.selectedIcon}
+                    isActive={url.pathname === link.link}
+                  />
+                );
               }
-
-              return (
-                <SidebarLink
-                  key={index}
-                  label={link.label}
-                  link={link.link}
-                  icon={link.icon}
-                  selectedIcon={link.selectedIcon}
-                  isActive={url.pathname === link.link}
-                />
-              );
-            })}
-
+            )}
+          <Notification isMobile={true} />
           <div className="flex flex-col items-center justify-center">
             <DropdownMenu>
               <DropdownMenuTrigger className="lg:hidden lg:px-6">
@@ -124,10 +132,13 @@ const Sidebar = () => {
             </p>
           </div>
         </ul>
-        <SidebarProfile
-          availableRoles={availableRoles}
-          onSwitchRole={onSwitchRole}
-        />
+        <div className="ml-9 hidden flex-col items-start gap-y-2 lg:flex">
+          <Notification isMobile={false} />
+          <SidebarProfile
+            availableRoles={availableRoles}
+            onSwitchRole={onSwitchRole}
+          />
+        </div>
       </div>
     </div>
   );
@@ -151,10 +162,12 @@ const SidebarProfile = ({ availableRoles, onSwitchRole }) => {
 
   if (!userData) {
     return (
-      <div className="ml-9 hidden h-10 max-w-56 items-center justify-between rounded-[20px] bg-white p-1 lg:flex">
+      <div className="hidden h-10 w-full items-center justify-between rounded-[20px] bg-white p-1 lg:flex">
         <div className="flex items-center gap-2">
           <Avatar className="h-8 w-8">
-            <AvatarFallback>?</AvatarFallback>
+            <AvatarFallback>
+              <Loader2 className="animate-spin" />
+            </AvatarFallback>
           </Avatar>
           <p className="text-[16px] font-medium capitalize">Loading...</p>
         </div>
@@ -168,8 +181,8 @@ const SidebarProfile = ({ availableRoles, onSwitchRole }) => {
     "Guest";
 
   return (
-    <div className="ml-9 hidden h-10 w-56 items-center justify-between rounded-[20px] bg-white p-1 lg:flex">
-      <div className="flex items-center gap-2">
+    <div className="hidden h-10 w-full items-center justify-between rounded-[20px] bg-white p-1 lg:flex">
+      <div className="flex items-center gap-1">
         {/* Avatar (Future Avatar Image) */}
         <Avatar className="h-8 w-8">
           <AvatarFallback>{initials}</AvatarFallback>
@@ -180,7 +193,7 @@ const SidebarProfile = ({ availableRoles, onSwitchRole }) => {
         {/* </Link> */}
       </div>
       <DropdownMenu>
-        <DropdownMenuTrigger className="ml-2 flex h-7 w-11 items-center justify-center rounded-[18.5px] bg-accent px-2 text-white hover:cursor-pointer">
+        <DropdownMenuTrigger className="flex h-full w-10 items-center justify-center rounded-full border-none bg-accent px-2 py-1 text-white hover:cursor-pointer">
           <ChevronUp className="h-5 w-5 text-white" />
         </DropdownMenuTrigger>
         <DropdownMenuContent>

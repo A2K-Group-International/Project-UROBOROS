@@ -4,33 +4,39 @@ import { useForm } from "react-hook-form";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 import PropTypes from "prop-types";
+import useComment from "@/hooks/useComment";
 
-const CommentInput = ({ announcement_id, HandleAddComment, columnName }) => {
+const CommentInput = ({ announcement_id, isModal }) => {
   const { register, handleSubmit, reset } = useForm();
   const { userData } = useUser();
   const [isCommenting, setIsCommenting] = useState(false);
+  const { addCommentMutation } = useComment(announcement_id, null);
+
+  // Create a unique input name for modal vs non-modal
+  const inputName = isModal
+    ? `modal_comment${announcement_id}`
+    : `comment${announcement_id}`;
 
   return (
     <div className="mt-2 flex-grow">
       <form
         onSubmit={handleSubmit((data) =>
-          HandleAddComment(
-            data,
-            userData.id,
+          addCommentMutation.mutate({
+            comment: data[inputName],
+            user_id: userData.id,
             announcement_id,
-            columnName,
             setIsCommenting,
-            reset
-          )
+            reset,
+          })
         )}
-        id={`comment${announcement_id}`}
+        id={inputName}
         className="flex-1"
       >
         <Textarea
           className="resize-none rounded-2xl border-accent/30 bg-white md:bg-primary"
-          {...register(`comment${announcement_id}`, { required: true })}
+          {...register(inputName, { required: true })}
           onFocus={() => setIsCommenting(true)}
-          name={`comment${announcement_id}`}
+          name={inputName}
           placeholder="Write a comment..."
         />
       </form>
@@ -46,23 +52,23 @@ const CommentInput = ({ announcement_id, HandleAddComment, columnName }) => {
             Cancel
           </Button>
           <Button
-            // onClick={()=>{console.log(announcement_id)}}
+            disabled={addCommentMutation.isPending}
             type="submit"
-            form={`comment${announcement_id}`}
+            form={inputName}
             className="bg-accent"
           >
-            Comment
+            {addCommentMutation.isPending ? "Commenting..." : "Comment"}
           </Button>
         </div>
       )}
     </div>
   );
 };
+
 CommentInput.propTypes = {
   announcement_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
     .isRequired,
-  HandleAddComment: PropTypes.func.isRequired,
-  columnName: PropTypes.string.isRequired,
+  isModal: PropTypes.bool,
 };
 
 export default CommentInput;

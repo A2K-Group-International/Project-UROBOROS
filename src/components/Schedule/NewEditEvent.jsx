@@ -41,7 +41,6 @@ import { Icon } from "@iconify/react";
 
 import { convertTimeStringToDate, formatEventTime } from "@/lib/utils";
 import { getQuickAccessEvents } from "@/services/eventService";
-import useRoleSwitcher from "@/hooks/useRoleSwitcher";
 import { getAssignedMinistries } from "@/services/ministryService";
 import { useUser } from "@/context/useUser";
 import { ROLES } from "@/constants/roles";
@@ -84,7 +83,7 @@ const NewEditEvent = ({
 
   const { userData } = useUser();
   const userId = userData?.id;
-  const { temporaryRole } = useRoleSwitcher();
+  const temporaryRole = localStorage.getItem("temporaryRole");
 
   const queryClient = useQueryClient();
 

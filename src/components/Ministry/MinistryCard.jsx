@@ -102,7 +102,7 @@ const MinistryCard = ({
             </div>
           </div>
           {!membersLoading && coordinators?.data && (
-            <ConfigureMinistry //Load the data first before fetching the data
+            <ConfigureMinistry
               coordinators={coordinators.data}
               ministryId={ministryId}
               ministryTitle={title}
