@@ -54,7 +54,7 @@ const ConfigureMinistry = ({
       <AlertDialogTrigger>
         <Icon icon="humbleicons:dots-horizontal" />
       </AlertDialogTrigger>
-      <AlertDialogContent className="no-scrollbar flex h-auto max-h-[80vh] max-w-[860px] flex-col overflow-hidden border-none">
+      <AlertDialogContent className="no-scrollbar no-scrollbar flex h-auto max-h-[80vh] max-w-[860px] flex-col overflow-hidden overflow-y-scroll border-none">
         <AlertDialogHeader className="flex-shrink-0 flex-row items-center justify-between gap-1">
           <div className="flex">
             <Avatar className="flex h-10 w-10 justify-center rounded-[4px] bg-primary">

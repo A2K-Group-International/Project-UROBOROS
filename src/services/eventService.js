@@ -125,6 +125,7 @@ export const createEvent = async (eventData) => {
       const volunteerData = assignVolunteer.map((volunteerId) => ({
         event_id: event.id, // Use the created event ID
         volunteer_id: volunteerId,
+        assigner_id: userId,
       }));
 
       const { error: volunteerError } = await supabase
