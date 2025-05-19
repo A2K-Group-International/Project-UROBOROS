@@ -387,7 +387,7 @@ export const fetchFamilies = async ({ page, pageSize, search }) => {
 
   // Base filter to exclude null user_id AND apply search
   const filters = {
-    not: { column: "user_id", filter: "is", value: null },
+    not: { column: "user_id", operator: "is", value: null },
   };
 
   // Add search filter using the JOINED users table
