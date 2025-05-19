@@ -41,25 +41,19 @@ const getUsersByRole = async (role) => {
   }
 };
 
-const getUsers = async ({ activeFilter, page, pageSize, roles }) => {
+const getUsers = async ({ page, pageSize, roles }) => {
   try {
-    const query = {};
-    const inquery = {};
-
-    if (roles && roles.length > 0) {
-      inquery.role = roles;
-    }
-
     const filters = {
-      active: activeFilter, // Use activeFilter to filter by is_confirmed
+      in: {
+        column: "role",
+        value: roles,
+      },
     };
 
     const data = await paginate({
       key: "users",
       page,
       pageSize,
-      query,
-      inquery,
       filters, // Apply filters to the pagination function
       order: [{ column: "created_at", ascending: false }],
     });
