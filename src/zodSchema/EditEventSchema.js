@@ -8,6 +8,10 @@ export const editEventSchema = z
       message: "Event name is required.",
     }),
 
+    eventCategory: z.string().min(1, {
+      message: "Event category is required.",
+    }),
+
     eventDescription: z.string().optional().default(""),
 
     eventVisibility: z

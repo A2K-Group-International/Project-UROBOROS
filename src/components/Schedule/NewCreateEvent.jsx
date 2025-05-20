@@ -56,6 +56,7 @@ import CustomReactSelect from "../CustomReactSelect";
 import useUsersByRole from "@/hooks/useUsersByRole";
 import { createEventSchema } from "@/zodSchema/CreateEventSchema";
 import useEvent from "@/hooks/useEvent";
+import { getCategories } from "@/services/categoryServices";
 
 const useQuickAccessEvents = () => {
   return useQuery({
@@ -139,6 +140,11 @@ const NewCreateEventForm = () => {
 
   const { ministries } = useMinistry({
     ministryId: selectedMinistry,
+  });
+
+  const { data: categories, isLoading: categoriesLoading } = useQuery({
+    queryKey: ["categories"],
+    queryFn: getCategories,
   });
 
   // 1. Define the form.
@@ -376,7 +382,25 @@ const NewCreateEventForm = () => {
                               <SelectValue placeholder="Select Category" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="youth">Youth</SelectItem>
+                              {categoriesLoading ? (
+                                <SelectItem value="" disabled>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Loading categories...
+                                </SelectItem>
+                              ) : categories && categories.length > 0 ? (
+                                categories.map((category) => (
+                                  <SelectItem
+                                    key={category.id}
+                                    value={category.name}
+                                  >
+                                    {category.name}
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <SelectItem value="" disabled>
+                                  No categories available
+                                </SelectItem>
+                              )}
                             </SelectContent>
                           </Select>
                         </FormControl>

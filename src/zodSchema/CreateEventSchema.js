@@ -9,13 +9,9 @@ export const createEventSchema = z
     }),
 
     eventDescription: z.string().optional().default(""),
-    eventCategory: z
-      .string()
-      .min(1, {
-        message: "Event category is required.",
-      })
-      .optional()
-      .default("youth"),
+    eventCategory: z.string().min(1, {
+      message: "Event category is required.",
+    }),
 
     eventVisibility: z
       .string()
