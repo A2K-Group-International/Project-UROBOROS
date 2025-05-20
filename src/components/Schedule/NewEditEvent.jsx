@@ -50,6 +50,7 @@ import TimePicker from "./TimePicker";
 import { format } from "date-fns";
 import useEvent from "@/hooks/useEvent";
 import { editEventSchema } from "@/zodSchema/EditEventSchema";
+import { getCategories } from "@/services/categoryServices";
 
 const useQuickAccessEvents = () => {
   return useQuery({
@@ -102,6 +103,11 @@ const NewEditEvent = ({
 
   const { ministries } = useMinistry({
     ministryId: selectedMinistry,
+  });
+
+  const { data: categories, isLoading: categoriesLoading } = useQuery({
+    queryKey: ["categories"],
+    queryFn: getCategories,
   });
 
   // 1. Define the form.
@@ -312,13 +318,31 @@ const NewEditEvent = ({
                         <FormControl>
                           <Select
                             onValueChange={field.onChange}
-                            value={field.value}
+                            value={field.value || ""}
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Select Category" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="youth">Youth</SelectItem>
+                              {categoriesLoading ? (
+                                <SelectItem value="" disabled>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Loading categories...
+                                </SelectItem>
+                              ) : categories && categories.length > 0 ? (
+                                categories.map((category) => (
+                                  <SelectItem
+                                    key={category.id}
+                                    value={category.name}
+                                  >
+                                    {category.name}
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <SelectItem value="" disabled>
+                                  No categories available
+                                </SelectItem>
+                              )}
                             </SelectContent>
                           </Select>
                         </FormControl>
