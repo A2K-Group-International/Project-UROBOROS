@@ -111,7 +111,7 @@ const NewEditEvent = ({
       eventName: initialEventData?.event_name || "",
       eventDescription: initialEventData?.description || "",
       eventVisibility: initialEventData?.event_visibility || "",
-      eventObservation: initialEventData?.requires_attendance === false,
+      eventObservation: initialEventData?.requires_attendance,
       eventTime: initialEventData?.event_time
         ? convertTimeStringToDate(initialEventData?.event_time)
         : null,
@@ -216,6 +216,13 @@ const NewEditEvent = ({
       resetField("assignVolunteer", { defaultValue: [] });
     }
   }, [selectedMinistry, watchVisibility, form]);
+
+  //Reset the time when the observation is disable
+  useEffect(() => {
+    if (!watchObservation) {
+      form.setValue("eventTime", null);
+    }
+  }, [watchObservation, form]);
 
   return (
     <AlertDialog open={openDialog} onOpenChange={handleOpenDialog}>
@@ -422,7 +429,7 @@ const NewEditEvent = ({
                         <div className="flex justify-between rounded-xl bg-primary px-4 py-2">
                           <div>
                             <Label className="text-[12px] font-medium text-accent/75">
-                              Option to disable time and volunteer
+                              Time and volunteer required
                             </Label>
                           </div>
                           <Switch
@@ -506,9 +513,9 @@ const NewEditEvent = ({
                           <TimePicker
                             value={field.value}
                             onChange={(newValue) => field.onChange(newValue)}
-                            disabled={watchObservation}
+                            disabled={!watchObservation}
                             className={
-                              watchObservation ? "cursor-not-allowed" : ""
+                              !watchObservation ? "cursor-not-allowed" : ""
                             }
                           />
                         </FormControl>
