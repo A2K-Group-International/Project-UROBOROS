@@ -504,7 +504,7 @@ const NewEditEvent = ({
                     control={form.control}
                     name="eventTime"
                     render={({ field }) => (
-                      <FormItem className="flex-1">
+                      <FormItem className="flex flex-1 flex-col">
                         <FormLabel className="text-[12px] font-semibold text-accent/75">
                           Event Time
                         </FormLabel>
