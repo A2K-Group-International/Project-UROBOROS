@@ -62,6 +62,13 @@ const paginate = async ({
           currentQuery = currentQuery.is(column, value);
         }
       }
+      if (filters.in) {
+        // Expects { column: 'colName', value: ['val1', 'val2'] }
+        const { column, value } = filters.in;
+        if (Array.isArray(value)) {
+          currentQuery = currentQuery.in(column, value);
+        }
+      }
       // Apply eq filters
       if (filters.eq) {
         if (Array.isArray(filters.eq)) {
@@ -78,13 +85,7 @@ const paginate = async ({
         currentQuery = currentQuery.in("id", filters.id);
       }
       // Apply general 'in' filters
-      if (filters.in) {
-        // Expects { column: 'colName', value: ['val1', 'val2'] }
-        const { column, value } = filters.in;
-        if (Array.isArray(value)) {
-          currentQuery = currentQuery.in(column, value);
-        }
-      }
+
       // Apply 'not' filters
       if (filters.not) {
         // Expects { column, operator, value } e.g. { column: 'status', operator: 'eq', value: 'archived' }
@@ -111,13 +112,6 @@ const paginate = async ({
         if (orFiltersString) {
           currentQuery = currentQuery.or(orFiltersString);
         }
-      }
-
-      // Apply is_confirmed filter (specific logic from original code)
-      // Consider making this a standard eq filter passed from the service
-      if (filters.active && filters.active !== "all") {
-        const isConfirmed = filters.active === "active";
-        currentQuery = currentQuery.eq("is_confirmed", isConfirmed);
       }
 
       return currentQuery;
@@ -190,7 +184,7 @@ const paginate = async ({
       query,
       filters,
     });
-    throw error; // Re-throw the error to be caught by the caller
+    throw error;
   }
 };
 
