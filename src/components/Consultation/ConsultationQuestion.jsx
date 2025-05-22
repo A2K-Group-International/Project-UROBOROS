@@ -69,10 +69,10 @@ const ConsultationQuestion = () => {
   // Submit handler
   const onSubmit = (data) => {
     // Check if all options have different rankings
-    const rankings = [data.preferenceA, data.preferenceB, data.preferenceC];
-    const uniqueRankings = new Set(rankings);
+    const preference = [data.preferenceA, data.preferenceB, data.preferenceC];
+    const uniquePreference = new Set(preference);
 
-    if (uniqueRankings.size !== 3) {
+    if (uniquePreference.size !== 3) {
       console.log("Each option must have a unique ranking (1st, 2nd, 3rd)");
     }
     // Send data backend
