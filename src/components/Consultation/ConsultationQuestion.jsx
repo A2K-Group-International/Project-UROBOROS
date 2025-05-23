@@ -212,7 +212,7 @@ const ConsultationQuestion = () => {
         </div>
         {/* Submit Button */}
         <div className="flex justify-end">
-          <Button type="submit" className="rounded-full px-8">
+          <Button type="submit" className="rounded-full px-8 py-4">
             Submit Response
           </Button>
         </div>

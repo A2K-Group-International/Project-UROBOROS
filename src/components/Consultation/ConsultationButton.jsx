@@ -13,7 +13,7 @@ const ConsultationButton = ({ isMobile = true }) => {
   if (isMobile) {
     return (
       <div
-        className="mt-2 h-full animate-bounce rounded-full border border-accent/30 p-2 lg:hidden"
+        className="mt-2 h-full rounded-full bg-white p-3 shadow-md lg:hidden"
         onClick={handleNavigation}
       >
         <div className="flex h-full flex-col items-center justify-end">
