@@ -14,6 +14,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Textarea } from "../ui/textarea";
+import { useUser } from "@/context/useUser";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { addConsultation } from "@/services/consultationServices";
+import { toast } from "@/hooks/use-toast";
 
 const consultationForm = z.object({
   preferenceA: z.string().min(1, "Please select preference"),
@@ -24,6 +28,8 @@ const consultationForm = z.object({
 });
 
 const ConsultationQuestion = () => {
+  const queryClient = useQueryClient();
+  const { userData } = useUser();
   // Define the three Mass time preference
   const preferences = [
     { letter: "a", times: "7.45am, 9.15am, 11.15am" },
@@ -66,6 +72,28 @@ const ConsultationQuestion = () => {
     },
   });
 
+  const { mutate, isPending } = useMutation({
+    mutationFn: addConsultation,
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Your preferences have been submitted successfully.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Oops! Something went wrong.",
+        description: `${error}`,
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["consultationExistence"],
+      });
+    },
+  });
+
   // Submit handler
   const onSubmit = (data) => {
     // Check if all options have different rankings
@@ -75,8 +103,10 @@ const ConsultationQuestion = () => {
     if (uniquePreference.size !== 3) {
       console.log("Each option must have a unique ranking (1st, 2nd, 3rd)");
     }
+
+    console.log("Form data:", data);
     // Send data backend
-    console.log("Form submitted:", data);
+    mutate({ userId: userData.id, consultation: { ...data } });
   };
 
   return (
@@ -212,8 +242,12 @@ const ConsultationQuestion = () => {
         </div>
         {/* Submit Button */}
         <div className="flex justify-end">
-          <Button type="submit" className="rounded-full px-8 py-4">
-            Submit Response
+          <Button
+            disabled={isPending}
+            type="submit"
+            className="rounded-full px-8 py-4"
+          >
+            {isPending ? "Submitting..." : "Submit"}
           </Button>
         </div>
       </form>
