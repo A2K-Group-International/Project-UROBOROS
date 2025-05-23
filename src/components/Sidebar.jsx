@@ -23,6 +23,7 @@ import { ROLES } from "@/constants/roles";
 
 import Notification from "./Notification";
 import { Loader2 } from "lucide-react";
+import ConsultationButton from "./Consultation/ConsultationButton";
 
 const Sidebar = () => {
   const url = useLocation();
@@ -133,6 +134,7 @@ const Sidebar = () => {
           </div>
         </ul>
         <div className="ml-9 hidden flex-col items-start gap-y-2 lg:flex">
+          <ConsultationButton isMobile={false} />
           <Notification isMobile={false} />
           <SidebarProfile
             availableRoles={availableRoles}
