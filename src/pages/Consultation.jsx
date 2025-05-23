@@ -22,6 +22,7 @@ const Consultation = () => {
   const handleCloseDialog = () => {
     setShowConsultationDialog(false);
   };
+
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -37,7 +38,6 @@ const Consultation = () => {
       </div>
     );
   }
-  console.log("Consultation data: ", data?.consultationExist);
 
   return (
     <div className="flex h-full flex-col">
@@ -67,11 +67,11 @@ const Consultation = () => {
             )}
             {data?.consultationExist?.user_id !== userData?.id && (
               <p className="text-center text-2xl font-semibold text-accent">
-                {`${data?.consultationExist?.users?.first_name} ${data?.consultationExist?.users?.last_name} has already submitted their preference in behalf of your family.`}
+                {`${data?.consultationExist?.users?.first_name} ${data?.consultationExist?.users?.last_name} has submitted your family's preference.`}
               </p>
             )}
             <h1 className="text-center text-2xl font-semibold text-accent">
-              Thank you for your participation!
+              We appreciate your participation!
             </h1>
           </div>
         ) : (

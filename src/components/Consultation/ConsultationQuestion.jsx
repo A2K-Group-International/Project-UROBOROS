@@ -101,10 +101,12 @@ const ConsultationQuestion = () => {
     const uniquePreference = new Set(preference);
 
     if (uniquePreference.size !== 3) {
-      console.log("Each option must have a unique ranking (1st, 2nd, 3rd)");
+      toast({
+        title: "Failed to submit",
+        description: "Each option must have a unique ranking (1st, 2nd, 3rd)",
+        variant: "destructive",
+      });
     }
-
-    console.log("Form data:", data);
     // Send data backend
     mutate({ userId: userData.id, consultation: { ...data } });
   };
@@ -247,7 +249,7 @@ const ConsultationQuestion = () => {
             type="submit"
             className="rounded-full px-8 py-4"
           >
-            {isPending ? "Submitting..." : "Submit"}
+            {isPending ? "Submitting..." : "Submit Response"}
           </Button>
         </div>
       </form>
