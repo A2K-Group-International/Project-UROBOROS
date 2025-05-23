@@ -105,7 +105,7 @@ export const createEvent = async (eventData) => {
           event_time: eventTime,
           event_description: eventDescription || null,
           creator_id: userId,
-          requires_attendance: !eventObservation,
+          requires_attendance: eventObservation,
           image_url: imagePath,
         },
       ])
@@ -224,7 +224,7 @@ export const updateEvent = async ({ eventId, updatedData }) => {
       event_date: eventDetails.eventDate,
       event_time: eventDetails.eventTime,
       event_description: eventDetails.eventDescription || null,
-      requires_attendance: !eventDetails.eventObservation,
+      requires_attendance: eventDetails.eventObservation,
     };
 
     // Step 1: Update the event data in the 'events' table

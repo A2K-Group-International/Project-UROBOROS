@@ -1,9 +1,13 @@
 import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
 import { cn } from "@/lib/utils";
+import ConsultationButton from "@/components/Consultation/ConsultationButton";
 
 const MainLayout = () => {
   const url = useLocation();
+
+  const zeroPaddingPages = ["/ministries", "/consultation"];
+  const isZeroPadding = zeroPaddingPages.includes(url.pathname);
 
   return (
     <div className="flex h-dvh flex-col">
@@ -12,11 +16,18 @@ const MainLayout = () => {
         <Sidebar />
         <div
           className={cn(
-            "no-scrollbar flex-1 overflow-auto bg-white p-4 md:m-4 md:rounded-[20px] md:p-9 md:shadow-lg",
-            { "lg:p-0": url.pathname === "/ministries" }
+            "no-scrollbar relative flex-1 overflow-auto bg-white px-4 md:m-4 md:rounded-[20px] md:p-9 md:shadow-lg",
+            { "lg:p-0": isZeroPadding }
           )}
         >
           <Outlet />
+        </div>
+        <div
+          className={cn("absolute bottom-28 right-5 z-50", {
+            hidden: url.pathname === "/consultation",
+          })}
+        >
+          <ConsultationButton isMobile={true} />
         </div>
       </div>
 

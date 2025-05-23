@@ -9,13 +9,9 @@ export const createEventSchema = z
     }),
 
     eventDescription: z.string().optional().default(""),
-    eventCategory: z
-      .string()
-      .min(1, {
-        message: "Event category is required.",
-      })
-      .optional()
-      .default("youth"),
+    eventCategory: z.string().min(1, {
+      message: "Event category is required.",
+    }),
 
     eventVisibility: z
       .string()
@@ -59,7 +55,7 @@ export const createEventSchema = z
       ])
       .optional(),
 
-    eventObservation: z.boolean().default(false),
+    eventObservation: z.boolean().default(true),
 
     ministry: z.string().optional(),
 
@@ -105,7 +101,7 @@ export const createEventSchema = z
     }
 
     // Validate time and volunteers for non-observation events
-    if (data.eventObservation === false) {
+    if (data.eventObservation) {
       // Validate eventTime (eventTime is required when eventObservation is false)
       const isValidEventTime =
         data.eventTime &&

@@ -19,30 +19,25 @@ import AcceptInvite from "./pages/AcceptInvite";
 import SendFeedback from "./pages/SendFeedback";
 import FeedBackSuccess from "./pages/FeedBackSuccess";
 import Feedback from "./pages/Feedback";
+import Consultation from "./pages/Consultation";
 
 const App = () => {
   return (
     // <Router basename="/portal">
     <Router>
       <Routes>
-        {/* Auth Routes */}
+        {/* Unauthenticated Routes */}
         <Route path="/" element={<Home />} />
         <Route path="/send-feedback" element={<SendFeedback />} />
         <Route path="/feedback/success" element={<FeedBackSuccess />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/accept-invite" element={<AcceptInvite />} />
-        {/* Privacy Policy Route */}
         {/* Protected Routes */}
         <Route element={<MainLayout />}>
           {/* ========================================================= */}
           {/* Only Admin and Coordinator can access the routes below */}
           <Route element={<RequireRole roles={[ROLES[0], ROLES[4]]} />}>
             <Route path="/dashboard" element={<Dashboard />} />
-          </Route>
-          {/* ========================================================= */}
-          {/*  Admin and Coordinator can access the routes below */}
-          <Route element={<RequireRole roles={[...ROLES]} />}>
-            <Route path="/ministries" element={<Ministries />} />
           </Route>
           {/* ========================================================= */}
           {/* Only admin can access the routes below */}
@@ -59,20 +54,15 @@ const App = () => {
             <Route path="/schedule" element={<Schedule />} />
           </Route>
           {/* ========================================================= */}
-          {/* Roles of Coordinator and Parishioner can access the routes below */}
-          <Route element={<RequireRole roles={[...ROLES]} />}>
-            {/* Add Route for Events */}
-            <Route path="/events" element={<Events />} />
-            <Route path="/family" element={<Family />} />
-            {/* Add Route for Family */}
-          </Route>
-          {/* ========================================================= */}
           {/* All Roles Can Access Routes Below */}
           <Route element={<RequireRole roles={[...ROLES]} />}>
             <Route path="/announcements" element={<Announcements />} />
             <Route path="/profile" element={<Profile />} />
-
+            <Route path="/ministries" element={<Ministries />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/events" element={<Events />} />
+            <Route path="/family" element={<Family />} />
+            <Route path="/consultation" element={<Consultation />} />
           </Route>
           {/* ========================================================= */}
         </Route>

@@ -50,6 +50,7 @@ import TimePicker from "./TimePicker";
 import { format } from "date-fns";
 import useEvent from "@/hooks/useEvent";
 import { editEventSchema } from "@/zodSchema/EditEventSchema";
+import { getCategories } from "@/services/categoryServices";
 
 const useQuickAccessEvents = () => {
   return useQuery({
@@ -104,6 +105,11 @@ const NewEditEvent = ({
     ministryId: selectedMinistry,
   });
 
+  const { data: categories, isLoading: categoriesLoading } = useQuery({
+    queryKey: ["categories"],
+    queryFn: getCategories,
+  });
+
   // 1. Define the form.
   const form = useForm({
     resolver: zodResolver(editEventSchema),
@@ -111,7 +117,7 @@ const NewEditEvent = ({
       eventName: initialEventData?.event_name || "",
       eventDescription: initialEventData?.description || "",
       eventVisibility: initialEventData?.event_visibility || "",
-      eventObservation: initialEventData?.requires_attendance === false,
+      eventObservation: initialEventData?.requires_attendance,
       eventTime: initialEventData?.event_time
         ? convertTimeStringToDate(initialEventData?.event_time)
         : null,
@@ -217,6 +223,13 @@ const NewEditEvent = ({
     }
   }, [selectedMinistry, watchVisibility, form]);
 
+  //Reset the time when the observation is disable
+  useEffect(() => {
+    if (!watchObservation) {
+      form.setValue("eventTime", null);
+    }
+  }, [watchObservation, form]);
+
   return (
     <AlertDialog open={openDialog} onOpenChange={handleOpenDialog}>
       <AlertDialogTrigger asChild>
@@ -305,13 +318,31 @@ const NewEditEvent = ({
                         <FormControl>
                           <Select
                             onValueChange={field.onChange}
-                            value={field.value}
+                            value={field.value || ""}
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Select Category" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="youth">Youth</SelectItem>
+                              {categoriesLoading ? (
+                                <SelectItem value="" disabled>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Loading categories...
+                                </SelectItem>
+                              ) : categories && categories.length > 0 ? (
+                                categories.map((category) => (
+                                  <SelectItem
+                                    key={category.id}
+                                    value={category.name}
+                                  >
+                                    {category.name}
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <SelectItem value="" disabled>
+                                  No categories available
+                                </SelectItem>
+                              )}
                             </SelectContent>
                           </Select>
                         </FormControl>
@@ -422,7 +453,7 @@ const NewEditEvent = ({
                         <div className="flex justify-between rounded-xl bg-primary px-4 py-2">
                           <div>
                             <Label className="text-[12px] font-medium text-accent/75">
-                              Option to disable time and volunteer
+                              Time and volunteer required
                             </Label>
                           </div>
                           <Switch
@@ -497,7 +528,7 @@ const NewEditEvent = ({
                     control={form.control}
                     name="eventTime"
                     render={({ field }) => (
-                      <FormItem className="flex-1">
+                      <FormItem className="flex flex-1 flex-col">
                         <FormLabel className="text-[12px] font-semibold text-accent/75">
                           Event Time
                         </FormLabel>
@@ -506,9 +537,9 @@ const NewEditEvent = ({
                           <TimePicker
                             value={field.value}
                             onChange={(newValue) => field.onChange(newValue)}
-                            disabled={watchObservation}
+                            disabled={!watchObservation}
                             className={
-                              watchObservation ? "cursor-not-allowed" : ""
+                              !watchObservation ? "cursor-not-allowed" : ""
                             }
                           />
                         </FormControl>
