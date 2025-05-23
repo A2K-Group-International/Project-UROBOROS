@@ -13,18 +13,23 @@ const ConsultationButton = ({ isMobile = true }) => {
   if (isMobile) {
     return (
       <div
-        className="mt-2 h-full rounded-full bg-white p-3 shadow-md lg:hidden"
+        className="mt-2 h-full rounded-full border border-accent/5 bg-primary px-2 py-3 shadow-lg lg:hidden"
         onClick={handleNavigation}
       >
         <div className="flex h-full flex-col items-center justify-end">
           <Button variant="ghost" className="relative block h-auto p-0">
+            <div className="absolute -right-4 -top-4">
+              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-danger text-[11px] text-white">
+                !
+              </div>
+            </div>
             <Icon
               icon="hugeicons:task-daily-01"
               className="text-primary-text"
               fontSize={20}
             />
           </Button>
-          <p className="mt-2 text-center text-[7px] font-bold text-accent">
+          <p className="mt-2 text-center text-[7px] font-extrabold text-accent">
             Consultation
           </p>
         </div>
