@@ -1,10 +1,10 @@
 import { getInitial } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { useForm } from "react-hook-form";
 import { useUser } from "@/context/useUser";
 import PropTypes from "prop-types";
+import { Textarea } from "../ui/textarea";
 
 const ReplyInput = ({
   comment_id,
@@ -58,11 +58,11 @@ const ReplyInput = ({
                   {getInitial(userData?.first_name)}
                 </AvatarFallback>
               </Avatar>
-              <Input
+              <Textarea
                 {...register("reply", { required: true })}
                 name="reply"
                 placeholder="type your reply here"
-              ></Input>
+              ></Textarea>
             </div>
 
             <div className="flex justify-end">

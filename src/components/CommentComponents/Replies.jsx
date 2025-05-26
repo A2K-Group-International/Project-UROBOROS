@@ -21,6 +21,7 @@ import { useUser } from "@/context/useUser";
 import { useEffect, useState } from "react";
 import TriggerLikeIcon from "./TriggerLikeIcon";
 import { useSearchParams } from "react-router-dom";
+import AutoLinkText from "@/lib/AutoLinkText";
 
 const Replies = ({
   reply,
@@ -94,17 +95,79 @@ const Replies = ({
                   />
                 </div>
               </div>
-              <button
-                onClick={() => setIsReplying(true)}
-                className="ml-2 rounded-2xl"
-              >
-                <ReplyIcon className="h-5 w-5 text-accent hover:cursor-pointer" />
-              </button>
+              <div className="flex">
+                {userData?.id === reply?.users?.id && (
+                  <Popover>
+                    <PopoverTrigger>
+                      {/* <img src={kebab} alt="kebab icon" /> */}
+                      <KebabIcon className="h-5 w-5 text-accent" />
+                    </PopoverTrigger>
+                    <PopoverContent
+                      align="center"
+                      className="w-fit overflow-hidden p-0 outline-none"
+                    >
+                      <Button
+                        onClick={() => setEditting(true)}
+                        className="w-full p-3 text-center hover:cursor-pointer"
+                        variant={"ghost"}
+                      >
+                        Edit
+                      </Button>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            className="w-full rounded-none text-center hover:cursor-pointer"
+                            variant={"ghost"}
+                          >
+                            Delete
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px] sm:rounded-3xl">
+                          <DialogHeader>
+                            <DialogTitle>Delete Comment</DialogTitle>
+                            <DialogDescription>
+                              Delete Your Comment Permanently
+                            </DialogDescription>
+                          </DialogHeader>
+                          <DialogFooter>
+                            <DialogClose asChild>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                className="rounded-xl text-accent hover:text-accent"
+                              >
+                                Cancel
+                              </Button>
+                            </DialogClose>
+                            <DialogClose asChild>
+                              <Button
+                                onClick={() => handleDeleteReply(reply.id)}
+                                variant={"destructive"}
+                                type="submit"
+                                className="rounded-xl"
+                              >
+                                Delete
+                              </Button>
+                            </DialogClose>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+                    </PopoverContent>
+                  </Popover>
+                )}
+                <button
+                  onClick={() => setIsReplying(true)}
+                  className="ml-2 rounded-2xl"
+                >
+                  <ReplyIcon className="h-5 w-5 text-accent hover:cursor-pointer" />
+                </button>
+              </div>
             </div>
             <div>
-              <p className="break-all text-sm text-accent">
-                {reply.comment_content}
-              </p>
+              <AutoLinkText
+                className="block whitespace-pre-wrap break-all text-start leading-5 text-accent"
+                text={reply.comment_content}
+              />
               <div className="flex items-center">
                 {/* <TriggerDislikeIcon
                   className="absolute -bottom-4 right-2 w-14 rounded-3xl bg-white p-1"
@@ -121,65 +184,6 @@ const Replies = ({
               </div>
             </div>
           </div>
-        )}
-        {userData?.id === reply?.users?.id && (
-          <Popover>
-            <PopoverTrigger>
-              {/* <img src={kebab} alt="kebab icon" /> */}
-              <KebabIcon className="h-5 w-5 text-accent" />
-            </PopoverTrigger>
-            <PopoverContent
-              align="center"
-              className="w-fit overflow-hidden p-0 outline-none"
-            >
-              <Button
-                onClick={() => setEditting(true)}
-                className="w-full p-3 text-center hover:cursor-pointer"
-                variant={"ghost"}
-              >
-                Edit
-              </Button>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button
-                    className="w-full rounded-none text-center hover:cursor-pointer"
-                    variant={"ghost"}
-                  >
-                    Delete
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px] sm:rounded-3xl">
-                  <DialogHeader>
-                    <DialogTitle>Delete Comment</DialogTitle>
-                    <DialogDescription>
-                      Delete Your Comment Permanently
-                    </DialogDescription>
-                  </DialogHeader>
-                  <DialogFooter>
-                    <DialogClose asChild>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="rounded-xl text-accent hover:text-accent"
-                      >
-                        Cancel
-                      </Button>
-                    </DialogClose>
-                    <DialogClose asChild>
-                      <Button
-                        onClick={() => handleDeleteReply(reply.id)}
-                        variant={"destructive"}
-                        type="submit"
-                        className="rounded-xl"
-                      >
-                        Delete
-                      </Button>
-                    </DialogClose>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </PopoverContent>
-          </Popover>
         )}
       </div>
       <ReplyInput
