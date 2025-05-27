@@ -62,7 +62,7 @@ const Consultation = () => {
             />
             {data?.consultationExist?.user_id === userData?.id && (
               <h1 className="text-center text-2xl font-semibold text-accent">
-                Your preference have been recorded.
+                Your preference has been recorded.
               </h1>
             )}
             {data?.consultationExist?.user_id !== userData?.id && (
