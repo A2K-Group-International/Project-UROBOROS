@@ -19,6 +19,7 @@ import {
 
 import { formatEventDate, formatEventTime } from "@/lib/utils";
 import { Label } from "../ui/label";
+import SaveEventButton from "./SaveEventButton";
 
 const EventCard = ({
   eventId,
@@ -67,16 +68,23 @@ const EventCard = ({
               ? `${formatEventDate(eventDate)} ${formatEventTime(eventTime)}`
               : formatEventDate(eventDate)}
           </Description>
-          {requireAttendance && (
-            <div onClick={(e) => e.stopPropagation()}>
-              <ManualAttendEvents
-                eventId={eventId}
-                eventName={eventName}
-                eventTime={eventTime}
-                eventDate={eventDate}
-              />
-            </div>
-          )}
+          <div>
+            {requireAttendance && (
+              <div onClick={(e) => e.stopPropagation()}>
+                <ManualAttendEvents
+                  eventId={eventId}
+                  eventName={eventName}
+                  eventTime={eventTime}
+                  eventDate={eventDate}
+                />
+              </div>
+            )}
+          </div>
+          <SaveEventButton
+            eventName={eventName}
+            eventDate={eventDate}
+            eventTime={eventTime}
+          />
         </CardContent>
       </Card>
       {/* Full screen event carad */}
