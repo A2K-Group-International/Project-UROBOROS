@@ -165,7 +165,7 @@ const Replies = ({
             </div>
             <div>
               <AutoLinkText
-                className="block whitespace-pre-wrap break-all text-start leading-5 text-accent"
+                className="break-word block whitespace-pre-wrap bg-primary text-start leading-5 text-accent"
                 text={reply.comment_content}
               />
               <div className="flex items-center">
