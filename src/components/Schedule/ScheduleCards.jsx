@@ -47,7 +47,7 @@ const ScheduleCards = ({ event, onEventClick, urlPrms, filter }) => {
             <p className="text-sm leading-tight text-primary-text">
               {event.event_category} - {event.event_visibility}
             </p>
-            {temporaryRole === ROLES[4] && (
+            {(temporaryRole === ROLES[4] || temporaryRole === ROLES[0]) && (
               <p className="text-sm text-primary-text">
                 {`Created by: ${event.creator_id.first_name} ${event.creator_id.last_name}`}
               </p>
