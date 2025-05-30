@@ -406,19 +406,62 @@ export const getEvents = async ({
         filters.id = [];
       }
     } else if (role === "coordinator") {
-      // Coordinators only see events they created
-      // Get all events created by this coordinator
-      const { data: createdEvents } = await supabase
-        .from("events")
-        .select("id")
-        .eq("creator_id", userId);
+      //Find the current user where they are a coordinator
+      const { data: userCoordinator, error: coordinatorError } = await supabase
+        .from("ministry_coordinators")
+        .select("ministry_id")
+        .eq("coordinator_id", userId);
 
-      if (createdEvents?.length > 0) {
-        // If they have created events, set the filter to only show those event IDs
-        filters.id = createdEvents.map((event) => event.id);
+      if (coordinatorError) {
+        throw new Error(
+          `Error fetching coordinator data: ${coordinatorError.message}`
+        );
+      }
+
+      //If user is not a coordinator for any ministry, only show their events
+      if (!userCoordinator || userCoordinator.length === 0) {
+        const { data: userEvents } = await supabase
+          .from("events")
+          .select("id")
+          .eq("creator_id", userId);
+
+        if (userEvents?.length > 0) {
+          filters.id = userEvents.map((event) => event.id);
+        } else {
+          filters.id = [];
+        }
       } else {
-        // If they haven't created any events, return empty results
-        filters.id = []; // This ensures no events will be returned
+        // If user is a coordinator, show all events for their ministries
+        const ministryIds = userCoordinator.map((item) => item.ministry_id);
+
+        const { data: coCoordinators, error: coCoordinatorError } =
+          await supabase
+            .from("ministry_coordinators")
+            .select("coordinator_id")
+            .in("ministry_id", ministryIds)
+            .neq("coordinator_id", userId);
+
+        if (coCoordinatorError) {
+          throw new Error(
+            `Error fetching co-coordinator data: ${coCoordinatorError.message}`
+          );
+        }
+
+        //Get coordinator IDs
+        const allCoordinatorIds = [
+          userId, // Include the current user
+          ...(coCoordinators?.map(
+            (coordinator) => coordinator.coordinator_id
+          ) || []),
+        ];
+
+        // Get events created by the user or by any co-coordinators
+        const { data: sharedEvents } = await supabase
+          .from("events")
+          .select("id")
+          .in("creator_id", allCoordinatorIds);
+
+        filters.id = sharedEvents?.map((event) => event.id) || [];
       }
     } else if (role === "parishioner" || role === "coparent") {
       // Parishioners/coparents see:
