@@ -340,9 +340,12 @@ const Profile = () => {
           <div className="flex items-center justify-between">
             <p>Email Notification</p>
             <Switch
-              defaultChecked={data.is_receiving_notification}
+              checked={data?.email_notifications_enabled}
               onCheckedChange={() =>
-                toggleNotification(userData.id, !data.is_receiving_notification)
+                toggleNotification(
+                  userData.id,
+                  !data.email_notifications_enabled
+                )
               }
             />
           </div>
