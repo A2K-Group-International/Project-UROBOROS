@@ -69,34 +69,51 @@ END:VCALENDAR`;
 
   const getGoogleCalendarUrl = () => {
     try {
-      const startDate = formatCalendarDate(eventDate, eventTime);
-      let endDate;
+      let startDate, endDate;
 
       if (eventTime) {
-        // if has time, create end time 1 hour later
-        const endDateTime = new Date(eventDate);
+        // For timed events - include time zone
+        const startDateTime = new Date(eventDate);
         const timeParts = eventTime.split(":");
 
-        endDateTime.setHours(
+        startDateTime.setHours(
           parseInt(timeParts[0], 10),
           parseInt(timeParts[1], 10),
           parseInt(timeParts[2] || 0, 10)
         );
 
-        // Add 1hour and 30mins in milliseconds
-        const oneHourThirtyMins = (1 * 60 + 30) * 60 * 1000; // 1 hour and 30 minutes in milliseconds
+        // Create end time (1h30m later)
+        const endDateTime = new Date(startDateTime.getTime());
+        const oneHourThirtyMins = (1 * 60 + 30) * 60 * 1000;
         endDateTime.setTime(endDateTime.getTime() + oneHourThirtyMins);
 
-        endDate = endDateTime.toISOString().replace(/-|:|\.\d+/g, "");
+        // Format with time zone info for Google Calendar
+        startDate = startDateTime
+          .toISOString()
+          .replace(/[-:]/g, "")
+          .replace(/\.\d+/g, "");
+        endDate = endDateTime
+          .toISOString()
+          .replace(/[-:]/g, "")
+          .replace(/\.\d+/g, "");
       } else {
-        // For all-day event, set end date is the next day
-        const nextDay = new Date(eventDate);
-        nextDay.setDate(nextDay.getDate() + 1);
-        nextDay.setHours(0, 0, 0, 0); // Set to start of the next day
-        endDate = nextDay.toISOString().replace(/-|:|\.\d+/g, ""); // Format to YYYYMMDD
+        // For all-day events - use date-only format without time (YYYYMMDD)
+        const startDay = new Date(eventDate);
+        startDay.setHours(0, 0, 0, 0);
+
+        const endDay = new Date(eventDate);
+        endDay.setDate(endDay.getDate() + 1); // End date is exclusive in Google Calendar
+        endDay.setHours(0, 0, 0, 0);
+
+        // Format as YYYYMMDD (no time component for all-day events)
+        startDate = startDay.toISOString().slice(0, 10).replace(/-/g, "");
+        endDate = endDay.toISOString().slice(0, 10).replace(/-/g, "");
       }
 
-      return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(eventName)}&dates=${startDate}/${endDate}`;
+      // Add time zone parameter for accurate time display
+      const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+      return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(eventName)}&dates=${startDate}/${endDate}&ctz=${encodeURIComponent(userTimeZone)}`;
     } catch (error) {
       console.error("Error generating Google Calendar URL:", error);
       return "#"; // Fallback URL
@@ -125,7 +142,11 @@ END:VCALENDAR`;
       } else {
         // For all-day events
         endDate = new Date(eventDate);
-        endDate.setDate(endDate.getDate() + 1);
+
+        if (isMobileDevice()) {
+          startDate.setHours(0, 0, 0, 0);
+          endDate.setHours(23, 59, 59, 0);
+        }
       }
 
       // Format dates for Outlook (ISO format)
