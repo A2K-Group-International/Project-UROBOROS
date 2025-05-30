@@ -3,6 +3,7 @@ import { fetchUserById, updateContact } from "@/services/authService";
 import { toast } from "./use-toast";
 import {
   sendChangeEmailVerification,
+  toggleNotification,
   updateEmail,
   updateName,
 } from "@/services/userService";
@@ -50,7 +51,7 @@ export const useProfileChange = ({
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries(["fetchUser",user_id]);
+      queryClient.invalidateQueries(["fetchUser", user_id]);
       setIsDialogOpen(false);
     },
   });
@@ -73,7 +74,7 @@ export const useProfileChange = ({
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries(["fetchUser",user_id]);
+      queryClient.invalidateQueries(["fetchUser", user_id]);
     },
   });
 
@@ -93,7 +94,7 @@ export const useProfileChange = ({
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries(["fetchUser",user_id]);
+      queryClient.invalidateQueries(["fetchUser", user_id]);
       setIsEmailDialogOpen(false);
     },
   });
@@ -114,7 +115,7 @@ export const useProfileChange = ({
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries(["fetchUser",user_id]);
+      queryClient.invalidateQueries(["fetchUser", user_id]);
       setIsNameDialogOpen(false);
     },
   });
@@ -142,6 +143,25 @@ export const useProfileChange = ({
       data.subscription.unsubscribe();
     };
   }, [data]);
+  const toggleNotificationMutation = useMutation({
+    mutationFn: async (data) => toggleNotification(data),
+    onSuccess: () => {
+      toast({
+        title: "Notification has been updated",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error Updating Notification",
+        description:
+          error?.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries(["fetchUser", user_id]);
+    },
+  });
 
   return {
     sendEmailLinkMutation,
@@ -150,5 +170,6 @@ export const useProfileChange = ({
     isLoading,
     updateEmailMutation,
     updateNameMutation,
+    toggleNotificationMutation,
   };
 };

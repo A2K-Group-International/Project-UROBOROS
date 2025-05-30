@@ -1,15 +1,14 @@
-
 import { Button } from "../ui/button";
-import { Input } from "../ui/input";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import PropTypes from "prop-types";
+import { Textarea } from "../ui/textarea";
 
- const EditCommentForm = ({
+const EditCommentForm = ({
   comment_id,
   setEditting,
   InputDefaultValue,
-  handleUpdateComment
+  handleUpdateComment,
 }) => {
   const { register, handleSubmit, setValue } = useForm();
   // const { handleUpdateComment } = useComment(announcement_id);
@@ -22,14 +21,11 @@ import PropTypes from "prop-types";
   return (
     <form
       onSubmit={handleSubmit((inputs) =>
-        handleUpdateComment(inputs, comment_id,setEditting)
+        handleUpdateComment(inputs, comment_id, setEditting)
       )}
-      className="mb-2 flex p-1 w-full flex-col gap-2"
+      className="mb-2 flex w-full flex-col gap-2 p-1"
     >
-      <Input
-        {...register("comment", { required: true })}
-        name="comment"
-      />
+      <Textarea {...register("comment", { required: true })} name="comment" />
       <div className="flex justify-end gap-2">
         <Button
           type="button"
@@ -38,20 +34,19 @@ import PropTypes from "prop-types";
         >
           Cancel
         </Button>
-        <Button type="submit" className="bg-accent hover:bg-blue-500">
+        <Button type="submit" className="hover:bg-blue-500 bg-accent">
           Save
         </Button>
       </div>
     </form>
   );
-}
+};
 
 EditCommentForm.propTypes = {
-  comment_id: PropTypes.string
-    .isRequired,
+  comment_id: PropTypes.string.isRequired,
   setEditting: PropTypes.func.isRequired,
   InputDefaultValue: PropTypes.string,
   handleUpdateComment: PropTypes.func.isRequired,
 };
 
-export default EditCommentForm
+export default EditCommentForm;

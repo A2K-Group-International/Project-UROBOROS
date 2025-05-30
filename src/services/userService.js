@@ -221,6 +221,18 @@ const updateName = async ({ userId, first_name, last_name }) => {
     throw new Error("Error pupdating parent name", error.message);
   }
 };
+const toggleNotification = async ({ userId, isReceivingNotification }) => {
+  const { error } = await supabase
+    .from("users")
+    .update({
+      email_notifications_enabled: isReceivingNotification,
+    })
+    .eq("id", userId);
+
+  if (error) {
+    throw new Error("Error updating notification!", error.message);
+  }
+};
 
 export {
   getUser,
@@ -235,4 +247,5 @@ export {
   updateEmail,
   updateName,
   resetPassword,
+  toggleNotification,
 };

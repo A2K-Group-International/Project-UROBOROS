@@ -29,6 +29,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import Replies from "./Replies";
 import TriggerLikeIcon from "./TriggerLikeIcon";
 import { useSearchParams } from "react-router-dom";
+import AutoLinkText from "@/lib/AutoLinkText";
 
 const CommentDetails = ({
   announcement_id,
@@ -75,11 +76,11 @@ const CommentDetails = ({
         {!isEditting ? (
           <div
             className={cn(
-              "relative flex flex-col justify-between rounded-3xl bg-primary px-5 pb-5 pt-3",
+              "relative rounded-3xl bg-primary px-5 pb-5 pt-3",
               highlighted && "border border-accent"
             )}
           >
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-shrink items-center justify-between gap-2">
               <div>
                 <p className="text-sm font-bold text-accent opacity-80">{`${comment.users?.first_name} ${comment.users?.last_name}`}</p>
                 <CommentDate
@@ -154,9 +155,10 @@ const CommentDetails = ({
                 </button>
               </div>
             </div>
-            <div className="break-all text-accent">
-              {comment.comment_content}
-            </div>
+            <AutoLinkText
+              className="break-word block whitespace-pre-wrap text-start text-sm leading-5 text-accent"
+              text={comment.comment_content}
+            />
 
             <div className="flex items-center">
               <TriggerLikeIcon

@@ -28,6 +28,7 @@ import {
 import Loading from "@/components/Loading";
 import { Label } from "@/components/ui/label";
 import { Link } from "react-router-dom";
+import { Switch } from "@/components/ui/switch";
 
 const Profile = () => {
   const { userData } = useUser();
@@ -59,6 +60,7 @@ const Profile = () => {
   });
 
   const {
+    toggleNotificationMutation,
     updateNameMutation,
     sendEmailLinkMutation,
     updateContactMutation,
@@ -97,6 +99,12 @@ const Profile = () => {
     updateContactMutation.mutate({
       userId: userData?.id,
       newContactNumber: newContact.contact_number,
+    });
+  };
+  const toggleNotification = async (userId, isReceivingNotification) => {
+    toggleNotificationMutation.mutate({
+      userId,
+      isReceivingNotification,
     });
   };
 
@@ -329,6 +337,18 @@ const Profile = () => {
             </Dialog>
           </div>
           <p className="text-gray-700">{data?.contact_number}</p>
+          <div className="flex items-center justify-between">
+            <p>Email Notification</p>
+            <Switch
+              checked={data?.email_notifications_enabled}
+              onCheckedChange={() =>
+                toggleNotification(
+                  userData.id,
+                  !data.email_notifications_enabled
+                )
+              }
+            />
+          </div>
         </div>
         <div className="flex justify-end">
           <Link
