@@ -76,7 +76,7 @@ const CommentDetails = ({
         {!isEditting ? (
           <div
             className={cn(
-              "relative rounded-3xl px-5 pb-5 pt-3",
+              "relative rounded-3xl bg-primary px-5 pb-5 pt-3",
               highlighted && "border border-accent"
             )}
           >
@@ -156,7 +156,7 @@ const CommentDetails = ({
               </div>
             </div>
             <AutoLinkText
-              className="block whitespace-pre-wrap break-all text-start leading-5 text-accent"
+              className="break-word block whitespace-pre-wrap text-start text-sm leading-5 text-accent"
               text={comment.comment_content}
             />
 
