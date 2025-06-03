@@ -32,6 +32,8 @@ const App = () => {
         <Route path="/feedback/success" element={<FeedBackSuccess />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/accept-invite" element={<AcceptInvite />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+
         {/* Protected Routes */}
         <Route element={<MainLayout />}>
           {/* ========================================================= */}
@@ -59,7 +61,6 @@ const App = () => {
             <Route path="/announcements" element={<Announcements />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/ministries" element={<Ministries />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/events" element={<Events />} />
             <Route path="/family" element={<Family />} />
             <Route path="/consultation" element={<Consultation />} />
