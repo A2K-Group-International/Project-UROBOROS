@@ -8,7 +8,6 @@ import MainLayout from "@/layouts/main-layout";
 import Announcements from "@/pages/Announcements";
 import Family from "@/pages/Family";
 import Events from "@/pages/Events";
-import Profile from "@/pages/Profile";
 import PrivacyPolicy from "@/pages/Privacy-Policy";
 
 import RequireRole from "@/components/RequireRole";
@@ -20,6 +19,7 @@ import SendFeedback from "./pages/SendFeedback";
 import FeedBackSuccess from "./pages/FeedBackSuccess";
 import Feedback from "./pages/Feedback";
 import Consultation from "./pages/Consultation";
+import Profile from "./pages/Profile";
 
 const App = () => {
   return (
@@ -32,6 +32,8 @@ const App = () => {
         <Route path="/feedback/success" element={<FeedBackSuccess />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/accept-invite" element={<AcceptInvite />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+
         {/* Protected Routes */}
         <Route element={<MainLayout />}>
           {/* ========================================================= */}
@@ -59,7 +61,6 @@ const App = () => {
             <Route path="/announcements" element={<Announcements />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/ministries" element={<Ministries />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/events" element={<Events />} />
             <Route path="/family" element={<Family />} />
             <Route path="/consultation" element={<Consultation />} />

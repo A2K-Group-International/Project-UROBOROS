@@ -1,22 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import PropTypes from "prop-types";
+import parishBanner from "../assets/images/SaintLaurence_bg.png";
 import { useUser } from "@/context/useUser";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getInitial } from "@/lib/utils";
-import { useProfileChange } from "@/hooks/useProfileChange";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogTrigger,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+
 import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import {
   Form,
   FormControl,
@@ -25,342 +15,609 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import Loading from "@/components/Loading";
+
+import {
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Input, PasswordInput } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Link } from "react-router-dom";
-import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
+
+import useProfile from "@/hooks/useProfile";
+import { Icon } from "@iconify/react";
+
+const nameSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+});
+
+const emailSchema = z.object({
+  email: z.string().email(),
+});
+
+const contactSchema = z.object({
+  contactNumber: z
+    .string()
+    .trim()
+    .refine(
+      (value) => {
+        // Remove all spaces, dashes, and parentheses
+        const cleaned = value.replace(/[\s\-()]/g, "");
+
+        // UK numbers can start with:
+        // - 07 for mobile (followed by 9 digits)
+        // - 01, 02, 03 for landlines (followed by 9 digits)
+        // - +44 or 0044 international format (followed by 10 digits, removing the initial 0)
+
+        // Check if it's a valid UK format
+        const mobileRegex = /^07\d{9}$/; // Mobile: 07xxx xxx xxx
+        const landlineRegex = /^0(1|2|3)\d{9}$/; // Landline: 01xxx xxx xxx, 02xxx xxx xxx, 03xxx xxx xxx
+        const internationalRegex = /^(\+44|0044)\d{10}$/; // International: +44 xxxx xxx xxx or 0044 xxxx xxx xxx
+
+        return (
+          mobileRegex.test(cleaned) ||
+          landlineRegex.test(cleaned) ||
+          internationalRegex.test(cleaned)
+        );
+      },
+      {
+        message: "Please enter a valid contact number",
+      }
+    ),
+});
+
+const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "you must input your current password."),
+    password: z.string().min(6, "Password must be 6 digits"),
+    confirmPassword: z.string().min(1, "Retype your password"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "password must be match",
+    path: ["confirmPassword"],
+  });
 
 const Profile = () => {
   const { userData } = useUser();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isemailDialogOpen, setIsEmailDialogOpen] = useState(false);
-  const [iseNameDialogOpen, setIsNameDialogOpen] = useState(false);
 
-  const contactSchema = z.object({
-    contact_number: z.string().regex(/^[0-9]{11}$/, {
-      message: "Contact number must be exactly 11 digits.",
-    }),
-  });
-  const nameSchema = z.object({
-    first_name: z.string().min(1, "First name is required."),
-    last_name: z.string().min(1, "First name is required."),
-  });
-
-  const emailSchema = z.object({
-    email: z.string().email(),
-  });
-
-  const emailForm = useForm({
-    resolver: zodResolver(emailSchema),
-    defaultValues: { email: "" },
-  });
-  const form = useForm({
-    resolver: zodResolver(contactSchema),
-    defaultValues: { contact_number: "" },
-  });
-
-  const {
-    toggleNotificationMutation,
-    updateNameMutation,
-    sendEmailLinkMutation,
-    updateContactMutation,
-    data,
-    isLoading,
-  } = useProfileChange({
+  const { data, isLoading } = useProfile({
     user_id: userData?.id,
-    setIsDialogOpen,
-    setIsEmailDialogOpen,
-    setIsNameDialogOpen,
-    form,
-    emailForm,
   });
 
-  const nameForm = useForm({
-    resolver: zodResolver(nameSchema),
-    defaultValues: {
-      first_name: "",
-      last_name: "",
-    },
-  });
-  // after the userData is fetched it will set the initial value of the fields
-  useEffect(() => {
-    if (userData) {
-      nameForm.reset({
-        first_name: userData.first_name,
-        last_name: userData.last_name,
-      });
-      form.reset({
-        contact_number: userData.contact_number,
-      });
-    }
-  }, [userData, nameForm]);
+  const initials = useMemo(() => {
+    return `${getInitial(data?.first_name)}${getInitial(data?.last_name)}`;
+  }, [data?.first_name, data?.last_name]);
 
-  const handleUpdateContact = (newContact) => {
-    updateContactMutation.mutate({
-      userId: userData?.id,
-      newContactNumber: newContact.contact_number,
-    });
-  };
-  const toggleNotification = async (userId, isReceivingNotification) => {
-    toggleNotificationMutation.mutate({
-      userId,
-      isReceivingNotification,
-    });
-  };
-
-  const handleSendEmailVerification = (data) => {
-    localStorage.setItem("newEmail", data.email);
-    sendEmailLinkMutation.mutate({
-      email: data.email,
-    });
-  };
-  const handleUpdateName = (data) => {
-    updateNameMutation.mutate({
-      userId: userData?.id,
-      first_name: data.first_name,
-      last_name: data.last_name,
-    });
-  };
-
-  const initials = `${getInitial(data?.first_name)}${getInitial(data?.last_name)}`;
-
-  if (isLoading || !userData || !data) {
-    return <Loading />;
+  if (isLoading || !userData) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="animate-spin" />
+      </div>
+    );
   }
 
   return (
-    <div className="bg-gray-50 flex h-screen items-center justify-center">
-      <div className="w-full max-w-md space-y-6 rounded-lg bg-white p-6 shadow-md">
-        {/* Avatar Section */}
-        <div className="flex flex-col items-center space-y-2">
-          <Avatar className="h-16 w-16">
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
-        </div>
-
-        {/* Display Fields */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Label>Name</Label>
-            <Dialog open={iseNameDialogOpen} onOpenChange={setIsNameDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>Edit</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Edit Name</DialogTitle>
-                </DialogHeader>
-
-                <Form {...nameForm}>
-                  <form onSubmit={nameForm.handleSubmit(handleUpdateName)}>
-                    <FormField
-                      control={nameForm.control}
-                      name="first_name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>First Name</FormLabel>
-                          <FormControl>
-                            <Input
-                              className="text-accent"
-                              type="text"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={nameForm.control}
-                      name="last_name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Last Name</FormLabel>
-                          <FormControl>
-                            <Input
-                              className="text-accent"
-                              type="text"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <DialogFooter className={"mt-4"}>
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        onClick={() => setIsNameDialogOpen(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        type="submit"
-                        disabled={updateNameMutation.isPending}
-                      >
-                        {updateNameMutation.isPending
-                          ? "Updating..."
-                          : "Update"}
-                      </Button>
-                    </DialogFooter>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
-          </div>
-          <p className="text-gray-700">{`${data?.first_name} ${data?.last_name}`}</p>
-
-          <div className="flex items-center justify-between">
-            <label className="text-gray-700 block text-sm font-medium">
-              Email
-            </label>
-
-            <Dialog
-              open={isemailDialogOpen}
-              onOpenChange={setIsEmailDialogOpen}
-            >
-              <DialogTrigger asChild>
-                <Button>Edit</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Edit Email</DialogTitle>
-                  <DialogDescription className="text-xs">
-                    When you click the send change email verification, it will
-                    send an email to your current and new email. You must click
-                    the link on both emails to change your email.
-                  </DialogDescription>
-                </DialogHeader>
-
-                <Form {...emailForm}>
-                  <form
-                    onSubmit={emailForm.handleSubmit(
-                      handleSendEmailVerification
-                    )}
-                  >
-                    <FormField
-                      control={emailForm.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>New Email Address</FormLabel>
-                          <FormControl>
-                            <Input
-                              className="text-accent"
-                              type="text"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <DialogFooter className={"mt-4"}>
-                      <Button
-                        className="w-full"
-                        type="submit"
-                        disabled={sendEmailLinkMutation.isPending}
-                      >
-                        {sendEmailLinkMutation.isPending
-                          ? "Sending Change Email Verification..."
-                          : "Send Change Email Verification"}
-                      </Button>
-                    </DialogFooter>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
-          </div>
-          <p className="text-gray-700">{data?.email}</p>
-
-          <div className="flex items-center justify-between">
-            <label className="text-gray-700 block text-sm font-medium">
-              Contact Number
-            </label>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button onClick={form.setValue(data?.contact_number)}>
-                  Edit
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Edit Contact Number</DialogTitle>
-                </DialogHeader>
-                <div className="mt-4 space-y-4">
-                  <Form {...form}>
-                    <form
-                      onSubmit={form.handleSubmit((data) => {
-                        handleUpdateContact(data);
-                      })}
-                    >
-                      <FormField
-                        control={form.control}
-                        name="contact_number"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Contact Number</FormLabel>
-                            <FormControl>
-                              <Input
-                                className="text-accent"
-                                placeholder="Contact Number"
-                                type="text"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <DialogFooter className={"mt-4"}>
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          onClick={() => setIsDialogOpen(false)}
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          type="submit"
-                          disabled={updateContactMutation.isPending}
-                        >
-                          {updateContactMutation.isPending
-                            ? "Updating..."
-                            : "Update"}
-                        </Button>
-                      </DialogFooter>
-                    </form>
-                  </Form>
-                </div>{" "}
-              </DialogContent>
-            </Dialog>
-          </div>
-          <p className="text-gray-700">{data?.contact_number}</p>
-          <div className="flex items-center justify-between">
-            <p>Email Notification</p>
-            <Switch
-              checked={data?.email_notifications_enabled}
-              onCheckedChange={() =>
-                toggleNotification(
-                  userData.id,
-                  !data.email_notifications_enabled
-                )
-              }
-            />
+    <>
+      <div className="flex flex-col gap-y-28 md:gap-y-40">
+        {/* Banner */}
+        <div
+          className="relative h-32 w-full rounded-xl bg-cover bg-no-repeat md:h-60"
+          style={{
+            backgroundImage: `url(${parishBanner})`,
+            backgroundPosition: "center 87%",
+          }}
+        >
+          {/* Avatar */}
+          <div className="absolute -bottom-14 left-3 flex items-center gap-x-2 md:-bottom-16 md:left-16 lg:-bottom-20 lg:left-24">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full border-[7px] border-white bg-accent text-white md:h-32 md:w-32 lg:h-40 lg:w-40">
+              {`${initials}` || "?"}
+            </div>
+            <div className="mt-10 flex flex-wrap items-center gap-x-4 md:mt-16 md:text-4xl lg:mt-20 lg:text-5xl">
+              <p className="text-lg font-bold text-accent">{`${data?.first_name} ${data?.last_name}`}</p>
+              <EditNameForm
+                userId={data?.id}
+                firstName={data?.first_name}
+                lastName={data?.last_name}
+              />
+            </div>
           </div>
         </div>
-        <div className="flex justify-end">
-          <Link
-            to={"/reset-password"}
-            className="mt-4 cursor-pointer hover:underline"
-          >
-            Change Password
-          </Link>
+        {/* Information */}
+        <div className="md:px-32 lg:pl-48 lg:pr-72">
+          <div className="flex flex-col gap-y-4">
+            <Label className="text-sm font-bold text-accent/75">Email</Label>
+            <div className="flex items-center justify-between rounded-xl bg-[#FDFBFA] px-6 py-5 font-semibold text-accent">
+              <p>{data?.email || "No email provided"}</p>
+              <EditEmailForm userId={data?.id} />
+            </div>
+            <Label className="text-sm font-bold text-accent/75">Contact</Label>
+            <div className="flex items-center justify-between rounded-xl bg-[#FDFBFA] px-6 py-5 font-semibold text-accent">
+              <p>{data?.contact_number}</p>
+              <ContactForm userId={data?.id} />
+            </div>
+            <div className="mt-4 flex justify-end">
+              <ChangePasswordButton userId={data?.id} />
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
+};
+
+const EditNameForm = ({ userId, firstName, lastName }) => {
+  const [isNameDialogOpen, setIsNameDialogOpen] = useState(false);
+
+  const form = useForm({
+    resolver: zodResolver(nameSchema),
+    defaultValues: {
+      firstName: firstName || "",
+      lastName: lastName || "",
+    },
+  });
+
+  // Get the mutation from your hook
+  const { updateNameMutation } = useProfile({
+    user_id: userId,
+  });
+
+  const onSubmit = (values) => {
+    updateNameMutation.mutate(
+      {
+        user_id: userId,
+        first_name: values.firstName,
+        last_name: values.lastName,
+      },
+      {
+        onSuccess: () => {
+          setIsNameDialogOpen(false);
+          form.reset();
+        },
+      }
+    );
+  };
+
+  // This useEffect will update the form values when props change
+  useEffect(() => {
+    form.reset({
+      firstName: firstName || "",
+      lastName: lastName || "",
+    });
+  }, [firstName, lastName, form]);
+
+  return (
+    <AlertDialog
+      open={isNameDialogOpen}
+      onOpenChange={(open) => {
+        setIsNameDialogOpen(open);
+
+        if (!open) {
+          form.reset();
+        }
+      }}
+    >
+      <AlertDialogTrigger asChild>
+        <Button
+          variant="outline"
+          className="text-accent hover:text-accent"
+          size="sm"
+        >
+          <Icon icon="mingcute:edit-2-line" height={20} width={20} />
+          Edit
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Update your name</AlertDialogTitle>
+          <AlertDialogDescription>
+            Change your name to keep your profile up to date.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogBody>
+          <Form {...form}>
+            <form id="name-form" onSubmit={form.handleSubmit(onSubmit)}>
+              <FormField
+                control={form.control}
+                name="firstName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>First Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="lastName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Last Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </form>
+          </Form>
+        </AlertDialogBody>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <Button type="submit" form="name-form" className="flex-1">
+            Update
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};
+
+EditNameForm.propTypes = {
+  userId: PropTypes.string,
+  firstName: PropTypes.string,
+  lastName: PropTypes.string,
+};
+
+const EditEmailForm = ({ userId }) => {
+  const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
+  const [cooldownTime, setCooldownTime] = useState(0);
+  const [lastEmail, setLastEmail] = useState("");
+
+  const form = useForm({
+    resolver: zodResolver(emailSchema),
+    defaultValues: {
+      email: "",
+    },
+  });
+
+  const { sendEmailLinkMutation } = useProfile({
+    user_id: userId,
+  });
+
+  const onSubmit = (values) => {
+    localStorage.setItem("newEmail", values.email);
+    setLastEmail(values.email);
+    setCooldownTime(60);
+    sendEmailLinkMutation.mutate({
+      email: values.email,
+    });
+  };
+
+  // Resend handler
+  const handleResend = () => {
+    if (cooldownTime === 0 && lastEmail) {
+      setCooldownTime(60); // Reset the cooldown
+      sendEmailLinkMutation.mutate({ email: lastEmail });
+    }
+  };
+
+  // Handle countdown timer
+  useEffect(() => {
+    let timer;
+    if (cooldownTime > 0) {
+      timer = setTimeout(() => {
+        setCooldownTime(cooldownTime - 1);
+      }, 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [cooldownTime]);
+
+  return (
+    <AlertDialog
+      open={isEmailDialogOpen}
+      onOpenChange={(open) => {
+        setIsEmailDialogOpen(open);
+        // Reset form and cooldown when dialog is closed
+        if (!open) {
+          form.reset();
+          setCooldownTime(0);
+          setLastEmail("");
+        }
+      }}
+    >
+      <AlertDialogTrigger>Edit</AlertDialogTrigger>
+
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Update Your Email Address</AlertDialogTitle>
+          <AlertDialogDescription>
+            When you click &quot;Send Change Email Verification,&quot; an email
+            will be sent to both your current and new email addresses. You must
+            click the link in both emails to complete the change.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogBody>
+          <Form {...form}>
+            <form id="email-form" onSubmit={form.handleSubmit(onSubmit)}>
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>New Email Address</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </form>
+          </Form>
+        </AlertDialogBody>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          {cooldownTime > 0 || lastEmail ? (
+            <Button
+              type="button"
+              onClick={handleResend}
+              disabled={cooldownTime > 0 || sendEmailLinkMutation.isPending}
+            >
+              {sendEmailLinkMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                `Resend Verification ${cooldownTime > 0 ? `(${cooldownTime})` : ""}`
+              )}
+            </Button>
+          ) : (
+            <Button
+              type="submit"
+              form="email-form"
+              disabled={sendEmailLinkMutation.isPending}
+            >
+              {sendEmailLinkMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                "Send Change Email Verification"
+              )}
+            </Button>
+          )}
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};
+
+EditEmailForm.propTypes = {
+  userId: PropTypes.string,
+};
+
+const ContactForm = ({ userId }) => {
+  const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
+
+  const { updateContactMutation } = useProfile({
+    user_id: userId,
+  });
+
+  const form = useForm({
+    resolver: zodResolver(contactSchema),
+    defaultValues: {
+      contactNumber: "",
+    },
+  });
+
+  const handleUpdateContact = (data) => {
+    updateContactMutation.mutate(
+      {
+        userId,
+        newContactNumber: data.contactNumber,
+      },
+      {
+        onSuccess: () => {
+          setIsContactDialogOpen(false);
+        },
+      }
+    );
+  };
+
+  return (
+    <AlertDialog
+      open={isContactDialogOpen}
+      onOpenChange={setIsContactDialogOpen}
+    >
+      <AlertDialogTrigger>Edit</AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Update Your Contact Number</AlertDialogTitle>
+          <AlertDialogDescription>
+            When you click &quot;Update Contact Number,&quot; your contact
+            number will be updated in our records.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogBody>
+          <Form {...form}>
+            <form
+              id="contact-form"
+              onSubmit={form.handleSubmit(handleUpdateContact)}
+            >
+              <FormField
+                control={form.control}
+                name="contactNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Contact Number</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </form>
+          </Form>
+        </AlertDialogBody>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Close</AlertDialogCancel>
+          <Button type="submit" form="contact-form" className="flex-1">
+            Update
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};
+
+ContactForm.propTypes = {
+  userId: PropTypes.string,
+};
+
+const ChangePasswordButton = ({ userId }) => {
+  const [changePasswordDialogOpen, setChangePasswordDialogOpen] =
+    useState(false);
+  const form = useForm({
+    resolver: zodResolver(changePasswordSchema),
+    defaultValues: {
+      currentPassword: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
+
+  const { updatePasswordMutation } = useProfile({
+    user_id: userId,
+  });
+
+  const onSubmit = (values) => {
+    updatePasswordMutation.mutate(
+      {
+        currentPassword: values.currentPassword,
+        password: values.password,
+      },
+      {
+        onSuccess: () => {
+          setChangePasswordDialogOpen(false);
+          form.reset();
+        },
+      }
+    );
+  };
+
+  return (
+    <AlertDialog
+      open={changePasswordDialogOpen}
+      onOpenChange={(open) => {
+        setChangePasswordDialogOpen(open);
+
+        if (!open) {
+          form.reset();
+        }
+      }}
+    >
+      <AlertDialogTrigger asChild>
+        <Button>Update Password</Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Update your password</AlertDialogTitle>
+          <AlertDialogDescription>
+            Update your password to keep your account secure. Make sure to
+            choose a strong password that you haven&apos;t used before.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogBody>
+          <Form {...form}>
+            <form
+              id="password-form"
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="space-y-4"
+            >
+              <FormField
+                control={form.control}
+                name="currentPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Current Password</FormLabel>
+                    <FormControl>
+                      <PasswordInput
+                        {...field}
+                        disabled={updatePasswordMutation.isPending}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>New Password</FormLabel>
+                    <FormControl>
+                      <PasswordInput
+                        {...field}
+                        disabled={updatePasswordMutation.isPending}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm New Password</FormLabel>
+                    <FormControl>
+                      <PasswordInput
+                        {...field}
+                        disabled={updatePasswordMutation.isPending}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </form>
+          </Form>
+        </AlertDialogBody>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <Button
+            type="submit"
+            form="password-form"
+            disabled={updatePasswordMutation.isPending}
+            className="flex-1"
+          >
+            {updatePasswordMutation.isPending ? (
+              <>
+                <Loader2 className="animate-spin" />
+                Updating...
+              </>
+            ) : (
+              "Update Password"
+            )}
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};
+
+ChangePasswordButton.propTypes = {
+  userId: PropTypes.string,
 };
 
 export default Profile;
