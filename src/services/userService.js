@@ -132,21 +132,41 @@ const forgotPassword = async (email) => {
   }
 };
 
-const updatePassword = async ({ email, currentPassword, password }) => {
-  const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password: currentPassword,
-  });
+const updatePassword = async ({ currentPassword, password }) => {
+  try {
+    // Get current user session
+    const {
+      data: { user },
+      error: sessionError,
+    } = await supabase.auth.getUser();
 
-  if (error) {
-    throw new Error("current password is incorrect.");
-  }
+    if (sessionError) {
+      throw new Error("Failed to get user session: ", sessionError.message);
+    }
+    // Ensure the user is logged in
+    if (!user) {
+      throw new Error("User is not logged in.");
+    }
+    // Verify the current password
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: currentPassword,
+    });
 
-  // If login is successful, the current password is correct
-  const { error: updateError } = await supabase.auth.updateUser({
-    password,
-  });
-  if (updateError) {
+    if (signInError) {
+      throw new Error("Current password is incorrect.");
+    }
+
+    // Update the password
+    const { error: updateError } = await supabase.auth.updateUser({
+      password,
+    });
+
+    if (updateError) {
+      throw new Error("Failed to update password: ", updateError.message);
+    }
+  } catch (error) {
+    console.error("Error updating password:", error.message);
     throw error;
   }
 };
@@ -161,27 +181,35 @@ const resetPassword = async ({ password }) => {
 };
 
 const sendChangeEmailVerification = async (email) => {
-  const { data } = await supabase
-    .from("users")
-    .select("id")
-    .eq("email", email)
-    .single();
+  try {
+    // 1. Check if email already exists in "users" table
+    const { data, error: fetchError } = await supabase
+      .from("users")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
 
-  if (data) {
-    throw new Error("email already exist. Please use another email");
-  }
-
-  const { error } = await supabase.auth.updateUser(
-    {
-      email,
-    },
-    {
-      emailRedirectTo: "https://portal.saintlaurence.org.uk/profile",
+    if (data) {
+      throw new Error("This email already exists. Please use another one.");
     }
-  );
 
-  if (error) {
-    throw new Error("Error updating email", error.message);
+    if (fetchError && fetchError.code !== "PGRST116") {
+      // PGRST116 = No rows found, which is OK here
+      throw new Error(fetchError.message);
+    }
+
+    // 2. Try to update the user email
+    const { error: updateError } = await supabase.auth.updateUser(
+      { email },
+      { emailRedirectTo: "https://portal.saintlaurence.org.uk/profile" }
+    );
+
+    if (updateError) {
+      throw new Error(updateError.message);
+    }
+  } catch (error) {
+    console.error("Error sending change email verification:", error.message);
+    throw error;
   }
 };
 
@@ -196,14 +224,14 @@ const updateEmail = async ({ user_id, email }) => {
   }
 };
 
-const updateName = async ({ userId, first_name, last_name }) => {
+const updateName = async ({ user_id, first_name, last_name }) => {
   const { error } = await supabase
     .from("users")
     .update({
       first_name,
       last_name,
     })
-    .eq("id", userId);
+    .eq("id", user_id);
 
   if (error) {
     throw new Error("Error updating name!", error.message);
@@ -215,7 +243,7 @@ const updateName = async ({ userId, first_name, last_name }) => {
       first_name,
       last_name,
     })
-    .eq("parishioner_id", userId);
+    .eq("parishioner_id", user_id);
 
   if (parentError) {
     throw new Error("Error pupdating parent name", error.message);

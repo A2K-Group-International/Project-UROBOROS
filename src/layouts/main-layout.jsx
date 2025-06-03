@@ -24,7 +24,8 @@ const MainLayout = () => {
         </div>
         <div
           className={cn("absolute bottom-28 right-5 z-50", {
-            hidden: url.pathname === "/consultation",
+            hidden:
+              url.pathname === "/consultation" || url.pathname === "/profile",
           })}
         >
           <ConsultationButton isMobile={true} />
