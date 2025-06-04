@@ -6,6 +6,12 @@ const AddPollSchema = z.object({
 
   // Step 2: Poll Description
   pollDescription: z.string().min(0, ""),
+
+  // Step 3: Poll Dates
+  pollDates: z
+    .array(z.date())
+    .min(1, "Please select at least one date")
+    .default([]),
 });
 
 export default AddPollSchema;

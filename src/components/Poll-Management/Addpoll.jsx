@@ -25,6 +25,8 @@ import {
 } from "@/components/ui/form";
 import AddPollSchema from "@/zodSchema/Poll-management/AddPollSchema";
 import { Textarea } from "../ui/textarea";
+import { Calendar } from "../ui/calendar";
+import { format } from "date-fns";
 
 const Addpoll = () => {
   const [openPollDialog, setOpenPollDialog] = useState(false);
@@ -52,6 +54,7 @@ const Addpoll = () => {
     defaultValues: {
       pollName: "",
       pollDescription: "",
+      pollDates: [],
     },
     mode: "onChange",
   });
@@ -65,6 +68,9 @@ const Addpoll = () => {
         break;
       case 2:
         isValid = await form.trigger("pollDescription");
+        break;
+      case 3:
+        isValid = await form.trigger("pollDates");
         break;
       default:
         isValid = true;
@@ -196,13 +202,13 @@ const RenderContent = ({ currentStep, form }) => {
             description="Make your poll easy to identify by giving it a descriptive name."
           />
           <FormField
+            key="pollName"
             control={control}
             name="pollName"
             render={({ field }) => (
               <FormItem className="mt-4">
                 <FormControl>
                   <Input
-                    value={form.getValues("pollName")}
                     placeholder="Poll Name"
                     className="w-full"
                     {...field}
@@ -222,14 +228,15 @@ const RenderContent = ({ currentStep, form }) => {
             description="Add a description to provide more context about your poll."
           />
           <FormField
+            key="pollDescription"
             control={control}
             name="pollDescription"
             render={({ field }) => (
               <FormItem className="mt-4">
                 <FormControl>
                   <Textarea
-                    value={form.getValues("pollDescription")}
                     placeholder="Add description..."
+                    className="min-h-[100px]"
                     {...field}
                   />
                 </FormControl>
@@ -246,6 +253,55 @@ const RenderContent = ({ currentStep, form }) => {
           <RenderDescription
             title="Add dates to your poll"
             description="Specify the dates relevant to this poll."
+          />
+          <FormField
+            key="pollDates"
+            control={control}
+            name="pollDates"
+            render={({ field }) => (
+              <FormItem className="mt-4">
+                <FormControl>
+                  <Calendar
+                    mode="multiple"
+                    selected={field.value}
+                    onSelect={field.onChange}
+                    className="rounded-lg border border-primary"
+                  />
+                </FormControl>
+                {field.value?.length > 0 && (
+                  <div>
+                    <p className="text-sm">Selected Dates</p>
+                    <div className="flex flex-wrap gap-2 rounded-xl bg-primary p-2">
+                      {field.value.map((date, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center rounded-full bg-accent px-3 py-1 text-sm text-white"
+                        >
+                          {format(date, "MM/dd")}
+                          <button
+                            type="button"
+                            className="ml-2 p-1 text-gray"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              const newDates = [...field.value];
+                              newDates.splice(index, 1);
+                              field.onChange(newDates);
+                            }}
+                          >
+                            <Icon
+                              icon="mingcute:close-line"
+                              width={14}
+                              height={14}
+                            />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <FormMessage />
+              </FormItem>
+            )}
           />
         </div>
       );

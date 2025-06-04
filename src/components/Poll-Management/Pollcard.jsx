@@ -17,7 +17,7 @@ const Pollcard = ({ title, description, response }) => {
           <span className="font-bold">Response Received: </span>
           {response || 0}
         </p>
-        <ResponseBar />
+        {/* <ResponseBar /> */}
       </div>
     </div>
   );
@@ -29,14 +29,14 @@ Pollcard.propTypes = {
   response: PropTypes.number,
 };
 
-const ResponseBar = () => {
-  return (
-    <div className="mt-3 flex h-2 w-full overflow-hidden rounded bg-white">
-      <div className="bg-[#5BD071]" style={{ width: "50%" }}></div>
-      <div className="bg-[#3AABB8]" style={{ width: "30%" }}></div>
-      <div className="bg-[#E24841]" style={{ width: "20%" }}></div>
-    </div>
-  );
-};
+// const ResponseBar = () => {
+//   return (
+//     <div className="mt-3 flex h-2 w-full overflow-hidden rounded bg-white">
+//       <div className="bg-[#5BD071]" style={{ width: "50%" }}></div>
+//       <div className="bg-[#3AABB8]" style={{ width: "30%" }}></div>
+//       <div className="bg-[#E24841]" style={{ width: "20%" }}></div>
+//     </div>
+//   );
+// };
 
 export default Pollcard;
