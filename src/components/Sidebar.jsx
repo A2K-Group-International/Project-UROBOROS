@@ -105,7 +105,7 @@ const Sidebar = () => {
                     {role.label}
                   </DropdownMenuItem>
                 ))}
-                <DropdownMenuSeparator />
+                {availableRoles.length > 0 && <DropdownMenuSeparator />}
                 {/* Profile Settings, Feedback Page, Logout */}
                 <Link
                   to="/feedback"

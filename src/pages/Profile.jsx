@@ -118,7 +118,7 @@ const Profile = () => {
         >
           {/* Avatar */}
           <div className="absolute -bottom-14 left-3 flex items-center gap-x-2 md:-bottom-16 md:left-16 lg:-bottom-20 lg:left-24">
-            <div className="flex h-24 w-24 items-center justify-center rounded-full border-[7px] border-white bg-accent text-white md:h-32 md:w-32 lg:h-40 lg:w-40">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full border-[7px] border-white bg-accent text-2xl text-white md:h-32 md:w-32 md:text-4xl lg:h-40 lg:w-40">
               {`${initials}` || "?"}
             </div>
             <div className="mt-10 flex flex-wrap items-center gap-x-4 md:mt-16 md:text-4xl lg:mt-20 lg:text-5xl">
