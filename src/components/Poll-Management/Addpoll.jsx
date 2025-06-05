@@ -26,7 +26,8 @@ import {
 import AddPollSchema from "@/zodSchema/Poll-management/AddPollSchema";
 import { Textarea } from "../ui/textarea";
 import { Calendar } from "../ui/calendar";
-import { format } from "date-fns";
+import { format, parse } from "date-fns";
+import TimePickerv2 from "../TimePickerv2/TimePickerv2";
 
 const Addpoll = () => {
   const [openPollDialog, setOpenPollDialog] = useState(false);
@@ -95,7 +96,7 @@ const Addpoll = () => {
       </AlertDialogTrigger>
       <AlertDialogContent className="rounded-2xl px-8 pb-4 pt-6">
         <AlertDialogHeader className="p-0">
-          <AlertDialogTitle className="flex items-center justify-between">
+          <AlertDialogTitle className="flex items-center justify-between pb-1">
             <p className="text-lg font-bold">Create a poll</p>
             <StepIndicatior currentStep={currentStep} totalStep={totalStep} />
           </AlertDialogTitle>
@@ -104,13 +105,16 @@ const Addpoll = () => {
           </AlertDialogDescription>
         </AlertDialogHeader>
         {/* CONTENT */}
-        <Form {...form}>
-          <form id="poll-form" onSubmit={form.handleSubmit(onSubmit)}>
-            <RenderContent currentStep={currentStep} form={form} />
-          </form>
-        </Form>
+        <div className="no-scrollbar max-h-[32rem] overflow-y-scroll">
+          <Form {...form}>
+            <form id="poll-form" onSubmit={form.handleSubmit(onSubmit)}>
+              <RenderContent currentStep={currentStep} form={form} />
+            </form>
+          </Form>
+        </div>
+
         {/* FOOTER */}
-        <div className="flex justify-between p-0">
+        <div className="flex justify-between p-0 pt-1">
           {currentStep > 1 && (
             <Button
               variant="ghost"
@@ -192,6 +196,9 @@ RenderDescription.propTypes = {
 
 const RenderContent = ({ currentStep, form }) => {
   const { control } = form;
+
+  const [activeTimePickerIndex, setActiveTimePickerIndex] = useState(null);
+  const [selectedTimes, setSelectedTimes] = useState({});
 
   switch (currentStep) {
     case 1:
@@ -305,15 +312,146 @@ const RenderContent = ({ currentStep, form }) => {
           />
         </div>
       );
-    case 4:
+    case 4: {
+      const selectedDates = form.getValues("pollDates") || [];
+
+      const timeInputRef = { current: null };
       return (
         <div className="my-5 text-accent">
           <RenderDescription
-            title="Add timeslots to your poll"
+            title="Add timeslots for this poll"
             description="Include timeslots for participants to choose from."
           />
+          {/* Display selected dates */}
+          {selectedDates.length > 0 && (
+            <div className="mt-2 flex flex-col gap-2">
+              {selectedDates.map((date, index) => (
+                <div
+                  key={index}
+                  className="rounded-xl border border-primary p-4"
+                >
+                  <Label>{format(date, "dd MMMM yyyy")}</Label>
+                  {/* Display already selected time slots */}
+                  {selectedTimes[index]?.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      {selectedTimes[index].map((time, timeIndex) => (
+                        <div
+                          key={timeIndex}
+                          className="flex items-center justify-between rounded-xl bg-[rgba(246,240,237,0.5)] px-6 py-2"
+                        >
+                          <div className="flex items-center">
+                            <Label className="font-bold">
+                              {" "}
+                              {format(
+                                parse(time, "HH:mm", new Date()),
+                                "hh:mm a"
+                              )}
+                            </Label>
+                          </div>
+                          <div className="flex items-center gap-x-2">
+                            <div className="rounded-xl bg-[#F1E6E0] p-2">
+                              <Icon
+                                icon="mingcute:time-line"
+                                width={18}
+                                height={18}
+                              />
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={() => {
+                                // Remove this specific time
+                                const newTimes = { ...selectedTimes };
+                                newTimes[index] = newTimes[index].filter(
+                                  (_, i) => i !== timeIndex
+                                );
+
+                                // If no times left, remove the date entry
+                                if (newTimes[index].length === 0) {
+                                  delete newTimes[index];
+                                }
+
+                                setSelectedTimes(newTimes);
+
+                                // Update form value
+                                const currentTimeSlots =
+                                  form.getValues("timeSlots") || [];
+                                const updatedTimeSlots =
+                                  currentTimeSlots.filter(
+                                    (slot) =>
+                                      !(
+                                        slot.dateIndex === index &&
+                                        slot.timeIndex === timeIndex
+                                      )
+                                  );
+                                form.setValue("timeSlots", updatedTimeSlots);
+                              }}
+                            >
+                              <Icon
+                                icon="mingcute:close-line"
+                                width={14}
+                                height={14}
+                              />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="mt-2 gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setActiveTimePickerIndex(index)}
+                      className="w-full rounded-xl border-none bg-primary font-semibold hover:bg-primary hover:font-semibold hover:text-primary-text"
+                      ref={(el) => {
+                        if (activeTimePickerIndex === index) {
+                          timeInputRef.current = el;
+                        }
+                      }}
+                    >
+                      Add Time Slot
+                    </Button>
+                  </div>
+
+                  {/* Render TimePicker when this is the active date */}
+                  {activeTimePickerIndex === index && (
+                    <TimePickerv2
+                      setTime={(time) => {
+                        // Update your state and form
+                        const newTimes = { ...selectedTimes };
+                        if (!newTimes[index]) {
+                          newTimes[index] = [];
+                        }
+                        newTimes[index].push(time);
+                        setSelectedTimes(newTimes);
+
+                        // Update form value
+                        const currentTimeSlots =
+                          form.getValues("timeSlots") || [];
+                        currentTimeSlots.push({
+                          dateIndex: index,
+                          timeIndex: newTimes[index].length - 1,
+                          time,
+                        });
+                        form.setValue("timeSlots", currentTimeSlots);
+                      }}
+                      setActivity={(isActive) => {
+                        if (!isActive) {
+                          setActiveTimePickerIndex(null);
+                        }
+                      }}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       );
+    }
     case 5:
       return (
         <div className="my-5 text-accent">
