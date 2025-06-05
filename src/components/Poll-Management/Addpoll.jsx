@@ -212,13 +212,19 @@ const Addpoll = () => {
             ) : (
               <AlertDialogCancel>Cancel</AlertDialogCancel>
             )}
-            {currentStep === totalStep ? (
-              <Button type="submit" form="poll-form">
-                Finish
+            {currentStep < totalStep ? (
+              <Button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleNext();
+                }}
+              >
+                Next
               </Button>
             ) : (
-              <Button type="button" onClick={handleNext}>
-                Next
+              <Button type="submit" form="poll-form">
+                Submit
               </Button>
             )}
           </div>
@@ -277,7 +283,7 @@ RenderDescription.propTypes = {
 const RenderContent = ({ currentStep, form }) => {
   const { control } = form;
 
-  const [activeTimePickerIndex, setActiveTimePickerIndex] = useState(null);
+  const [activeTimePickerIndex, setActiveTimePickerIndex] = useState(null); // Index of the date for which time picker is active
   const [selectedTimes, setSelectedTimes] = useState({});
 
   const [activeExpiryTimePicker, setActiveExpiryTimePicker] = useState(false); // Time for poll expiration
