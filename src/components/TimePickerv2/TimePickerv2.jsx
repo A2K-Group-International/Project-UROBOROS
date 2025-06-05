@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import PropTypes from "prop-types";
-import "./TimePickerv2.css";
+import "./Timepickerv2.css";
 
 const TimePickerv2 = ({ setTime, setActivity }) => {
   const [hourScroll, setHourScroll] = useState(0);
