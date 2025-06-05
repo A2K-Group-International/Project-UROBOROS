@@ -270,7 +270,9 @@ const RenderDescription = ({ title, description }) => {
   return (
     <>
       <Label className="text-2xl font-bold">{title}</Label>
-      <p className="text-sm">{description}</p>
+      <p className="text-pretty text-[16px] font-normal leading-none">
+        {description}
+      </p>
     </>
   );
 };
@@ -349,7 +351,7 @@ const RenderContent = ({ currentStep, form }) => {
       return (
         <div className="my-5 text-accent">
           <RenderDescription
-            title="Name your poll"
+            title="Give your poll a name"
             description="Make your poll easy to identify by giving it a descriptive name."
           />
           <FormField
