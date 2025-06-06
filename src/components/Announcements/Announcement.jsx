@@ -46,8 +46,10 @@ import TriggerLikeIcon from "../CommentComponents/TriggerLikeIcon";
 import AnnouncementForm from "./AnnouncementForm";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+
 import { useLocation, useSearchParams } from "react-router-dom";
 import AutoLinkText from "@/lib/AutoLinkText";
+import ImageLoader from "@/lib/ImageLoader";
 
 const Announcement = ({
   announcement,
@@ -210,20 +212,22 @@ const Announcement = ({
                         i === 0 && announcement?.announcement_files.length > 1,
                     },
                     {
-                      "relative z-20 overflow-hidden rounded-e-md bg-black":
+                      "relative z-20 overflow-hidden rounded-e-md bg-black/50":
                         i === 2 && announcement?.announcement_files.length > 2,
                     },
                     {
-                      "relative z-20 overflow-hidden rounded-e-md bg-black":
-                        i === 1 && announcement?.announcement_files.length > 1,
+                      "relative z-20 overflow-hidden rounded-e-md":
+                        i === 1 &&
+                        announcement?.announcement_files.length > 1 &&
+                        announcement?.announcement_files.length < 3,
                     }
                   )}
                 >
-                  <img
+                  <ImageLoader
                     className={cn(
-                      "h-[223px] w-full min-w-0 object-cover",
+                      "h-full w-full min-w-0 object-cover",
                       {
-                        "bg-red-400 opacity-45":
+                        "opacity-45":
                           i === 2 &&
                           announcement?.announcement_files.length > 3,
                       },
@@ -235,9 +239,11 @@ const Announcement = ({
                     alt="file"
                   />
                   {i === 2 && announcement?.announcement_files.length > 3 && (
-                    <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform text-base font-semibold text-white">
-                      +{announcement?.announcement_files.length - 3} more
-                    </p>
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/60">
+                      <p className="text-base font-semibold text-white">
+                        +{announcement?.announcement_files.length - 3} more
+                      </p>
+                    </div>
                   )}
                 </DialogTrigger>
               ))}
@@ -286,7 +292,7 @@ const Announcement = ({
                   <div className="p-1">
                     <Card className="border-none bg-transparent">
                       <CardContent className="flex aspect-square items-center justify-center bg-transparent bg-contain p-0">
-                        <img
+                        <ImageLoader
                           className="h-[100dvh] w-full object-contain"
                           src={file.url}
                           alt="an image of announcement "

@@ -30,12 +30,13 @@ import { useUser } from "@/context/useUser";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const ParishionerRegister = () => {
-  const [activeTab, setActiveTab] = useState("profile");
+  const [activeTab, setActiveTab] = useState("family"); // State to manage active tab
 
-  const [isProfileDisabled, setIsProfileDisabled] = useState(false); // Disable Profile tab after submission
+  const [isProfileDisabled, setIsProfileDisabled] = useState(false);
   const [isAgreed, setIsAgreed] = useState(false);
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState("");
 
   // Access register function from context
   const { register, isLoading } = useUser(); // Assuming register is part of the context
@@ -68,6 +69,7 @@ const ParishionerRegister = () => {
       form.reset(); // Reset the form after successful submission
       setActiveTab("family"); // Switch to the Family tab
       setIsProfileDisabled(true); // Disable editing of profile
+      setRegisteredEmail(values.email); // Store the registered email for family registration
     } catch (error) {
       console.error("Error creating profile:", error);
 
@@ -278,15 +280,16 @@ const ParishionerRegister = () => {
                   >
                     Terms and Conditions.
                   </a> */}
-                  I confirm that St Laurence’s Parish may store the personal
-                  information provided here and may use this data to contact me
-                  (including by email) about Parish support, news, and
-                  activities. This data may be shared with Parish staff and
+                  I confirm that St Laurence&apos;s Parish may store the
+                  personal information provided here and may use this data to
+                  contact me (including by email) about Parish support, news,
+                  and activities. This data may be shared with Parish staff and
                   volunteers administering the Parish database, and with
                   volunteers who organise support or activities in which I
                   expressed an interest. I understand that I can withdraw this
                   consent any time by contacting the Parish Office.
                 </div>
+
                 <DialogFooter>
                   <DialogClose asChild>
                     <Button type="button" variant="outline">
@@ -307,7 +310,10 @@ const ParishionerRegister = () => {
             </Form>
           </TabsContent>
           <TabsContent value="family">
-            <FamilyRegistration closeModal={handleDialogClose} />
+            <FamilyRegistration
+              closeModal={handleDialogClose}
+              email={registeredEmail}
+            />
           </TabsContent>
         </Tabs>
       </DialogContent>

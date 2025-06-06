@@ -29,6 +29,7 @@ import CartoonizedChurch from "@/assets/images/CartoonizedChurch.png";
 
 import ConfigureSubgroup from "./ConfigureSubgroup";
 import { fetchSubgroup, fetchSubgroups } from "@/services/subgroupServices";
+import ImageLoader from "@/lib/ImageLoader";
 
 // Custom hook for ministries where user is a coordinator
 const useAssignedMinistries = (userId) => {
@@ -1009,7 +1010,7 @@ const CoordinatorViewMinistry = () => {
           </Tabs>
         ) : (
           <div className="grid h-[90dvh] place-content-center gap-y-2">
-            <img src={CartoonizedChurch} alt="Cartoonized Church" />
+            <ImageLoader src={CartoonizedChurch} alt="Cartoonized Church" />
             <p className="text-[20px] text-accent/30">OPEN A MINISTRY GROUP</p>
           </div>
         )}

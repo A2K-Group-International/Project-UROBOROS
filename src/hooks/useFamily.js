@@ -87,7 +87,8 @@ const useEditParent = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: ({ parentId, data, parentUserId }) => updateParent(parentId, data, parentUserId),
+    mutationFn: ({ parentId, data, parentUserId }) =>
+      updateParent(parentId, data, parentUserId),
     onSuccess: (data) => {
       toast({
         title: "Guardian updated successfully",
@@ -205,8 +206,6 @@ const useFetchGuardian = (familyId) => {
     enabled: !!familyId, // Only run the query if userId is available
   });
 };
-
-
 
 const useFetchChildren = (familyId) => {
   return useQuery({
