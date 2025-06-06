@@ -28,8 +28,13 @@ import { Textarea } from "../ui/textarea";
 import { Calendar } from "../ui/calendar";
 import { format, parse } from "date-fns";
 import TimePickerv2 from "../TimePickerv2/TimePickerv2";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "@/hooks/use-toast";
+import { addPoll } from "@/services/pollServices";
+import { useUser } from "@/context/useUser";
 
 const Addpoll = () => {
+  const { userData } = useUser();
   const [openPollDialog, setOpenPollDialog] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const totalStep = 6;
@@ -55,6 +60,23 @@ const Addpoll = () => {
       });
     }
   };
+  const { mutate, _isPending } = useMutation({
+    mutationFn: addPoll,
+    onSuccess: () => {
+      toast({
+        title: "Poll created successfully!",
+        description:
+          "Your poll has been created and shared with the community.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error creating poll",
+        description: error.message || "An unexpected error occurred.",
+        variant: "destructive",
+      });
+    },
+  });
 
   // Initialize form
   const form = useForm({
@@ -163,7 +185,15 @@ const Addpoll = () => {
   };
 
   const onSubmit = (data) => {
-    console.log("Form submitted with data:", data);
+    mutate({
+      creator_id: userData.id,
+      pollName: data.pollName,
+      pollDescription: data.pollDescription,
+      pollDates: data.pollDates,
+      timeSlots: data.timeSlots,
+      pollDateExpiry: data.pollDateExpiry,
+      pollTimeExpiry: data.pollTimeExpiry,
+    });
   };
 
   return (

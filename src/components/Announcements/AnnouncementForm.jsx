@@ -33,7 +33,8 @@ import { AnnouncementSchema } from "@/zodSchema/AnnouncementSchema";
 import { Label } from "../ui/label";
 import PropTypes from "prop-types";
 import { useSearchParams } from "react-router-dom";
-
+import ImageLoader from "@/lib/ImageLoader";
+ImageLoader;
 const AnnouncementForm = ({
   files,
   title,
@@ -332,7 +333,7 @@ const AnnouncementForm = ({
                         key={index}
                         className="relative flex h-[100px] w-[100px] flex-shrink-0 rounded-md"
                       >
-                        <img
+                        <ImageLoader
                           className="object-cover"
                           src={url}
                           alt="an image"

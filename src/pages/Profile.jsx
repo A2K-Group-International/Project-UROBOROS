@@ -34,6 +34,7 @@ import { Loader2 } from "lucide-react";
 
 import useProfile from "@/hooks/useProfile";
 import { Icon } from "@iconify/react";
+import { Switch } from "@/components/ui/switch";
 
 const nameSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -143,6 +144,15 @@ const Profile = () => {
             <div className="flex items-center justify-between rounded-xl bg-[#FDFBFA] px-6 py-5 font-semibold text-accent">
               <p>{data?.contact_number}</p>
               <ContactForm userId={data?.id} />
+            </div>
+            <Label className="text-sm font-bold text-accent/75">
+              Notification
+            </Label>
+            <div className="rounded-xl bg-[#FDFBFA] px-6 py-5 font-semibold text-accent">
+              <EmailNotification
+                userId={data?.id}
+                isEmailNotificationEnabled={data?.email_notifications_enabled}
+              />
             </div>
             <div className="mt-4 flex justify-end">
               <ChangePasswordButton userId={data?.id} />
@@ -478,6 +488,49 @@ const ContactForm = ({ userId }) => {
 
 ContactForm.propTypes = {
   userId: PropTypes.string,
+};
+
+const EmailNotification = ({ userId, isEmailNotificationEnabled }) => {
+  // Create local state to track the toggle value
+  const [isEnabled, setIsEnabled] = useState(isEmailNotificationEnabled);
+
+  const { toggleEmailNotificationMutation } = useProfile({ user_id: userId });
+
+  // Update local state when prop changes (e.g., initial load)
+  useEffect(() => {
+    setIsEnabled(isEmailNotificationEnabled);
+  }, [isEmailNotificationEnabled]);
+
+  const toggleNotification = async (newValue) => {
+    // Optimistically update the UI immediately
+    setIsEnabled(newValue);
+
+    // Send request to the server
+    toggleEmailNotificationMutation.mutate(
+      {
+        userId,
+        isReceivingNotification: newValue,
+      },
+      {
+        // If the server request fails, revert the UI to the previous state
+        onError: () => {
+          setIsEnabled(!newValue);
+        },
+      }
+    );
+  };
+
+  return (
+    <div className="flex items-center justify-between">
+      <p>Email Notification</p>
+      <Switch checked={isEnabled} onCheckedChange={toggleNotification} />
+    </div>
+  );
+};
+
+EmailNotification.propTypes = {
+  userId: PropTypes.string.isRequired,
+  isEmailNotificationEnabled: PropTypes.bool.isRequired,
 };
 
 const ChangePasswordButton = ({ userId }) => {

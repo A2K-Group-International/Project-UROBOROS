@@ -36,6 +36,7 @@ import { Loader2 } from "lucide-react";
 import useMinistry from "@/hooks/useMinistry";
 import { Icon } from "@iconify/react";
 import { Label } from "../ui/label";
+import ImageLoader from "@/lib/ImageLoader";
 
 const createGroupSchema = z.object({
   name: z.string().min(2, {
@@ -268,7 +269,7 @@ const CreateGroup = ({ ministryId }) => {
                     </FormControl>
                     {imagePreview ? (
                       <div className="relative mx-auto w-40 overflow-hidden rounded-lg">
-                        <img
+                        <ImageLoader
                           className="object-contain"
                           src={imagePreview}
                           alt="Group logo"

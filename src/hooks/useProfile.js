@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "./use-toast";
 import {
   sendChangeEmailVerification,
+  toggleEmailNotification,
   updateEmail,
   updateName,
   updatePassword,
@@ -132,6 +133,27 @@ const useProfile = ({ user_id }) => {
     },
   });
 
+  // Update email notification
+  const toggleEmailNotificationMutation = useMutation({
+    mutationFn: async (data) => toggleEmailNotification(data),
+    onSuccess: () => {
+      toast({
+        title: "Notification has been updated",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error Updating Notification",
+        description:
+          error?.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries(["fetchUser", user_id]);
+    },
+  });
+
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -163,6 +185,7 @@ const useProfile = ({ user_id }) => {
     sendEmailLinkMutation,
     updateContactMutation,
     updatePasswordMutation,
+    toggleEmailNotificationMutation,
   };
 };
 
