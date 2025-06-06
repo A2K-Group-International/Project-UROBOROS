@@ -21,7 +21,6 @@ import Feedback from "./pages/Feedback";
 import Consultation from "./pages/Consultation";
 import Profile from "./pages/Profile";
 import Poll from "./pages/Poll";
-import DataManagement from "./pages/DataManagement";
 
 const App = () => {
   return (
@@ -49,7 +48,6 @@ const App = () => {
           <Route element={<RequireRole roles={[ROLES[4]]} />}>
             <Route path="/requests" element={<Requests />} />
             <Route path="/feedback" element={<Feedback />} />
-            <Route path="/data-management" element={<DataManagement />} />
           </Route>
           {/* ========================================================= */}
           {/* Roles of Coordinator and Volunteer can access the routes below */}
