@@ -23,7 +23,7 @@ const Announcements = () => {
 
   const { ref } = useInterObserver(fetchNextPage);
 
-  if (!userData) return <div>Loading...</div>;
+  if (!userData) return <Loading />;
 
   return (
     <div className="flex h-full w-full flex-col">
@@ -39,7 +39,7 @@ const Announcements = () => {
         )} */}
       </div>
 
-      <div className="no-scrollbar flex h-full w-full flex-col-reverse gap-4 overflow-y-scroll lg:flex-row">
+      <div className="no-scrollbar flex h-fit w-full flex-col-reverse gap-4 overflow-y-scroll lg:h-full lg:flex-row">
         {/* Announcements List */}
         <div className="no-scrollbar flex w-full flex-col items-center overflow-y-scroll rounded-none border-t border-primary-outline p-1 pt-3 md:rounded-xl md:border md:bg-primary md:px-9 md:py-6">
           <div className="w-full lg:w-2/3">

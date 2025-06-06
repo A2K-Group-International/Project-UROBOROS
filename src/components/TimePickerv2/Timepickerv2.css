@@ -1,0 +1,153 @@
+.timePickerOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    /* width: 100vw; */
+    /* height: 100vh; */
+    /* background-color: rgba(0, 0, 0, 0.8); */
+    background-color: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+}
+.timePickerOverlay.inactive {
+    display: none;
+}
+.modalCardTime {
+    width: min(30rem, calc(100vw - 2rem));
+    background-color: white;
+    border-radius: 1rem;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    height: 20rem;
+    display: flex;
+    /* box-shadow: 0 0 0 100rem rgba(0, 0, 0,0.8); */
+
+}
+
+.timeContainer {
+    /* background-color: blue; */
+    position: relative;
+    width: 100%;
+    height: 12rem;
+    display: flex;
+    /* overflow: scroll; */
+    /* scroll-snap-type: y mandatory; */
+    justify-content: center;
+    justify-content: space-around;
+    margin-left: -0.5rem;
+    /* align-items: center; */
+}
+
+.timeRoller,
+.separator {
+    font-size: 5rem;
+    text-align: center;
+    scroll-snap-align: center;
+    line-height: 5rem;
+    opacity: 0.5;
+}
+.separator {
+    margin-top: 3rem;
+}
+.timeRoller.true {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.timeRoller:first-child {
+    margin-top: 10rem;
+}
+.timeRollerMargin {
+    margin-top: 10rem;
+    color: transparent;
+}
+
+.hourRoller {
+    /* background-color: rgba(255, 0, 0, 0.219); */
+    /* height: 100%; */
+    width: 7rem;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+    scroll-behavior: smooth;
+    height: 12rem;
+}
+.hourRoller::-webkit-scrollbar {
+    display: none;
+}
+
+.timeContainer::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 0;
+    width: 100%;
+    height: 5rem;
+    /* background-color: rgba(255, 255, 255, 0.678); */
+    /* background: linear-gradient(180deg, rgba(246, 240, 237, 1) 32%, rgba(246, 240, 237, 0) 100%); */
+    z-index: 100;
+    pointer-events: none;
+}
+
+.timeContainer::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 6rem;
+    /* background-color: rgba(255, 255, 255, 0.678); */
+    background: linear-gradient(180deg, rgba(246, 240, 237, 0) 32%, rgba(246, 240, 237 1) 100%);
+    z-index: 100;
+    pointer-events: none;
+}
+.saveBtn {
+    flex-grow: 1;
+    margin-top: 1.5rem;
+}
+
+.actionBtns {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    width: 100%;
+}
+.cancelBtn {
+    flex-grow: 1;
+    margin-top: 1.5rem;
+    color: black;
+}
+
+
+.timeJump {
+    position: absolute;
+    color: rgba(255, 255, 255, 0.15);
+    z-index: 100;
+    right: -1.2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    height: 12rem;
+    top: calc(50% - 5.5rem);
+    font-size: 0.8rem;
+}
+.jump {
+    cursor: pointer;
+}

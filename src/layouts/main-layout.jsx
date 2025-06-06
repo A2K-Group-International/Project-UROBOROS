@@ -16,7 +16,7 @@ const MainLayout = () => {
         <Sidebar />
         <div
           className={cn(
-            "no-scrollbar relative flex-1 overflow-auto bg-white px-4 md:m-4 md:rounded-[20px] md:p-9 md:shadow-lg",
+            "no-scrollbar relative flex-1 overflow-auto bg-white px-4 pt-4 md:m-4 md:rounded-[20px] md:p-9 md:shadow-lg",
             { "lg:p-0": isZeroPadding }
           )}
         >
@@ -24,7 +24,8 @@ const MainLayout = () => {
         </div>
         <div
           className={cn("absolute bottom-28 right-5 z-50", {
-            hidden: url.pathname === "/consultation",
+            hidden:
+              url.pathname === "/consultation" || url.pathname === "/profile",
           })}
         >
           <ConsultationButton isMobile={true} />

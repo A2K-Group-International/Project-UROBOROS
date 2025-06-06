@@ -10,7 +10,7 @@ import AnnouncementForm from "./AnnouncementForm";
 const AnnouncementHeader = ({ image, first_name, subgroupId, groupId }) => {
   return (
     <>
-      <div className="flex h-[84px] w-full gap-2 rounded-[10px] border-primary-outline bg-white px-8 py-6">
+      <div className="flex h-[84px] w-full gap-2 rounded-[10px] border border-primary-outline bg-white px-8 py-6">
         <Avatar className="h-8 w-8">
           <AvatarImage src={image ?? ""} alt="profile picture" />
           <AvatarFallback>{getInitial(first_name)}</AvatarFallback>
