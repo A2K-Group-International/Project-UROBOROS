@@ -293,7 +293,7 @@ const Announcement = ({
                     <Card className="border-none bg-transparent">
                       <CardContent className="flex aspect-square items-center justify-center bg-transparent bg-contain p-0">
                         <ImageLoader
-                          className="h-[100dvh] w-full object-contain"
+                          className="w-full object-contain"
                           src={file.url}
                           alt="an image of announcement "
                         />

@@ -6,7 +6,7 @@ const ImageLoader = ({ src, alt, className }) => {
   const [loaded, setLoaded] = useState(false);
 
   return (
-    <div className="relative">
+    <div className="relative h-full object-contain">
       {!loaded && (
         <div className="bg-gray-400 absolute inset-0 h-full animate-pulse rounded-md" />
       )}
