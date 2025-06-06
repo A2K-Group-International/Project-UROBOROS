@@ -597,6 +597,44 @@ const MemberMinistryItem = ({
                         </div>
                       </SheetTrigger>
                       {/* Rest of Sheet content remains the same */}
+                      <SheetContent className="w-full">
+                        <SheetHeader>
+                          <SheetTitle>{group.group_name}</SheetTitle>
+                          <SheetDescription>
+                            {group.description}
+                          </SheetDescription>
+                        </SheetHeader>
+
+                        {/* Mobile Tabs */}
+                        <Tabs defaultValue="announcement" className="h-full">
+                          <TabsList className="mb-4 grid w-full grid-cols-2">
+                            <TabsTrigger value="announcement">
+                              Announcements
+                            </TabsTrigger>
+                            <TabsTrigger value="members">Members</TabsTrigger>
+                          </TabsList>
+
+                          <TabsContent
+                            value="announcement"
+                            className="no-scrollbar h-[calc(100%-60px)] overflow-y-auto"
+                          >
+                            <GroupAnnouncements
+                              ministryId={ministry.ministry_id}
+                              groupId={group.group_id}
+                            />
+                          </TabsContent>
+
+                          <TabsContent
+                            value="members"
+                            className="no-scrollbar h-[calc(100%-60px)] overflow-y-auto"
+                          >
+                            <GroupMembers
+                              ministryId={ministry.ministry_id}
+                              groupId={group.group_id}
+                            />
+                          </TabsContent>
+                        </Tabs>
+                      </SheetContent>
                     </Sheet>
                   </div>
 
