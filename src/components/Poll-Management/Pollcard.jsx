@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import { format, parse } from "date-fns";
+import { format, isPast, parse, set } from "date-fns";
 import { Icon } from "@iconify/react";
 import { Label } from "../ui/label";
 
@@ -13,12 +13,25 @@ const Pollcard = ({
   isActive,
 }) => {
   // Format date to day name (Monday, Tuesday, etc.)
-  const dayName = expiryDate ? format(expiryDate, "EEEE") : null;
+  const formattedDate = expiryDate ? format(expiryDate, "MMMM dd, yyyy") : null;
 
   // Format time to 12-hour format
   const formattedTime = expiryTime
     ? format(parse(expiryTime, "HH:mm", new Date()), "h:mm a")
     : null;
+
+  // Check if poll is expired
+  const isPollExpired = () => {
+    if (!expiryDate || !expiryTime) return false;
+
+    // Create a date object with both date and time components
+    const [hours, minutes] = expiryTime.split(":").map(Number);
+    const expiryDateTime = set(expiryDate, { hours, minutes });
+
+    return isPast(expiryDateTime);
+  };
+
+  const isExpired = isPollExpired();
 
   return (
     <div
@@ -33,11 +46,22 @@ const Pollcard = ({
         <p className="text-[12px] text-accent/70">
           {description || "No description provided."}
         </p>
-        {dayName && formattedTime && (
+        {formattedDate && formattedTime && (
           <div className="flex items-center text-xs text-accent/70">
-            <Icon icon="mingcute:time-line" className="mr-1" width={14} />
-            <span className="font-semibold">
-              Open until {dayName}, {formattedTime}
+            <Icon
+              icon={
+                isExpired ? "mingcute:close-circle-fill" : "mingcute:time-line"
+              }
+              className="mr-1"
+              width={14}
+              color={isExpired ? "#E55C5C" : undefined}
+            />
+            <span
+              className={`font-semibold ${isExpired ? "text-red-500" : "text-accent/70"}`}
+            >
+              {isExpired
+                ? "Closed"
+                : `Open until ${formattedDate}, ${formattedTime}`}
             </span>
           </div>
         )}

@@ -10,7 +10,7 @@ const dummyPolls = [
     title: "Sunday Service Time Preference",
     description: "Help us determine the best time for our Sunday services.",
     responses: 75,
-    expiryDate: new Date(2025, 6, 15), // July 15, 2025
+    expiryDate: new Date(2025, 4, 15), // July 15, 2025
     expiryTime: "18:00", // 6:00 PM
   },
   {
@@ -20,7 +20,7 @@ const dummyPolls = [
       "Which area of community outreach should our church prioritize for the next quarter?",
     status: "active",
     responses: 42,
-    expiryDate: new Date(2025, 5, 30), // June 30, 2025
+    expiryDate: new Date(2025, 6, 30), // June 30, 2025
     expiryTime: "23:59", // 11:59 PM
   },
   {
@@ -29,7 +29,7 @@ const dummyPolls = [
     description:
       "What topic would you like to explore in our next Bible study series?",
     responses: 50,
-    expiryDate: new Date(2025, 7, 5), // August 5, 2025
+    expiryDate: new Date(2025, 8, 5), // August 5, 2025
     expiryTime: "12:00", // 12:00 PM
   },
 ];
