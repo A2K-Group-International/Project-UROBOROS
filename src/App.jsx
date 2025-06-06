@@ -20,6 +20,7 @@ import FeedBackSuccess from "./pages/FeedBackSuccess";
 import Feedback from "./pages/Feedback";
 import Consultation from "./pages/Consultation";
 import Profile from "./pages/Profile";
+import Poll from "./pages/Poll";
 
 const App = () => {
   return (
@@ -40,6 +41,7 @@ const App = () => {
           {/* Only Admin and Coordinator can access the routes below */}
           <Route element={<RequireRole roles={[ROLES[0], ROLES[4]]} />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/poll" element={<Poll />} />
           </Route>
           {/* ========================================================= */}
           {/* Only admin can access the routes below */}

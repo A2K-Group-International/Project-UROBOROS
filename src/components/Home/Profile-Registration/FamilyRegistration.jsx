@@ -15,9 +15,16 @@ import { Label } from "@/components/ui/label";
 import { DialogClose } from "../../ui/dialog";
 import { useUser } from "@/context/useUser";
 import { useAddFamily } from "@/hooks/useFamily";
+import { Icon } from "@iconify/react";
+import { useEffect, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { resendEmailConfirmation } from "@/services/authService";
+import { toast } from "@/hooks/use-toast";
 
-const FamilyRegistration = ({ skipBtn, closeModal }) => {
-  const { regData } = useUser(); // Access registration data
+const FamilyRegistration = ({ skipBtn, closeModal, email }) => {
+  const { regData } = useUser();
+  const [cooldown, setCooldown] = useState(60);
+  const [isCooldownActive, setCooldownActive] = useState(false);
 
   // Use `regData` to prepopulate the first parent
   const form = useForm({
@@ -42,6 +49,26 @@ const FamilyRegistration = ({ skipBtn, closeModal }) => {
     control: form.control,
     name: "parents",
   });
+
+  useEffect(() => {
+    // Cooldown logic
+    let timer;
+    if (isCooldownActive && cooldown > 0) {
+      timer = setInterval(() => {
+        setCooldown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            setCooldownActive(false);
+            return 60; // Reset cooldown
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else if (!isCooldownActive) {
+      clearInterval(timer);
+    }
+    return () => clearInterval(timer); // Cleanup on unmount
+  }, [cooldown, isCooldownActive]);
 
   const {
     fields: childFields,
@@ -68,6 +95,24 @@ const FamilyRegistration = ({ skipBtn, closeModal }) => {
       console.error("Unexpected error:", error);
     }
   };
+
+  const { mutate: resendMutate, isPending: resendIsPending } = useMutation({
+    mutationFn: resendEmailConfirmation,
+    onSuccess: () => {
+      toast({
+        title: "Email Sent",
+        description: "Email confirmation has been resent successfully.",
+      });
+      setCooldown(60);
+      setCooldownActive(true);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to resend email confirmation.",
+      });
+    },
+  });
 
   return (
     <Form {...form}>
@@ -198,6 +243,43 @@ const FamilyRegistration = ({ skipBtn, closeModal }) => {
             Add
           </Button>
         </div>
+        <div className="mt-4 rounded-md border border-accent/30 bg-primary/50 p-4">
+          <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
+            <p className="text-sm text-accent">
+              Didn&apos;t receive the confirmation email?
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={isCooldownActive || resendIsPending}
+              onClick={() => {
+                resendMutate(email);
+              }}
+              className="w-full sm:w-auto"
+            >
+              {resendIsPending ? (
+                <>
+                  <Icon
+                    className="mr-2 h-4 w-4 animate-spin"
+                    icon={"mingcute:loading-line"}
+                  />
+                  Resending...
+                </>
+              ) : isCooldownActive ? (
+                `Resend in ${cooldown}s`
+              ) : (
+                <>
+                  <Icon
+                    icon="mingcute:mail-send-line"
+                    className="mr-2 h-4 w-4"
+                  />
+                  Resend Confirmation
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
 
         <div className="flex justify-end gap-x-2">
           {/* Skip Button */}
@@ -226,6 +308,7 @@ const FamilyRegistration = ({ skipBtn, closeModal }) => {
 FamilyRegistration.propTypes = {
   skipBtn: PropTypes.func, // Require skipBtn to be a function, made optional here
   closeModal: PropTypes.func,
+  email: PropTypes.string.isRequired, // Require email to be a string
 };
 
 export default FamilyRegistration;

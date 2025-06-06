@@ -7,6 +7,7 @@ const allowedMimeTypes = [
   "image/jpeg",
   "image/png",
   "image/gif",
+  "image/webp", // webp
   "video/mp4",
   "video/avi",
   "video/quicktime", // mov
@@ -26,7 +27,7 @@ const AnnouncementSchema = z.object({
   files: z
     .union([
       z.instanceof(File), // Accepts a single file
-      z.array(z.instanceof(File)).max(5, "Maximum of 5 files allowed"), // Accepts multiple files
+      z.array(z.instanceof(File)).max(10, "Maximum of 10 files allowed"), // Accepts multiple files
     ])
     .optional() // Make it optional if files are not required
     .refine(
@@ -41,7 +42,7 @@ const AnnouncementSchema = z.object({
         Array.isArray(files)
           ? files.every((file) => allowedMimeTypes.includes(file.type))
           : allowedMimeTypes.includes(files.type),
-      "Invalid file type. Allowed: jpg, jpeg, png, gif, mp4, avi, mov, pdf, ppt, pptx, doc, docx."
+      "Invalid file type. Allowed: jpg, jpeg, png, gif, mp4, avi, mov, pdf, ppt, pptx, doc, docx. ,webp"
     ),
 });
 

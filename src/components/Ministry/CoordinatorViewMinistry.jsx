@@ -29,6 +29,7 @@ import CartoonizedChurch from "@/assets/images/CartoonizedChurch.png";
 
 import ConfigureSubgroup from "./ConfigureSubgroup";
 import { fetchSubgroup, fetchSubgroups } from "@/services/subgroupServices";
+import ImageLoader from "@/lib/ImageLoader";
 
 // Custom hook for ministries where user is a coordinator
 const useAssignedMinistries = (userId) => {
@@ -596,6 +597,44 @@ const MemberMinistryItem = ({
                         </div>
                       </SheetTrigger>
                       {/* Rest of Sheet content remains the same */}
+                      <SheetContent className="w-full">
+                        <SheetHeader>
+                          <SheetTitle>{group.group_name}</SheetTitle>
+                          <SheetDescription>
+                            {group.description}
+                          </SheetDescription>
+                        </SheetHeader>
+
+                        {/* Mobile Tabs */}
+                        <Tabs defaultValue="announcement" className="h-full">
+                          <TabsList className="mb-4 grid w-full grid-cols-2">
+                            <TabsTrigger value="announcement">
+                              Announcements
+                            </TabsTrigger>
+                            <TabsTrigger value="members">Members</TabsTrigger>
+                          </TabsList>
+
+                          <TabsContent
+                            value="announcement"
+                            className="no-scrollbar h-[calc(100%-60px)] overflow-y-auto"
+                          >
+                            <GroupAnnouncements
+                              ministryId={ministry.ministry_id}
+                              groupId={group.group_id}
+                            />
+                          </TabsContent>
+
+                          <TabsContent
+                            value="members"
+                            className="no-scrollbar h-[calc(100%-60px)] overflow-y-auto"
+                          >
+                            <GroupMembers
+                              ministryId={ministry.ministry_id}
+                              groupId={group.group_id}
+                            />
+                          </TabsContent>
+                        </Tabs>
+                      </SheetContent>
                     </Sheet>
                   </div>
 
@@ -1009,7 +1048,7 @@ const CoordinatorViewMinistry = () => {
           </Tabs>
         ) : (
           <div className="grid h-[90dvh] place-content-center gap-y-2">
-            <img src={CartoonizedChurch} alt="Cartoonized Church" />
+            <ImageLoader src={CartoonizedChurch} alt="Cartoonized Church" />
             <p className="text-[20px] text-accent/30">OPEN A MINISTRY GROUP</p>
           </div>
         )}

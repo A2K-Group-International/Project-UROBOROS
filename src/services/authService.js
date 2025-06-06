@@ -167,4 +167,25 @@ const fetchUserById = async (userId) => {
   }
 };
 
-export { registerUser, updateContact, fetchUserById, registerCoParent };
+const resendEmailConfirmation = async (email) => {
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email,
+    options: {
+      emailRedirectTo: "https://gems.a2kgroup.org/dashboard",
+    },
+  });
+  if (error) {
+    throw new Error(`Error resending email confirmation: ${error.message}`);
+  }
+
+  return { success: true };
+};
+
+export {
+  registerUser,
+  updateContact,
+  fetchUserById,
+  registerCoParent,
+  resendEmailConfirmation,
+};
