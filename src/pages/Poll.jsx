@@ -9,21 +9,23 @@ import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton"; // Assuming this is the correct path
 
 const Poll = () => {
+  // Access user data from context
   const { userData } = useUser();
+  // State to manage selected poll card and mobile view
+  const [selectedPollCard, setSelectedPollCard] = useState(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
   const {
-    data: pollsData, // Renamed to pollsData for clarity
+    data: pollsData,
     isLoading,
     isError,
     error,
   } = useQuery({
-    queryKey: ["polls", userData?.id], // Added userData.id to queryKey for dependency
+    queryKey: ["polls", userData?.id],
     queryFn: () => fetchPolls({ user_id: userData?.id }),
-    enabled: !!userData?.id, // Query will only run if userData.id exists
+    enabled: !!userData?.id,
   });
-
-  const [selectedPollCard, setSelectedPollCard] = useState(null);
-  const [sheetOpen, setSheetOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
 
   // Function to handle poll card selection
   const handlePollCardSelect = (poll) => {

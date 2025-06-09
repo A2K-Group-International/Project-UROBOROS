@@ -1,4 +1,5 @@
 import { useState } from "react";
+import PropTypes from "prop-types";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -14,7 +15,15 @@ import { Icon } from "@iconify/react";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { Input } from "@/components/ui/input";
-import PropTypes from "prop-types";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import CustomReactSelect from "../CustomReactSelect";
 
 import {
   Form,
@@ -28,16 +37,17 @@ import { Textarea } from "../ui/textarea";
 import { Calendar } from "../ui/calendar";
 import { format, parse } from "date-fns";
 import TimePickerv2 from "../TimePickerv2/TimePickerv2";
-import { useMutation } from "@tanstack/react-query";
-import { toast } from "@/hooks/use-toast";
-import { addPoll } from "@/services/pollServices";
+
 import { useUser } from "@/context/useUser";
+
+import usePoll from "@/hooks/usePoll";
+import { Loader2 } from "lucide-react";
 
 const Addpoll = () => {
   const { userData } = useUser();
   const [openPollDialog, setOpenPollDialog] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
-  const totalStep = 6;
+  const [currentStep, setCurrentStep] = useState(1); // Start at step 1
+  const totalStep = 6; // Total number of steps in the poll creation process
 
   const handleBack = () => {
     if (currentStep > 1) {
@@ -60,23 +70,6 @@ const Addpoll = () => {
       });
     }
   };
-  const { mutate, _isPending } = useMutation({
-    mutationFn: addPoll,
-    onSuccess: () => {
-      toast({
-        title: "Poll created successfully!",
-        description:
-          "Your poll has been created and shared with the community.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error creating poll",
-        description: error.message || "An unexpected error occurred.",
-        variant: "destructive",
-      });
-    },
-  });
 
   // Initialize form
   const form = useForm({
@@ -184,22 +177,31 @@ const Addpoll = () => {
     }
   };
 
+  const { createPollMutation } = usePoll();
+
   const onSubmit = (data) => {
-    mutate({
-      creator_id: userData.id,
-      pollName: data.pollName,
-      pollDescription: data.pollDescription,
-      pollDates: data.pollDates,
-      timeSlots: data.timeSlots,
-      pollDateExpiry: data.pollDateExpiry,
-      pollTimeExpiry: data.pollTimeExpiry,
-    });
+    createPollMutation.mutate(
+      {
+        creator_id: userData.id,
+        pollName: data.pollName,
+        pollDescription: data.pollDescription,
+        pollDates: data.pollDates,
+        timeSlots: data.timeSlots,
+        pollDateExpiry: data.pollDateExpiry,
+        pollTimeExpiry: data.pollTimeExpiry,
+      },
+      {
+        onSuccess: () => {
+          setOpenPollDialog(false);
+        },
+      }
+    );
   };
 
   return (
     <AlertDialog open={openPollDialog} onOpenChange={handleOpenChange}>
       <AlertDialogTrigger asChild>
-        <Button size="sm" className="rounded-xl">
+        <Button type="button" size="sm" className="rounded-xl">
           <Icon icon="mingcute:classify-add-2-fill" width={20} height={20} />
           Add Poll
         </Button>
@@ -227,6 +229,7 @@ const Addpoll = () => {
         <div className="flex justify-between p-0 pt-1">
           {currentStep > 1 && (
             <Button
+              type="button"
               variant="ghost"
               className="justify-self-start font-medium text-accent hover:text-accent"
               onClick={() => setOpenPollDialog(false)}
@@ -236,7 +239,7 @@ const Addpoll = () => {
           )}
           <div className="ml-auto flex gap-x-2">
             {currentStep > 1 ? (
-              <Button variant="outline" onClick={handleBack}>
+              <Button type="button" variant="outline" onClick={handleBack}>
                 Back
               </Button>
             ) : (
@@ -253,8 +256,16 @@ const Addpoll = () => {
                 Next
               </Button>
             ) : (
-              <Button type="submit" form="poll-form">
-                Submit
+              <Button
+                type="submit"
+                form="poll-form"
+                disabled={createPollMutation.isPending}
+              >
+                {createPollMutation.isPending ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  "Finish"
+                )}
               </Button>
             )}
           </div>
@@ -310,6 +321,108 @@ const RenderDescription = ({ title, description }) => {
 RenderDescription.propTypes = {
   title: PropTypes.string.isRequired,
   description: PropTypes.string.isRequired,
+};
+
+const SharePollPrivacy = ({ form }) => {
+  const { control } = form;
+
+  return (
+    <div className="mt-4 space-y-4">
+      {/* Share Mode Selection */}
+      <FormField
+        key="shareMode"
+        control={control}
+        name="shareMode"
+        render={({ field }) => (
+          <FormItem>
+            <Label className="font-semibold">Share poll to</Label>
+            <Select value={field.value} onValueChange={field.onChange}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select sharing mode" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="public">Public</SelectItem>
+                  <SelectItem value="ministry">Ministry</SelectItem>
+                  <SelectItem value="group">Group</SelectItem>
+                  <SelectItem value="specific">Specific Users</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      {/* Conditionally show appropriate selector based on share mode */}
+      {form.watch("shareMode") === "ministry" && (
+        <FormField
+          key="selectedMinistry"
+          control={control}
+          name="selectedMinistry"
+          render={({ field }) => (
+            <FormItem>
+              <Label className="font-semibold">Select ministry</Label>
+              <FormControl>
+                <CustomReactSelect
+                  placeholder="Select ministry"
+                  isClearable
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
+
+      {form.watch("shareMode") === "group" && (
+        <FormField
+          key="selectedGroup"
+          control={control}
+          name="selectedGroup"
+          render={({ field }) => (
+            <FormItem>
+              <Label className="font-semibold">Select group</Label>
+              <FormControl>
+                <CustomReactSelect
+                  placeholder="Select group"
+                  isClearable
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
+
+      {form.watch("shareMode") === "specific" && (
+        <FormField
+          key="selectedUsers"
+          control={control}
+          name="selectedUsers"
+          render={({ field }) => (
+            <FormItem>
+              <Label className="font-semibold">Select users</Label>
+              <FormControl>
+                <CustomReactSelect
+                  isMulti={true}
+                  placeholder="Select specific users"
+                  isClearable
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
+    </div>
+  );
+};
+
+SharePollPrivacy.propTypes = {
+  form: PropTypes.object.isRequired,
 };
 
 const RenderContent = ({ currentStep, form }) => {
@@ -445,6 +558,7 @@ const RenderContent = ({ currentStep, form }) => {
               <FormItem className="mt-4">
                 <FormControl>
                   <Calendar
+                    disabled={(date) => date < new Date()}
                     mode="multiple"
                     selected={field.value}
                     onSelect={field.onChange}
@@ -643,6 +757,7 @@ const RenderContent = ({ currentStep, form }) => {
                       <FormControl>
                         <div className="relative">
                           <Button
+                            type="button"
                             className="w-full rounded-xl bg-[rgba(246,240,237)] p-6 text-primary-text"
                             onClick={() => setActiveExpiryTimePicker(true)}
                           >
@@ -699,8 +814,9 @@ const RenderContent = ({ currentStep, form }) => {
         <div className="my-5 text-accent">
           <RenderDescription
             title="Share with coordinators & volunteers"
-            description="Send the poll to coordinators and volunteers for participation."
+            description="Send the poll to users for participation."
           />
+          <SharePollPrivacy form={form} />
         </div>
       );
   }

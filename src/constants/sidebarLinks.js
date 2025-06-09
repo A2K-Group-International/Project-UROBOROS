@@ -35,12 +35,12 @@ const COMMON_LINKS = {
     icon: "mingcute:classify-2-line",
     selectedIcon: "mingcute:classify-2-fill",
   },
-  // poll: {
-  //   label: "Poll Management",
-  //   link: "/poll",
-  //   icon: "mingcute:inventory-line",
-  //   selectedIcon: "mingcute:chart-horizontal-fill",
-  // },
+  poll: {
+    label: "Poll Management",
+    link: "/poll",
+    icon: "mingcute:inventory-line",
+    selectedIcon: "mingcute:chart-horizontal-fill",
+  },
   requests: {
     label: "Requests",
     link: "/requests",
@@ -55,7 +55,7 @@ export const SIDEBAR_LINKS = Object.freeze({
     COMMON_LINKS.announcements,
     COMMON_LINKS.ministries,
     COMMON_LINKS.schedule,
-    // COMMON_LINKS.poll,
+    COMMON_LINKS.poll,
   ],
   volunteer: [
     COMMON_LINKS.announcements,
@@ -79,7 +79,7 @@ export const SIDEBAR_LINKS = Object.freeze({
     COMMON_LINKS.announcements,
     COMMON_LINKS.ministries,
     COMMON_LINKS.schedule,
-    // COMMON_LINKS.poll,
+    COMMON_LINKS.poll,
     COMMON_LINKS.requests,
   ],
 });
