@@ -43,7 +43,7 @@ import { useUser } from "@/context/useUser";
 import usePoll from "@/hooks/usePoll";
 import { Loader2 } from "lucide-react";
 
-const Addpoll = () => {
+const Addpoll = ({ isEditing = false, poll }) => {
   const { userData } = useUser();
   const [openPollDialog, setOpenPollDialog] = useState(false);
   const [currentStep, setCurrentStep] = useState(1); // Start at step 1
@@ -61,12 +61,12 @@ const Addpoll = () => {
     if (open) {
       setCurrentStep(1);
       form.reset({
-        pollName: "",
-        pollDescription: "",
-        pollDates: [],
-        timeSlots: [],
-        pollDateExpiry: null,
-        pollTimeExpiry: null,
+        pollName: isEditing ? poll?.name : "",
+        pollDescription: isEditing ? poll?.description : "",
+        pollDates: isEditing ? poll?.dates || [] : [], // NO BACKEND YET
+        timeSlots: isEditing ? poll?.time_slots || [] : [], // NO BACKEND YET
+        pollDateExpiry: null, // BACKEND should handle this
+        pollTimeExpiry: null, // BACKEND should handle this
       });
     }
   };
@@ -202,14 +202,24 @@ const Addpoll = () => {
     <AlertDialog open={openPollDialog} onOpenChange={handleOpenChange}>
       <AlertDialogTrigger asChild>
         <Button type="button" size="sm" className="rounded-xl">
-          <Icon icon="mingcute:classify-add-2-fill" width={20} height={20} />
-          Add Poll
+          <Icon
+            icon={
+              isEditing
+                ? "mingcute:edit-2-fill"
+                : "mingcute:classify-add-2-fill"
+            }
+            width={20}
+            height={20}
+          />
+          {isEditing ? "Edit Poll" : "Create Poll"}
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="rounded-2xl px-8 pb-4 pt-6">
         <AlertDialogHeader className="p-0">
           <AlertDialogTitle className="flex items-center justify-between pb-1">
-            <p className="text-lg font-bold">Create a poll</p>
+            <p className="text-lg font-bold">
+              {isEditing ? "Edit your poll" : "Create a poll"}
+            </p>
             <StepIndicatior currentStep={currentStep} totalStep={totalStep} />
           </AlertDialogTitle>
           <AlertDialogDescription className="sr-only">
@@ -273,6 +283,11 @@ const Addpoll = () => {
       </AlertDialogContent>
     </AlertDialog>
   );
+};
+
+Addpoll.propTypes = {
+  isEditing: PropTypes.bool,
+  poll: PropTypes.object,
 };
 
 const StepIndicatior = ({ currentStep, totalStep }) => {

@@ -102,15 +102,15 @@ const Poll = () => {
   };
 
   return (
-    <div className="grid h-full gap-x-8 lg:grid-cols-[0.6fr,1.3fr]">
+    <div className="no-scrollbar grid h-dvh gap-x-8 overflow-scroll lg:grid-cols-[0.6fr,1.3fr]">
       {/* LEFT VIEW */}
-      <div className="flex h-full flex-col p-2">
+      <div className="flex max-h-dvh flex-col p-2">
         <div className="mb-4">
           <Title className="text-2xl">Poll Management</Title>
           <Description>Create and manage polls for your church.</Description>
         </div>
         <div className="mb-4">
-          <Addpoll />{" "}
+          <Addpoll />
           {/* Consider passing a refetch function from useQuery to Addpoll to trigger refresh on new poll */}
         </div>
         {/* POLL CARDS */}
@@ -121,7 +121,7 @@ const Poll = () => {
 
       {/* RIGHT VIEW (Desktop) */}
       {!isMobile && (
-        <div className="hidden rounded-xl border border-accent/40 p-6 lg:block">
+        <div className="hidden h-full rounded-xl border border-accent/40 p-8 lg:block">
           {selectedPollCard ? (
             <PollInformation poll={selectedPollCard} isMobile={false} />
           ) : (

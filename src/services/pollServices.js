@@ -209,7 +209,7 @@ const fetchPolls = async ({ user_id }) => {
   const { data: publicPolls, error: fetchError } = await supabase
     .from("polls")
     .select("*")
-    .eq("visibility", "PUBLIC")
+    .eq("visibility", "public")
     .order("created_at", { ascending: false });
   if (fetchError) {
     throw new Error(fetchError.message);

@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import { format, isPast, parse, set } from "date-fns";
+import { format, isPast, parseISO } from "date-fns";
 import { Icon } from "@iconify/react";
 import { Label } from "../ui/label";
 
@@ -7,31 +7,27 @@ const Pollcard = ({
   title,
   description,
   expiryDate,
-  expiryTime,
   response,
   onClick,
   isActive,
 }) => {
-  // Format date to day name (Monday, Tuesday, etc.)
-  const formattedDate = expiryDate ? format(expiryDate, "MMMM dd, yyyy") : null;
+  // Parse the ISO date string to a Date object
+  const parsedExpiryDate = expiryDate ? parseISO(expiryDate) : null;
 
-  // Format time to 12-hour format
-  const formattedTime = expiryTime
-    ? format(parse(expiryTime, "HH:mm", new Date()), "h:mm a")
+  // Format date to day and month
+  const formattedDate = parsedExpiryDate
+    ? format(parsedExpiryDate, "MMMM dd, yyyy")
     : null;
 
-  // Check if poll is expired
-  const isPollExpired = () => {
-    if (!expiryDate || !expiryTime) return false;
+  // Format time to 12-hour format
+  const formattedTime = parsedExpiryDate
+    ? format(parsedExpiryDate, "h:mm a")
+    : null;
 
-    // Create a date object with both date and time components
-    const [hours, minutes] = expiryTime.split(":").map(Number);
-    const expiryDateTime = set(expiryDate, { hours, minutes });
+  // Check if poll is expired - much simpler now!
+  const isExpired = parsedExpiryDate ? isPast(parsedExpiryDate) : false;
 
-    return isPast(expiryDateTime);
-  };
-
-  const isExpired = isPollExpired();
+  console.log(expiryDate);
 
   return (
     <div
