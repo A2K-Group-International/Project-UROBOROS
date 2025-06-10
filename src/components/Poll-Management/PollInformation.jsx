@@ -26,7 +26,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { fetchPollUserAnswers } from "@/services/pollServices";
+import { fetchPollAnswers } from "@/services/pollServices";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "../ui/skeleton";
 import { convertTimeStringToDate } from "@/lib/utils";
@@ -310,7 +310,7 @@ const PollTime = ({ poll_date_id, poll_time_id, time }) => {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["pollTime", poll_date_id, poll_time_id],
     queryFn: () =>
-      fetchPollUserAnswers({
+      fetchPollAnswers({
         poll_date_id,
         poll_time_id,
       }),
