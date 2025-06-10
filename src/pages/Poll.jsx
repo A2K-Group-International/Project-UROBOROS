@@ -87,14 +87,13 @@ const Poll = () => {
       return <p>No polls available at the moment.</p>;
     }
 
-    return pollsData.map((poll) => (
+    return pollsData?.map((poll) => (
       <Pollcard
         key={poll.id}
         title={poll.name}
         description={poll.description}
         response={poll.answer_count || 0} // Changed from answers_count based on service
         expiryDate={poll.expiration_date}
-        // expiryTime={poll.expiryTime}
         onClick={() => handlePollCardSelect(poll)}
         isActive={selectedPollCard?.id === poll.id}
       />

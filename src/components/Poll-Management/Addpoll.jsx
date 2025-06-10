@@ -223,10 +223,15 @@ const Addpoll = ({ isEditing = false, poll }) => {
                 ? "mingcute:edit-2-fill"
                 : "mingcute:classify-add-2-fill"
             }
-            width={20}
-            height={20}
+            width={16}
+            height={16}
           />
-          {isEditing ? "Edit Poll" : "Create Poll"}
+
+          {isEditing ? (
+            <span className="hidden md:block">Edit Poll</span>
+          ) : (
+            <span>Create Poll</span>
+          )}
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="rounded-2xl px-8 pb-4 pt-6">
