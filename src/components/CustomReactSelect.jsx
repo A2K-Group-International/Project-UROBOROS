@@ -3,6 +3,7 @@ import ReactSelect, { components } from "react-select";
 
 import { getInitial } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import React from "react";
 
 const customStyles = {
   control: (styles) => ({
@@ -87,33 +88,42 @@ const CustomMultiValue = (props) => {
 };
 
 // Main Component
-const CustomReactSelect = ({
-  isMulti = true,
-  styles = customStyles,
-  options,
-  value,
-  onChange,
-  placeholder,
-  disabled,
-  className = "",
-}) => {
-  return (
-    <ReactSelect
-      isMulti={isMulti}
-      styles={styles}
-      components={{ MultiValue: CustomMultiValue }}
-      options={options}
-      value={value || undefined}
-      onChange={onChange}
-      placeholder={placeholder}
-      isDisabled={disabled}
-      className={className}
-    />
-  );
-};
+const CustomReactSelect = React.forwardRef(
+  (
+    {
+      isMulti = true,
+      styles = customStyles,
+      options,
+      value,
+      onChange,
+      placeholder,
+      disabled,
+      isLoading = false,
+      className = "",
+    },
+    ref
+  ) => {
+    return (
+      <ReactSelect
+        ref={ref}
+        isMulti={isMulti}
+        isLoading={isLoading}
+        styles={styles}
+        components={{ MultiValue: CustomMultiValue }}
+        options={options}
+        value={value || undefined}
+        onChange={onChange}
+        placeholder={placeholder}
+        isDisabled={disabled}
+        className={className}
+      />
+    );
+  }
+);
 
 CustomReactSelect.propTypes = {
   isMulti: PropTypes.bool,
+  isLoading: PropTypes.bool,
   styles: PropTypes.object,
   options: PropTypes.arrayOf(
     PropTypes.shape({
@@ -121,7 +131,7 @@ CustomReactSelect.propTypes = {
       label: PropTypes.string.isRequired,
       image: PropTypes.string,
     })
-  ).isRequired,
+  ),
   value: PropTypes.arrayOf(
     PropTypes.shape({
       value: PropTypes.string.isRequired,
@@ -139,8 +149,10 @@ CustomMultiValue.propTypes = {
   data: PropTypes.shape({
     value: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
-    image: PropTypes.string, // Optional image URL
+    image: PropTypes.string,
   }).isRequired,
 };
+
+CustomReactSelect.displayName = "CustomReactSelect";
 
 export default CustomReactSelect;

@@ -42,6 +42,10 @@ import { useUser } from "@/context/useUser";
 
 import usePoll from "@/hooks/usePoll";
 import { Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchAllMinistryBasics } from "@/services/ministryService";
+import { getAllUsers } from "@/services/userService";
+import { fetchAllGroups } from "@/services/groupServices";
 
 const Addpoll = ({ isEditing = false, poll }) => {
   const { userData } = useUser();
@@ -67,6 +71,9 @@ const Addpoll = ({ isEditing = false, poll }) => {
         timeSlots: isEditing ? poll?.time_slots || [] : [], // NO BACKEND YET
         pollDateExpiry: null, // BACKEND should handle this
         pollTimeExpiry: null, // BACKEND should handle this
+        ministryIds: [],
+        groupIds: [],
+        userIds: [],
       });
     }
   };
@@ -81,6 +88,10 @@ const Addpoll = ({ isEditing = false, poll }) => {
       timeSlots: [],
       pollDateExpiry: null,
       pollTimeExpiry: null,
+      shareMode: "public",
+      ministryIds: [],
+      groupIds: [],
+      userIds: [],
     },
     mode: "onChange",
   });
@@ -189,6 +200,10 @@ const Addpoll = ({ isEditing = false, poll }) => {
         timeSlots: data.timeSlots,
         pollDateExpiry: data.pollDateExpiry,
         pollTimeExpiry: data.pollTimeExpiry,
+        shareMode: data.shareMode,
+        ministryIds: data.ministryIds,
+        userIds: data.userIds,
+        groupIds: data.groupIds,
       },
       {
         onSuccess: () => {
@@ -341,6 +356,27 @@ RenderDescription.propTypes = {
 const SharePollPrivacy = ({ form }) => {
   const { control } = form;
 
+  const { data: ministries, isLoading: ministriesLoading } = useQuery({
+    queryKey: ["pollMinistries"],
+    queryFn: fetchAllMinistryBasics,
+    enabled: form.getValues("shareMode") === "ministry",
+  });
+  const { data: users, isLoading: usersLoading } = useQuery({
+    queryKey: ["pollUsers"],
+    queryFn: getAllUsers,
+    enabled: form.getValues("shareMode") === "specific",
+  });
+  const { data: groups, isLoading: groupsLoading } = useQuery({
+    queryKey: ["pollGroups"],
+    queryFn: fetchAllGroups,
+    enabled: form.getValues("shareMode") === "group",
+  });
+
+  const groupOptions = groups?.map((group) => ({
+    value: group.id,
+    label: `${group.name} - ${group.ministries?.ministry_name}`,
+  }));
+
   return (
     <div className="mt-4 space-y-4">
       {/* Share Mode Selection */}
@@ -351,7 +387,25 @@ const SharePollPrivacy = ({ form }) => {
         render={({ field }) => (
           <FormItem>
             <Label className="font-semibold">Share poll to</Label>
-            <Select value={field.value} onValueChange={field.onChange}>
+            <Select
+              value={field.value}
+              onValueChange={(value) => {
+                if (value === "public") {
+                  form.setValue("ministryIds", []);
+                  form.setValue("groupIds", []);
+                  form.setValue("userIds", []);
+                }
+                if (value === "ministry") {
+                  form.setValue("userIds", []);
+                  form.setValue("groupIds", []);
+                }
+                if (value === "group") {
+                  form.setValue("ministryIds", []);
+                  form.setValue("userIds", []);
+                }
+                field.onChange(value); // Pass the value to field.onChange instead of just referencing it
+              }}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select sharing mode" />
               </SelectTrigger>
@@ -371,14 +425,19 @@ const SharePollPrivacy = ({ form }) => {
       {/* Conditionally show appropriate selector based on share mode */}
       {form.watch("shareMode") === "ministry" && (
         <FormField
-          key="selectedMinistry"
+          key="ministryIds"
           control={control}
-          name="selectedMinistry"
+          name="ministryIds"
           render={({ field }) => (
             <FormItem>
               <Label className="font-semibold">Select ministry</Label>
               <FormControl>
                 <CustomReactSelect
+                  isLoading={ministriesLoading}
+                  options={ministries?.map((ministry) => ({
+                    value: ministry.id,
+                    label: ministry.ministry_name,
+                  }))}
                   placeholder="Select ministry"
                   isClearable
                   {...field}
@@ -392,9 +451,9 @@ const SharePollPrivacy = ({ form }) => {
 
       {form.watch("shareMode") === "group" && (
         <FormField
-          key="selectedGroup"
+          key="groupIds"
           control={control}
-          name="selectedGroup"
+          name="groupIds"
           render={({ field }) => (
             <FormItem>
               <Label className="font-semibold">Select group</Label>
@@ -402,6 +461,9 @@ const SharePollPrivacy = ({ form }) => {
                 <CustomReactSelect
                   placeholder="Select group"
                   isClearable
+                  isLoading={groupsLoading}
+                  isMulti={true}
+                  options={groupOptions}
                   {...field}
                 />
               </FormControl>
@@ -413,15 +475,20 @@ const SharePollPrivacy = ({ form }) => {
 
       {form.watch("shareMode") === "specific" && (
         <FormField
-          key="selectedUsers"
+          key="userIds"
           control={control}
-          name="selectedUsers"
+          name="userIds"
           render={({ field }) => (
             <FormItem>
               <Label className="font-semibold">Select users</Label>
               <FormControl>
                 <CustomReactSelect
                   isMulti={true}
+                  options={users?.map((user) => ({
+                    value: user.id,
+                    label: `${user.first_name} ${user.last_name}`,
+                  }))}
+                  isLoading={usersLoading}
                   placeholder="Select specific users"
                   isClearable
                   {...field}

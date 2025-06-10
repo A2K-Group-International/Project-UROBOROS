@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react"; // Added useState and useEffect
+import { useEffect, useState } from "react";
 import Addpoll from "@/components/Poll-Management/Addpoll";
 import Pollcard from "@/components/Poll-Management/Pollcard";
 import PollInformation from "@/components/Poll-Management/PollInformation";
 import { Description, Title } from "@/components/Title";
 import { useUser } from "@/context/useUser";
-import { fetchPolls } from "@/services/pollServices";
+import { fetchPollsByUser } from "@/services/pollServices";
 import { useQuery } from "@tanstack/react-query";
-import { Skeleton } from "@/components/ui/skeleton"; // Assuming this is the correct path
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Poll = () => {
   // Access user data from context
@@ -23,7 +23,7 @@ const Poll = () => {
     error,
   } = useQuery({
     queryKey: ["polls", userData?.id],
-    queryFn: () => fetchPolls({ user_id: userData?.id }),
+    queryFn: () => fetchPollsByUser({ user_id: userData?.id }),
     enabled: !!userData?.id,
   });
 

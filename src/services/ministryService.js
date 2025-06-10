@@ -54,6 +54,29 @@ export const getMinistryVolunteers = async (ministryId) => {
 };
 
 /**
+ * Fetches basic ministry information without additional data like coordinators or images.
+ * Use this when you only need essential ministry data.
+ * @returns {Promise<Array<Object>>} Basic ministry objects with id, name, description
+ */
+export const fetchAllMinistryBasics = async () => {
+  try {
+    const { data: ministries, error } = await supabase
+      .from("ministries")
+      .select("* ");
+
+    if (error) {
+      console.error("Error fetching ministry basics:", error);
+      throw new Error(error.message);
+    }
+
+    return ministries || [];
+  } catch (error) {
+    console.error("Error in fetchMinistryBasics:", error);
+    throw error;
+  }
+};
+
+/**
  * Get all ministries from the table.
  * @returns {Promise<Object>} Response containing data or error.
  */
@@ -794,4 +817,21 @@ export const fetchUserMinistryIds = async (userId) => {
   const uniqueMinistryIds = [...new Set(allUserIds)];
 
   return uniqueMinistryIds;
+};
+
+export const getMinistriesMembers = async (ministryIds) => {
+  const { data, error } = await supabase
+    .from("groups")
+    .select("group_members(users(id))")
+    .in("ministry_id", ministryIds);
+
+  if (error) {
+    console.error("Error fetching ministry members:", error.message);
+    throw new Error(error.message);
+  }
+  const members = data.flatMap((group) =>
+    group.group_members.map((member) => member.users.id)
+  );
+
+  return members;
 };

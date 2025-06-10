@@ -27,8 +27,6 @@ const Pollcard = ({
   // Check if poll is expired - much simpler now!
   const isExpired = parsedExpiryDate ? isPast(parsedExpiryDate) : false;
 
-  console.log(expiryDate);
-
   return (
     <div
       className={`flex cursor-pointer gap-x-2 rounded-xl py-3 pl-3 pr-7 text-accent ${isActive ? "bg-primary" : "bg-primary/25"}`}
