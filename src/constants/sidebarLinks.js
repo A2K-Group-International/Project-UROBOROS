@@ -38,7 +38,13 @@ const COMMON_LINKS = {
   poll: {
     label: "Poll Management",
     link: "/poll",
-    icon: "mingcute:inventory-line",
+    icon: "mingcute:chart-horizontal-fill",
+    selectedIcon: "mingcute:chart-horizontal-fill",
+  },
+  poll_list: {
+    label: "Poll List",
+    link: "/poll-list",
+    icon: "mingcute:chart-horizontal-fill",
     selectedIcon: "mingcute:chart-horizontal-fill",
   },
   requests: {
@@ -61,18 +67,21 @@ export const SIDEBAR_LINKS = Object.freeze({
     COMMON_LINKS.announcements,
     COMMON_LINKS.schedule,
     COMMON_LINKS.ministries,
+    COMMON_LINKS.poll_list,
   ],
   parishioner: [
     COMMON_LINKS.announcements,
     COMMON_LINKS.events,
     COMMON_LINKS.family,
     COMMON_LINKS.ministries,
+    COMMON_LINKS.poll_list,
   ],
   coparent: [
     COMMON_LINKS.announcements,
     COMMON_LINKS.events,
     COMMON_LINKS.family,
     COMMON_LINKS.ministries,
+    COMMON_LINKS.poll_list,
   ],
   admin: [
     COMMON_LINKS.dashboard,
