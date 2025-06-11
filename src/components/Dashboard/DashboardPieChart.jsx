@@ -1,4 +1,4 @@
-import { _LabelList, Pie, PieChart } from "recharts";
+import { Pie, PieChart } from "recharts";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {

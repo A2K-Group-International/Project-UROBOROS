@@ -1,5 +1,5 @@
-import DashboardBarchart from "@/components/DashboardBarChart";
-import DashboardPieChart from "@/components/DashboardPieChart";
+import DashboardBarchart from "@/components/Dashboard/DashboardBarChart";
+import DashboardPieChart from "@/components/Dashboard/DashboardPieChart";
 import { Description, Title } from "@/components/Title";
 
 import { getTotalConsultations } from "@/services/consultationServices";
