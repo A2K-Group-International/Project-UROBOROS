@@ -51,161 +51,108 @@ const addConsultation = async ({ userId, consultation }) => {
 
   return { message: "Consultation added successfully" };
 };
+const { count: familyMembersTotalCount, error: familyMembersError } =
+  await supabase.from("parents").select("*", { count: "exact", head: true });
 
-// const getTotalConsultations = async (userId) => {
-//   try {
-//     const { data: familyId, error: familyIdError } = await supabase
-//       .from("consultations")
-//       .select("*, family_group:family_id(id, parents:parents(id)");
+if (familyMembersError) {
+  throw `Error fetching family members count: ${familyMembersError.message}`;
+}
 
-//     if (familyIdError) throw familyIdError.message;
+const getTotalConsultations = async () => {
+  const { data: preferences, error } = await supabase
+    .from("consultations")
+    .select("*,family_group:family_id(id, parents:parents(id))", {
+      count: "exact",
+    });
 
-//     let totalConsultations = 0;
+  if (error) throw `Error fetching total consultations: ${error.message}`;
 
-//     familyId.map((family) => {
-//       if (family.family_group) {
-//         totalConsultations += family.family_group.parents.length;
-//       }
-//     });
+  let preference_a_points = 0;
+  let preference_b_points = 0;
+  let preference_c_points = 0;
 
-//     // Count for preference_a = 1
-//     const { data: Preference1A, error: totalPreference1AError } = await supabase
-//       .from("consultations")
-//       .select("*, family_group:family_id(id, parents:parents(*))")
-//       .eq("preference_a", 1);
+  let nineThirtyAMCount = 0;
+  let elevenAMCount = 0;
+  let sixPMCount = 0;
+  let eightAMCount = 0;
 
-//     if (totalPreference1AError) throw totalPreference1AError.message;
+  const getPreferencePoints = (preference, totalFamilyMembers) => {
+    switch (preference) {
+      case "1st":
+        return 3 * totalFamilyMembers;
+      case "2nd":
+        return 2 * totalFamilyMembers;
+      case "3rd":
+        return 1 * totalFamilyMembers;
+      default:
+        return 0;
+    }
+  };
 
-//     // Calculate total by counting parents in each consultation's family group
-//     const totalPreference1A = consultationsWithParents.reduce(
-//       (total, consultation) => {
-//         const parentsCount = consultation.family_group?.parents?.length || 0;
-//         return total + parentsCount;
-//       },
-//       0
-//     );
-//     // Count for preference_a = 2
-//     const { data: Preference2A, error: totalPreference2AError } = await supabase
-//       .from("consultations")
-//       .select("*, family_group:family_id(id, parents:parents(*))")
-//       .eq("preference_a", 2);
-//     if (totalPreference2AError) throw Preference2A.message;
-//     // Calculate total by counting parents in each consultation's family group
-//     const totalPreference2A = Preference2A.reduce((total, consultation) => {
-//       const parentsCount = consultation.family_group?.parents?.length || 0;
-//       return total + parentsCount;
-//     }, 0);
-//     // Count for preference_a = 3
-//     const { data: Preference3A, error: totalPreference3AError } = await supabase
-//       .from("consultations")
-//       .select("*, family_group:family_id(id, parents:parents(*))")
-//       .eq("preference_a", 3);
-//     if (totalPreference3AError) throw totalPreference3AError.message;
-//     // Calculate total by counting parents in each consultation's family group
-//     const totalPreference3A = Preference3A.reduce((total, consultation) => {
-//       const parentsCount = consultation.family_group?.parents?.length || 0;
-//       return total + parentsCount;
-//     }, 0);
-//     // Count for preference_b = 1
-//     const { data: Preference1B, error: totalPreference1BError } = await supabase
-//       .from("consultations")
-//       .select("*, family_group:family_id(id, parents:parents(*))")
-//       .eq("preference_b", 1);
+  let familyResponseCount = 0;
+  preferences.map((item) => {
+    if (!item.family_group || !item.family_group.parents) {
+      familyResponseCount += 1;
+    } else {
+      familyResponseCount += item.family_group.parents.length;
+    }
+    const familyMembersCount = item.family_group?.parents?.length || 1;
+    preference_a_points += getPreferencePoints(
+      item.preference_a,
+      familyMembersCount
+    );
+    preference_b_points += getPreferencePoints(
+      item.preference_b,
+      familyMembersCount
+    );
+    preference_c_points += getPreferencePoints(
+      item.preference_c,
+      familyMembersCount
+    );
 
-//     if (totalPreference1BError) throw totalPreference1BError.message;
-//     // Calculate total by counting parents in each consultation's family group
-//     const totalPreference1B = Preference1B.reduce((total, consultation) => {
-//       const parentsCount = consultation.family_group?.parents?.length || 0;
-//       return total + parentsCount;
-//     }, 0);
-//     // Count for preference_b = 2
-//     const { data: Preference2B, error: totalPreference2BError } = await supabase
-//       .from("consultations")
-//       .select("*, family_group:family_id(id, parents:parents(*))")
-//       .eq("preference_b", 2);
-//     if (totalPreference2BError) throw totalPreference2BError.message;
-//     // Calculate total by counting parents in each consultation's family group
-//     const totalPreference2B = Preference2B.reduce((total, consultation) => {
-//       const parentsCount = consultation.family_group?.parents?.length || 0;
-//       return total + parentsCount;
-//     }, 0);
-//     // Count for preference_b = 3
-//     const { data: Preference3B, error: totalPreference3BError } = await supabase
-//       .from("consultations")
-//       .select("*, family_group:family_id(id, parents:parents(*))")
-//       .eq("preference_b", 3);
-//     if (totalPreference3BError) throw totalPreference3BError.message;
-//     // Calculate total by counting parents in each consultation's family group
-//     const totalPreference3B = Preference3B.reduce((total, consultation) => {
-//       const parentsCount = consultation.family_group?.parents?.length || 0;
-//       return total + parentsCount;
-//     }, 0);
-//     // Count for preference_c = 1
-//     const { data: Preference1C, error: totalPreference1CError } = await supabase
-//       .from("consultations")
-//       .select("*, family_group:family_id(id, parents:parents(*))")
-//       .eq("preference_c", 1);
-//     if (totalPreference1CError) throw totalPreference1CError.message;
-//     // Calculate total by counting parents in each consultation's family group
-//     const totalPreference1C = Preference1C.reduce((total, consultation) => {
-//       const parentsCount = consultation.family_group?.parents?.length || 0;
-//       return total + parentsCount;
-//     }, 0);
-//     // Count for preference_c = 2
-//     const { data: Preference2C, error: totalPreference2CError } = await supabase
-//       .from("consultations")
-//       .select("*, family_group:family_id(id, parents:parents(*))")
-//       .eq("preference_c", 2);
-//     if (totalPreference2CError) throw totalPreference2CError.message;
-//     // Calculate total by counting parents in each consultation's family group
-//     const totalPreference2C = Preference2C.reduce((total, consultation) => {
-//       const parentsCount = consultation.family_group?.parents?.length || 0;
-//       return total + parentsCount;
-//     }, 0);
-//     // Count for preference_c = 3
-//     const { data: Preference3C, error: totalPreference3CError } = await supabase
-//       .from("consultations")
-//       .select("*, family_group:family_id(id, parents:parents(*))")
-//       .eq("preference_c", 3);
-//     if (totalPreference3CError) throw totalPreference3CError.message;
-//     // Calculate total by counting parents in each consultation's family group
-//     const totalPreference3C = Preference3C.reduce((total, consultation) => {
-//       const parentsCount = consultation.family_group?.parents?.length || 0;
-//       return total + parentsCount;
-//     }, 0);
-//     // Count for mass = 6pm
-//     const { data: mass6pm, error: total6pmMassError } = await supabase
-//       .from("consultations")
-//       .select("*, family_group:family_id(id, parents:parents(*))")
-//       .eq("mass_time", "6pm");
-//     if (total6pmMassError) throw total6pmMassError.message;
-//     // Calculate total by counting parents in each consultation's family group
-//     const total6pmMass = mass6pm.reduce((total, consultation) => {
-//       const parentsCount = consultation.family_group?.parents?.length || 0;
-//       return total + parentsCount;
-//     }, 0);
-//     return {
-//       totalConsultations,
-//       totalPreference1A,
-//       totalPreference1B,
-//       totalPreference1C,
-//       totalPreference2A,
-//       totalPreference2B,
-//       totalPreference2C,
-//       totalPreference3A,
-//       totalPreference3B,
-//       totalPreference3C,
-//       total6pmMass,
-//       total8amMass,
-//       total930amMass,
-//       total11amMass,
-//       highestMassPreference,
-//       highestMassName,
-//     };
-//   } catch (error) {
-//     console.error("Error fetching consultations:", error);
-//     throw error;
-//   }
-// };
+    if (item.preference_mass === "9.30am") {
+      nineThirtyAMCount += familyMembersCount;
+    } else if (item.preference_mass === "11.00am") {
+      elevenAMCount += familyMembersCount;
+    } else if (item.preference_mass === "6.00pm; Saturday") {
+      sixPMCount += familyMembersCount;
+    } else if (item.preference_mass === "8.00am") {
+      eightAMCount += familyMembersCount;
+    }
+  });
 
-export { addConsultation, checkConsultationExistence };
+  // const totalConsultationPoints =
+  //   preference_a_points + preference_b_points + preference_c_points;
+
+  const preference_a_percentage = Math.round(
+    (preference_a_points / familyMembersTotalCount) * 100
+  );
+  const preference_b_percentage = Math.round(
+    (preference_b_points / familyMembersTotalCount) * 100
+  );
+  const preference_c_percentage = Math.round(
+    (preference_c_points / familyMembersTotalCount) * 100
+  );
+
+  const noResponseCount = familyMembersTotalCount - familyResponseCount;
+  const no_response_percentage = Math.round(
+    (noResponseCount / familyMembersTotalCount) * 100
+  );
+  return {
+    preference_a_points,
+    preference_b_points,
+    preference_c_points,
+    preference_a_percentage,
+    preference_b_percentage,
+    preference_c_percentage,
+    noResponseCount,
+    nineThirtyAMCount,
+    elevenAMCount,
+    sixPMCount,
+    eightAMCount,
+    familyResponseCount,
+    no_response_percentage,
+  };
+};
+
+export { addConsultation, checkConsultationExistence, getTotalConsultations };

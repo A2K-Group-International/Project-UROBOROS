@@ -70,6 +70,7 @@
     "react-intersection-observer": "^9.13.1",
     "react-router-dom": "^6.28.0",
     "react-select": "^5.8.3",
+    "recharts": "^2.15.3",
     "sharp": "^0.34.2",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",

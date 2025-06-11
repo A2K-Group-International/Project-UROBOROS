@@ -167,7 +167,6 @@ const DashboardCalendar = () => {
         displayEventTime={false}
         eventClick={handleEventClick}
       />
-
       {selectedEvent && (
         <EventInfoDialog
           open={isDialogOpen}
