@@ -76,12 +76,7 @@ const addConsultation = async ({ userId, consultation }) => {
 
   return { message: "Consultation added successfully" };
 };
-const { count: familyMembersTotalCount, error: familyMembersError } =
-  await supabase.from("parents").select("*", { count: "exact", head: true });
 
-if (familyMembersError) {
-  throw `Error fetching family members count: ${familyMembersError.message}`;
-}
 /**
  *  Fetches total consultations and calculates points and percentages for each preference.
  * @returns {Object} An object containing the total points and percentages for each preference, as well as counts for mass preferences.
@@ -126,6 +121,12 @@ This method ensures that all slices of the pie chart are comparable in terms of 
 */
 
 const getTotalConsultations = async () => {
+  const { count: familyMembersTotalCount, error: familyMembersError } =
+    await supabase.from("parents").select("*", { count: "exact", head: true });
+
+  if (familyMembersError) {
+    throw `Error fetching family members count: ${familyMembersError.message}`;
+  }
   const { data: preferences, error } = await supabase
     .from("consultations")
     .select("*,family_group:family_id(id, parents:parents(id))", {
