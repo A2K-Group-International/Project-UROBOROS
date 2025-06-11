@@ -268,9 +268,9 @@ const CreateGroup = ({ ministryId }) => {
                       />
                     </FormControl>
                     {imagePreview ? (
-                      <div className="relative mx-auto w-40 overflow-hidden rounded-lg">
+                      <div className="relative mx-auto w-full overflow-hidden rounded-lg">
                         <ImageLoader
-                          className="object-contain"
+                          className="h-[210px] w-full object-cover"
                           src={imagePreview}
                           alt="Group logo"
                         />

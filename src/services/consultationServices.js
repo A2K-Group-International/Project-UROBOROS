@@ -17,7 +17,11 @@ const checkConsultationExistence = async (userId) => {
     .from("parents")
     .select("family_id")
     .eq("parishioner_id", userId)
-    .single();
+    .maybeSingle();
+
+  if (!userFamilyId) {
+    throw new Error("User does not have a family ID associated.");
+  }
 
   if (familyIdError) throw `Error fetching family ID: ${familyIdError.message}`;
 
@@ -82,44 +86,6 @@ const addConsultation = async ({ userId, consultation }) => {
  * @returns {Object} An object containing the total points and percentages for each preference, as well as counts for mass preferences.
  */
 
-/*
-
-Point System:
-
-1st Preference (Preference A): 3 points per family member.
-2nd Preference (Preference B): 2 points per family member.
-3rd Preference (Preference C): 1 point per family member.
-No Response: 3 points per family member who did not submit a response.
-Calculation Steps:
-
-Calculate Points for Each Preference Category:
-
-preference_a_points = (Number of family members choosing Preference A as 1st) * 3
-preference_b_points = (Number of family members choosing Preference B as 2nd) * 2
-preference_c_points = (Number of family members choosing Preference C as 3rd) * 1
-Calculate Points for "No Response":
-
-no_response_points = (Number of family members who did not respond) * 3
-This assigns a weight to the "No Response" category, making it comparable to a 1st preference in terms of point contribution.
-Calculate Total Consultation Points:
-
-This is the sum of all points accumulated across all categories.
-totalConsultationPoints = preference_a_points + preference_b_points + preference_c_points + no_response_points
-
-Calculate Percentage for Each Category:
-
-The percentage for each category (Preference A, B, C, and No Response) is its share of the totalConsultationPoints.
-percentage_category = Math.round((points_for_category / totalConsultationPoints) * 100)
-For example:
-preference_a_percentage = Math.round((preference_a_points / totalConsultationPoints) * 100)
-no_response_percentage = Math.round((no_response_points / totalConsultationPoints) * 100)
-Interpretation of the "No Response" Slice:
-
-The "No Response" slice in this pie chart represents the proportion of total points that are attributed to families who did not submit a preference, where each non-responding family contributes 3 points to the total. It does not directly represent the raw percentage of families who did not respond (e.g., if 25 out of 40 families didn't respond, the raw non-response rate is 62.5%, but the points-based slice in the pie chart will differ based on the total points from other preferences).
-
-This method ensures that all slices of the pie chart are comparable in terms of their contribution to the overall point-based evaluation of preferences and sum up to 100% of the total points.
-*/
-
 const getTotalConsultations = async () => {
   const { count: familyMembersTotalCount, error: familyMembersError } =
     await supabase.from("parents").select("*", { count: "exact", head: true });
@@ -164,6 +130,7 @@ const getTotalConsultations = async () => {
     } else {
       familyResponseCount += item.family_group.parents.length;
     }
+
     const familyMembersCount =
       item.family_group?.parents?.length === 0
         ? 1
@@ -191,14 +158,13 @@ const getTotalConsultations = async () => {
       eightAMCount += familyMembersCount;
     }
   });
-
-  const noResponseCount = familyMembersTotalCount - familyResponseCount;
+  const noResponseCount = 6 * (familyMembersTotalCount - familyResponseCount);
 
   const totalConsultationPoints =
     preference_a_points +
     preference_b_points +
     preference_c_points +
-    noResponseCount * 3;
+    noResponseCount;
 
   const preference_a_percentage = Math.round(
     (preference_a_points / totalConsultationPoints) * 100
@@ -210,7 +176,7 @@ const getTotalConsultations = async () => {
     (preference_c_points / totalConsultationPoints) * 100
   );
   const no_response_percentage = Math.round(
-    ((noResponseCount * 3) / totalConsultationPoints) * 100
+    (noResponseCount / totalConsultationPoints) * 100
   );
 
   return {
@@ -220,7 +186,7 @@ const getTotalConsultations = async () => {
     preference_a_percentage,
     preference_b_percentage,
     preference_c_percentage,
-    noResponseCount,
+    noResponseCount: noResponseCount / 6,
     nineThirtyAMCount,
     elevenAMCount,
     sixPMCount,
