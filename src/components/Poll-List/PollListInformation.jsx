@@ -11,7 +11,7 @@ import {
 import { format, isPast, parseISO } from "date-fns";
 import { Label } from "../ui/label";
 import { Button } from "../ui/button";
-import { cn, convertTimeStringToDate } from "@/lib/utils";
+import { cn, convertTimeStringToDate, formatEventDate } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   answerSinglePoll,
@@ -144,11 +144,7 @@ const PollEntriesVote = ({ poll_id }) => {
             <div className="space-y-4">
               <div className="flex flex-wrap items-center">
                 <Label className="flex-1 text-sm font-semibold md:text-lg">
-                  {new Date(date.date).toLocaleDateString("en-US", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })}
+                  {formatEventDate(date.date)}
                 </Label>
                 <div className="flex flex-1 items-center gap-x-6 text-nowrap text-sm font-semibold text-accent md:gap-x-10">
                   <p>Available</p>
@@ -297,7 +293,7 @@ const PollTime = ({ poll_id, poll_date_id, poll_time_id, time }) => {
       <div className="flex-1">
         <div className="flex flex-wrap items-center justify-between">
           <div className="flex-1">
-            <Label className="text-sm font-semibold md:text-xl">
+            <Label className="text-sm font-semibold md:text-lg">
               {convertTimeStringToDate(time).toLocaleTimeString("en-US", {
                 hour: "2-digit",
                 minute: "2-digit",

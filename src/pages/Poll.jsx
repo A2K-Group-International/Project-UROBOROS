@@ -101,9 +101,9 @@ const Poll = () => {
   };
 
   return (
-    <div className="no-scrollbar grid h-dvh gap-x-8 overflow-scroll lg:grid-cols-[0.6fr,1.3fr]">
+    <div className="no-scrollbar grid h-full gap-x-8 overflow-scroll lg:grid-cols-[0.6fr,1.3fr]">
       {/* LEFT VIEW */}
-      <div className="flex max-h-dvh flex-col p-2">
+      <div className="no-scrollbar flex flex-col overflow-y-scroll p-2">
         <div className="mb-4">
           <Title className="text-2xl">Poll Management</Title>
           <Description>Create and manage polls for your church.</Description>
@@ -120,7 +120,7 @@ const Poll = () => {
 
       {/* RIGHT VIEW (Desktop) */}
       {!isMobile && (
-        <div className="hidden h-full rounded-xl border border-accent/40 p-8 lg:block">
+        <div className="no-scrollbar hidden overflow-y-scroll rounded-xl border border-accent/40 p-8 lg:block">
           {selectedPollCard ? (
             <PollInformation poll={selectedPollCard} isMobile={false} />
           ) : (
