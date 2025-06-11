@@ -2,7 +2,7 @@ import useEventCalendar from "@/hooks/useEventCalendar";
 import { fetchSelectedEvents } from "@/services/eventService";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "../ui/skeleton";
-import { cn } from "@/lib/utils";
+import { cn, formatEventTime } from "@/lib/utils";
 import { Separator } from "../ui/separator";
 import React from "react";
 import PropTypes from "prop-types";
@@ -14,7 +14,7 @@ const Events = () => {
     queryFn: () => fetchSelectedEvents(activeDate),
   });
 
-  if (!data || data?.allDayEvents.length === 0) {
+  if (data?.allDayEvents.length < 1 && data?.otherEvents.length < 1 === 0) {
     return (
       <div className="flex h-full items-center justify-center rounded-xl bg-white p-5">
         <h1 className="text-xl font-semibold text-accent">No Events Found</h1>
@@ -56,7 +56,7 @@ const Events = () => {
         </p>
         <p className="text-xs text-accent/75">{status}</p>
       </div>
-      <p className="text-xs text-accent">{time}</p>
+      <p className="text-xs text-accent">{time ? formatEventTime(time) : ""}</p>
     </div>
   ));
   DateCard.displayName = "DateCard";
@@ -67,22 +67,42 @@ const Events = () => {
     time: PropTypes.string,
   };
 
+  const getHeaderText = () => {
+    const today = new Date();
+    // Normalize today to midnight for accurate date-only comparison
+    today.setHours(0, 0, 0, 0);
+
+    // Normalize activeDate to midnight for accurate date-only comparison
+    // Create a new Date object from activeDate to avoid mutating the original state
+    const activeDateNormalized = new Date(activeDate);
+    activeDateNormalized.setHours(0, 0, 0, 0);
+
+    if (activeDateNormalized.getTime() === today.getTime()) {
+      return "Events Today";
+    } else if (activeDateNormalized.getTime() < today.getTime()) {
+      return "Previous Events";
+    } else {
+      return "Upcoming Events";
+    }
+  };
+
   return (
     <div className="h-full rounded-xl bg-white p-5">
-      <p className="mb-2 font-bold text-accent">Events Today</p>
-      {data.allDayEvents.map((date, index) => (
-        <DateCard
-          key={index}
-          title={date.event_name}
-          status={date.status}
-          time={date.event_time}
-        />
-      ))}
+      <p className="mb-2 font-bold text-accent">{getHeaderText()}</p>
+      {data.allDayEvents.length > 0 &&
+        data.allDayEvents.map((date, index) => (
+          <DateCard
+            key={index}
+            title={date.event_name}
+            status={date.status}
+            time={date.event_time}
+          />
+        ))}
 
       {data.otherEvents.length > 0 && data.allDayEvents.length > 0 && (
         <Separator className="mb-2" />
       )}
-      {data.otherEvents && (
+      {data.otherEvents.length > 0 && (
         <>
           {data?.otherEvents.map((date, index) => (
             <DateCard
@@ -90,6 +110,7 @@ const Events = () => {
               title={date.event_name}
               status={date.status}
               time={date.event_time}
+              date={date.event_date}
             />
           ))}
         </>

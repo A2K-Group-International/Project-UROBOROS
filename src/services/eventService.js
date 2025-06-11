@@ -13,21 +13,23 @@ export const fetchSelectedEvents = async (date) => {
     .select("*")
     .eq("event_date", formattedDate)
     .order("event_time", { ascending: true });
-
   if (error) {
     throw new Error(`Error fetching today's events: ${error.message}`);
   }
   const getEventStatus = (event) => {
     const now = new Date();
-    const eventDate = new Date(`${event.event_date}T${event.event_time}`);
-    if (eventDate < now) {
+    const eventDate = new Date(
+      `${event.event_date}T${event.event_time || "24:00:00"}` // Default to midnight if no time is provided
+    );
+
+    if (eventDate < now || (event.event_time === null && eventDate < now)) {
       return "Done";
-    } else if (eventDate == now) {
+    } else if (event.event_time === null && eventDate > now) {
+      return "All Day";
+    } else if (eventDate === now) {
       return "Ongoing";
     } else if (eventDate > now) {
       return "Upcoming";
-    } else if (!event.event_time) {
-      return "All Day";
     }
   };
 
@@ -41,11 +43,11 @@ export const fetchSelectedEvents = async (date) => {
   });
 
   const allDayEvents = formattedData.filter(
-    (event) => event.status === "All Day" || !event.event_time
+    (event) => event.status === "All Day"
   );
 
   const otherEvents = formattedData.filter(
-    (event) => event.status !== "All Day" && event.event_time
+    (event) => event.status !== "All Day"
   );
   const segregatedData = {
     allDayEvents,

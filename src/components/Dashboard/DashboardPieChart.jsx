@@ -59,7 +59,7 @@ const DashboardPieChart = ({
         <CardTitle className={"text-lg"}>Consultation Results</CardTitle>
         <CardDescription>
           1st Preference - 3 points, 2nd Preference- 2 points, 3rd Preference -
-          1 point{" "}
+          1 point, No Response - 3 points
         </CardDescription>
       </CardHeader>
       <CardContent className="flex items-center justify-center pb-0">
