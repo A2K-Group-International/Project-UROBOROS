@@ -25,7 +25,7 @@ import { Button } from "../ui/button";
 import { Icon } from "@iconify/react";
 import PropTypes from "prop-types";
 import { useQuery } from "@tanstack/react-query";
-import { fetchPollUserAnswers } from "@/services/pollServices";
+import { fetchPollAnswers } from "@/services/pollServices";
 import { formatEventDate, formatEventTime } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 
@@ -66,7 +66,7 @@ const VoteResults = ({ dates, pollName }) => {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["pollTime", poll_date_id, poll_time_id],
     queryFn: () =>
-      fetchPollUserAnswers({
+      fetchPollAnswers({
         poll_date_id,
         poll_time_id,
       }),
@@ -170,7 +170,7 @@ SelectDate.propTypes = {
   ).isRequired,
 };
 
-const UserResponseList = ({ users, emptyMessage = "No responses yet" }) => {
+const UserResponseList = ({ users, emptyMessage = "No response yet" }) => {
   return (
     <>
       {users?.length > 0 ? (
