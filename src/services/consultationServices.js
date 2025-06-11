@@ -121,22 +121,26 @@ const getTotalConsultations = async () => {
     }
   });
 
-  // const totalConsultationPoints =
-  //   preference_a_points + preference_b_points + preference_c_points;
+  const noResponseCount = familyMembersTotalCount - familyResponseCount;
+
+  const totalConsultationPoints =
+    preference_a_points +
+    preference_b_points +
+    preference_c_points +
+    noResponseCount;
 
   const preference_a_percentage = Math.round(
-    (preference_a_points / familyMembersTotalCount) * 100
+    (preference_a_points / totalConsultationPoints) * 100
   );
   const preference_b_percentage = Math.round(
-    (preference_b_points / familyMembersTotalCount) * 100
+    (preference_b_points / totalConsultationPoints) * 100
   );
   const preference_c_percentage = Math.round(
-    (preference_c_points / familyMembersTotalCount) * 100
+    (preference_c_points / totalConsultationPoints) * 100
   );
 
-  const noResponseCount = familyMembersTotalCount - familyResponseCount;
   const no_response_percentage = Math.round(
-    (noResponseCount / familyMembersTotalCount) * 100
+    (noResponseCount / totalConsultationPoints) * 100
   );
   return {
     preference_a_points,

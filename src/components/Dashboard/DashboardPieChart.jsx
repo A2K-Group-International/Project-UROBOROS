@@ -1,6 +1,12 @@
 import { Pie, PieChart } from "recharts";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   ChartContainer,
   ChartTooltip,
@@ -48,31 +54,73 @@ const DashboardPieChart = ({
   ];
 
   return (
-    <Card className="h-full justify-between bg-primary">
+    <Card className="h-full bg-primary">
       <CardHeader className="pb-0">
         <CardTitle className={"text-lg"}>Consultation Results</CardTitle>
-        {/* <CardDescription>January - June 2024</CardDescription> */}
+        <CardDescription>
+          1st Preference - 3 points, 2nd Preference- 2 points, 3rd Preference -
+          1 point{" "}
+        </CardDescription>
       </CardHeader>
-      <CardContent className="flex h-full w-full items-center justify-center pb-0">
+      <CardContent className="flex items-center justify-center pb-0">
         <ChartContainer
           config={chartConfig}
-          className="[&_.recharts-text]:fill-background aspect-square h-full flex-1 p-6"
+          className="[&_.recharts-text]:fill-background aspect-square h-full flex-1 p-0"
         >
-          <PieChart>
+          <PieChart className="h-full w-full">
             <ChartTooltip
               content={
                 <ChartTooltipContent className={"w-40"} nameKey="time" />
               }
             />
-            <Pie data={chartData} dataKey="value">
-              {/* <LabelList
-                // className="fill-background"
-                dataKey="time"
-                stroke=" "
-                fontSize={20}
-                formatter={(value) => chartConfig[value]?.label}
-              /> */}
-            </Pie>
+            <Pie
+              data={chartData}
+              dataKey="value"
+              labelLine={false}
+              label={({
+                cx,
+                cy,
+                midAngle,
+                innerRadius,
+                outerRadius,
+                value,
+              }) => {
+                // Calculate label position
+                const RADIAN = Math.PI / 180;
+                const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
+                const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                const rectWidth = 45;
+                const rectHeight = 25;
+                const rectX = x - rectWidth / 2;
+                const rectY = y - rectHeight / 2;
+
+                return (
+                  <g>
+                    <rect
+                      x={rectX}
+                      y={rectY}
+                      width={rectWidth}
+                      height={rectHeight}
+                      rx={13}
+                      fill="#fff"
+                    />
+                    <text
+                      x={x}
+                      y={y + 1}
+                      textAnchor="middle"
+                      fill="#663F30"
+                      fontSize={13}
+                      fontWeight="bold"
+                      alignmentBaseline="middle"
+                      // dominantBaseline="middle"
+                    >
+                      {value} %
+                    </text>
+                  </g>
+                );
+              }}
+            ></Pie>
           </PieChart>
         </ChartContainer>
         <div className="flex flex-1 flex-col gap-3">

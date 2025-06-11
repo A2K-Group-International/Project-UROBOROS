@@ -2,11 +2,16 @@ import { paginate } from "@/lib/utils";
 import { supabase } from "@/services/supabaseClient";
 import { deleteImageFromStorage } from "./ministryService";
 
-export const fetchEventsToday = async () => {
+export const fetchSelectedEvents = async (date) => {
+  if (!date) {
+    return { allDayEvents: [], otherEvents: [] };
+  }
+  const jsDate = new Date(date);
+  const formattedDate = `${jsDate.getFullYear()}-${String(jsDate.getMonth() + 1).padStart(2, "0")}-${String(jsDate.getDate()).padStart(2, "0")}`;
   const { data, error } = await supabase
     .from("events")
     .select("*")
-    .eq("event_date", new Date().toISOString().split("T")[0])
+    .eq("event_date", formattedDate)
     .order("event_time", { ascending: true });
 
   if (error) {
@@ -25,6 +30,7 @@ export const fetchEventsToday = async () => {
       return "All Day";
     }
   };
+
   const formattedData = data.map((event) => {
     const status = getEventStatus(event);
 
@@ -34,7 +40,18 @@ export const fetchEventsToday = async () => {
     };
   });
 
-  return formattedData;
+  const allDayEvents = formattedData.filter(
+    (event) => event.status === "All Day" || !event.event_time
+  );
+
+  const otherEvents = formattedData.filter(
+    (event) => event.status !== "All Day" && event.event_time
+  );
+  const segregatedData = {
+    allDayEvents,
+    otherEvents,
+  };
+  return segregatedData;
 };
 
 export const createEvent = async (eventData) => {
