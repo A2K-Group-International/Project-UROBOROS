@@ -373,6 +373,7 @@ const fetchPoll = async ({ poll_id, user_id }) => {
 // };
 
 const answerSinglePoll = async ({
+  id,
   poll_id,
   user_id,
   poll_date_id,
@@ -390,39 +391,42 @@ const answerSinglePoll = async ({
   if (!pollExist) {
     throw new Error("Poll does not exist");
   }
-  const { data: userPollExist, error: userPollError } = await supabase
-    .from("user_polls")
-    .select("id")
-    .eq("user_id", user_id)
-    .eq("poll_id", poll_id)
-    .maybeSingle();
-  if (userPollError) {
-    throw new Error(userPollError.message);
-  }
-  if (userPollExist) {
-    throw new Error("You have already answered this poll");
-  }
+  // const { data: userPollExist, error: userPollError } = await supabase
+  //   .from("poll_answers")
+  //   .select("id")
+  //   .eq("user_id", user_id)
+  //   .eq("poll_id", poll_id)
+  //   .eq("poll_date_id", poll_date_id)
+  //   .eq("poll_time_id", poll_time_id)
+  //   .maybeSingle();
+  // if (userPollError) {
+  //   throw new Error(
+  //     `Error checking user poll existence: ${userPollError.message}`
+  //   );
+  // }
+  // if (userPollExist) {
+  //   throw new Error("You have already answered this poll");
+  // }
 
-  const { error: insertError } = await supabase
-    .from("poll_answers")
-    .upsert({
-      poll_date_id,
-      poll_time_id,
-      answer,
-      user_id,
-      poll_id,
-    })
-    .eq("user_id", user_id)
-    .eq("poll_id", poll_id);
-  if (insertError) throw insertError.message;
+  const { error: insertError } = await supabase.from("poll_answers").upsert({
+    id,
+    poll_date_id,
+    poll_time_id,
+    answer,
+    user_id,
+    poll_id,
+  });
+  if (insertError)
+    throw new Error(`Error answering poll: ${insertError.message}`);
 };
 
-const fetchPollAnswers = async ({ poll_id, user_id }) => {
+const fetchPollUserAnswers = async ({ poll_time_id, user_id }) => {
   const { data: pollAnswers, error: fetchError } = await supabase
     .from("poll_answers")
     .select("*")
-    .eq("poll_id", poll_id)
-    .eq("user_id", user_id);
+    .eq("poll_time_id", poll_time_id)
+    .eq("user_id", user_id)
+    .maybeSingle();
 
   if (fetchError) {
     throw new Error(fetchError.message);
@@ -444,7 +448,7 @@ const fetchPollDates = async ({ poll_id }) => {
   return pollDates;
 };
 
-const fetchPollUserAnswers = async ({ poll_date_id, poll_time_id }) => {
+const fetchPollAnswers = async ({ poll_date_id, poll_time_id }) => {
   const { data: pollUserAnswers, error: fetchError } = await supabase
     .from("poll_answers")
     .select("answer, users(first_name, last_name)")
