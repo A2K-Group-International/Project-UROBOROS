@@ -35,6 +35,14 @@ import { useUser } from "@/context/useUser";
 import VoteResults from "./VoteResults";
 
 const PollInformation = ({ poll, isMobile, isSheetOpen, setSheetOpen }) => {
+  const { addTimeSlotMutation, PollDates } = usePoll({ poll_id: poll?.id }); // Fetch poll dates and add time slot mutation
+  const {
+    data: dates,
+    isLoading: datesLoading,
+    isError: datesError,
+    error: datesErrorMsg,
+  } = PollDates || {}; // Fetch poll dates
+
   // Parse the ISO date string to a Date object
   const expiryDate = poll?.expiration_date
     ? parseISO(poll?.expiration_date)
@@ -58,42 +66,53 @@ const PollInformation = ({ poll, isMobile, isSheetOpen, setSheetOpen }) => {
   const isExpired = isPollExpired();
 
   const pollContent = poll ? (
-    <>
-      <div className="flex justify-between gap-x-4">
-        <div className="space-y-2">
-          <Title className={`${isMobile ? "text-xl" : "text-2xl"}`}>
-            {poll.name}
-          </Title>
-          <Description>{poll.description}</Description>
-          <Description className="p-0">
-            <span
-              className={`flex rounded-xl p-2 font-semibold md:px-4 md:py-2 ${isExpired ? "max-w-28 bg-danger text-white" : "max-w-auto bg-primary"}`}
-            >
-              <Icon
-                icon={
-                  isExpired
-                    ? "mingcute:close-circle-fill"
-                    : "mingcute:time-line"
-                }
-                color="text-white"
-                className="mr-1"
-                width={14}
-              />
-              {isExpired
-                ? "Closed"
-                : `Open until ${formattedDate} ${dayName}, ${formattedTime}`}
-            </span>
-          </Description>
+    <div className="flex h-full flex-col justify-between">
+      <div className="flex flex-col gap-y-10">
+        <div className="flex justify-between gap-x-4">
+          <div className="space-y-2">
+            <Title className={`${isMobile ? "text-xl" : "text-2xl"}`}>
+              {poll.name}
+            </Title>
+            <Description>{poll.description}</Description>
+            <Description className="p-0">
+              <span
+                className={`flex rounded-xl p-2 font-semibold md:px-4 md:py-2 ${isExpired ? "max-w-28 bg-danger text-white" : "max-w-auto bg-primary"}`}
+              >
+                <Icon
+                  icon={
+                    isExpired
+                      ? "mingcute:close-circle-fill"
+                      : "mingcute:time-line"
+                  }
+                  color="text-white"
+                  className="mr-1"
+                  width={14}
+                />
+                {isExpired
+                  ? "Closed"
+                  : `Open until ${formattedDate} ${dayName}, ${formattedTime}`}
+              </span>
+            </Description>
+          </div>
+          <div className="flex flex-col gap-2">
+            {/* Edit Poll */}
+            <Addpoll isEditing={true} poll={poll} dates={dates} />
+            {/* Delete poll */}
+            <DeletePoll poll_id={poll.id} />
+          </div>
         </div>
-        <div className="flex flex-col gap-2">
-          {/* Edit Poll */}
-          <Addpoll isEditing={true} poll={poll} />
-          {/* Delete poll */}
-          <DeletePoll poll_id={poll.id} />
-        </div>
+        <PollEntries
+          poll_id={poll.id}
+          pollName={poll.name}
+          dates={dates}
+          isLoading={datesLoading}
+          isError={datesError}
+          error={datesErrorMsg}
+          addTimeSlotMutation={addTimeSlotMutation}
+        />
       </div>
-      <PollEntries poll_id={poll.id} pollName={poll.name} />
-    </>
+      {/* <div>Footer</div> */}
+    </div>
   ) : (
     <div className="flex h-full flex-col items-center justify-center py-8">
       <Icon
@@ -150,10 +169,15 @@ PollInformation.propTypes = {
   setSheetOpen: PropTypes.func,
 };
 
-const PollEntries = ({ poll_id, pollName }) => {
+const PollEntries = ({
+  pollName,
+  dates,
+  isLoading,
+  isError,
+  error,
+  addTimeSlotMutation,
+}) => {
   const [activeTimePickerIndex, setActiveTimePickerIndex] = useState(null);
-  const { addTimeSlotMutation, PollDates } = usePoll({ poll_id });
-  const { data: dates, isLoading, isError, error } = PollDates;
 
   const onSubmit = (poll_date_id, time) => {
     addTimeSlotMutation.mutate({
@@ -163,7 +187,7 @@ const PollEntries = ({ poll_id, pollName }) => {
   };
 
   return (
-    <div className="mt-10 space-y-4">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <Label className="text-xl font-semibold">Entries</Label>
         <VoteResults pollName={pollName} dates={dates} />
@@ -255,7 +279,11 @@ const PollEntries = ({ poll_id, pollName }) => {
 
 PollEntries.propTypes = {
   pollName: PropTypes.string.isRequired,
-  poll_id: PropTypes.string.isRequired,
+  dates: PropTypes.array,
+  isLoading: PropTypes.bool,
+  isError: PropTypes.bool,
+  error: PropTypes.object,
+  addTimeSlotMutation: PropTypes.object.isRequired,
 };
 
 const DeletePoll = ({ poll_id }) => {

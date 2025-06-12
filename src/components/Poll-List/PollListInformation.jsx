@@ -65,7 +65,7 @@ const PollListInformation = ({ poll, isMobile, isSheetOpen, setSheetOpen }) => {
         </Description>
         <Description>{poll.description}</Description>
       </div>
-      <PollEntriesVote poll_id={poll.id} />
+      <PollEntriesVote poll_id={poll.id} isExpired={isExpired} />
     </>
   ) : (
     <div className="flex h-full flex-col items-center justify-center py-8">
@@ -121,7 +121,7 @@ PollListInformation.propTypes = {
   setSheetOpen: PropTypes.func,
 };
 
-const PollEntriesVote = ({ poll_id }) => {
+const PollEntriesVote = ({ poll_id, isExpired }) => {
   const { PollDates } = usePoll({ poll_id });
   const { data: dates, isLoading, isError, error } = PollDates;
 
@@ -161,6 +161,7 @@ const PollEntriesVote = ({ poll_id }) => {
                     key={timeIndex}
                     time={time.time}
                     poll_id={poll_id}
+                    isExpired={isExpired}
                   />
                 ))}
             </div>
@@ -172,9 +173,10 @@ const PollEntriesVote = ({ poll_id }) => {
 };
 PollEntriesVote.propTypes = {
   poll_id: PropTypes.string.isRequired,
+  isExpired: PropTypes.bool.isRequired,
 };
 
-const PollTime = ({ poll_id, poll_date_id, poll_time_id, time }) => {
+const PollTime = ({ poll_id, poll_date_id, poll_time_id, time, isExpired }) => {
   const { userData } = useUser();
   const queryClient = useQueryClient();
   const { data, isLoading, isError, error } = useQuery({
@@ -308,7 +310,7 @@ const PollTime = ({ poll_id, poll_date_id, poll_time_id, time }) => {
                   key={option.key}
                   variant="ghost"
                   size="sm"
-                  disabled={isActive}
+                  disabled={isActive || isExpired}
                   className={cn(
                     "rounded-full p-6 text-xs font-medium shadow-[inset_0px_2px_6px_rgba(0,0,0,0.12)] transition-colors",
                     isActive ? option.activeColor : option.inactiveColor
@@ -342,6 +344,7 @@ PollTime.propTypes = {
   poll_date_id: PropTypes.string.isRequired,
   poll_time_id: PropTypes.string.isRequired,
   time: PropTypes.string.isRequired,
+  isExpired: PropTypes.bool.isRequired,
 };
 // const AvailabilityTimeSlot = ({
 //   date = "18 February 2025",

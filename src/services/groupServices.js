@@ -70,7 +70,7 @@ const fetchAllGroups = async () => {
 const fetchGroups = async (ministryId) => {
   const { data, error } = await supabase
     .from("groups")
-    .select("id, name, ministry(ministry_name)")
+    .select("*")
     .eq("ministry_id", ministryId);
 
   if (error) {

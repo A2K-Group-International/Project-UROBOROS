@@ -17,6 +17,7 @@ import {
 import {
   Carousel,
   CarouselContent,
+  CarouselDots,
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
@@ -257,6 +258,7 @@ const MobileViewContent = ({ data }) => {
       </CarouselContent>
       <CarouselPrevious />
       <CarouselNext />
+      <CarouselDots className="mt-4" />
     </Carousel>
   );
 };

@@ -4,6 +4,7 @@ import {
   addPoll,
   addTimeSlot,
   deletePoll,
+  editPolls,
   fetchPollDates,
 } from "@/services/pollServices";
 
@@ -74,11 +75,36 @@ const usePoll = ({ poll_id, user_id } = { poll_id: null, user_id: null }) => {
     },
   });
 
+  const editPollMutation = useMutation({
+    mutationFn: editPolls,
+    onSuccess: () => {
+      toast({
+        title: "Poll updated successfully!",
+        description: "Your changes have been saved.",
+      });
+
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries(["polls"]);
+      if (poll_id) {
+        queryClient.invalidateQueries(["pollDates", poll_id]);
+        queryClient.invalidateQueries(["poll", poll_id]);
+      }
+    },
+    onError: (error) => {
+      toast({
+        title: "Error updating poll",
+        description: `An error occurred while updating the poll: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
   return {
     createPollMutation,
     addTimeSlotMutation,
     PollDates,
     DeletePollMutation,
+    editPollMutation,
   };
 };
 

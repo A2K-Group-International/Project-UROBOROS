@@ -382,7 +382,7 @@ const answerSinglePoll = async ({
 }) => {
   const { data: pollExist, error: existError } = await supabase
     .from("polls")
-    .select("id")
+    .select("id, expiration_date")
     .eq("id", poll_id)
     .maybeSingle();
   if (existError) {
@@ -390,6 +390,14 @@ const answerSinglePoll = async ({
   }
   if (!pollExist) {
     throw new Error("Poll does not exist");
+  }
+
+  // Check if poll is expired
+  if (
+    pollExist.expiration_date &&
+    new Date(pollExist.expiration_date) < new Date()
+  ) {
+    throw new Error("This poll has expired. Voting is no longer available.");
   }
   // const { data: userPollExist, error: userPollError } = await supabase
   //   .from("poll_answers")
