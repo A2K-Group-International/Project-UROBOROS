@@ -47,11 +47,12 @@ import { fetchAllMinistryBasics } from "@/services/ministryService";
 import { getAllUsers } from "@/services/userService";
 import { fetchAllGroups } from "@/services/groupServices";
 
-const Addpoll = ({ isEditing = false, poll }) => {
+const Addpoll = ({ isEditing = false, poll, dates }) => {
   const { userData } = useUser();
-  const [openPollDialog, setOpenPollDialog] = useState(false);
+  const [openPollDialog, setOpenPollDialog] = useState(false); // State to control dialog open/close
   const [currentStep, setCurrentStep] = useState(1); // Start at step 1
   const totalStep = 6; // Total number of steps in the poll creation process
+  const [selectedTimes, setSelectedTimes] = useState({}); // State to hold selected times for each date
 
   const handleBack = () => {
     if (currentStep > 1) {
@@ -64,17 +65,65 @@ const Addpoll = ({ isEditing = false, poll }) => {
     setOpenPollDialog(open);
     if (open) {
       setCurrentStep(1);
+      // Parse dates for editing mode - dates is an array directly
+      const parsedDates =
+        isEditing && dates
+          ? dates?.map((dateItem) => {
+              // Each dateItem has a 'date' property with ISO string
+              const dateObj = new Date(dateItem.date);
+              return dateObj;
+            })
+          : [];
+
+      // Parse time slots for editing mode
+      const parsedTimeSlots =
+        isEditing && dates
+          ? dates?.flatMap(
+              (dateItem, dateIndex) =>
+                dateItem.poll_times?.map((timeSlot, timeIndex) => ({
+                  dateIndex,
+                  timeIndex,
+                  time: timeSlot.time,
+                })) || []
+            )
+          : [];
+
+      // Parse expiration date and time
+      let expiryDate = null;
+      let expiryTime = null;
+
+      if (poll?.expiration_date) {
+        const expiryDateTime = new Date(poll?.expiration_date);
+        expiryDate = expiryDateTime;
+        expiryTime = format(expiryDateTime, "HH:mm");
+      }
+
       form.reset({
         pollName: isEditing ? poll?.name : "",
         pollDescription: isEditing ? poll?.description : "",
-        pollDates: isEditing ? poll?.dates || [] : [], // NO BACKEND YET
-        timeSlots: isEditing ? poll?.time_slots || [] : [], // NO BACKEND YET
-        pollDateExpiry: null, // BACKEND should handle this
-        pollTimeExpiry: null, // BACKEND should handle this
+        pollDates: parsedDates,
+        timeSlots: parsedTimeSlots,
+        pollDateExpiry: expiryDate,
+        pollTimeExpiry: expiryTime,
         ministryIds: [],
         groupIds: [],
         userIds: [],
       });
+
+      // If editing, also set the selectedTimes state for step 4
+      if (isEditing && dates) {
+        const timesById = {};
+        dates.forEach((dateItem, dateIndex) => {
+          if (dateItem.poll_times && dateItem.poll_times.length > 0) {
+            timesById[dateIndex] = dateItem.poll_times.map(
+              (timeSlot) => timeSlot.time
+            );
+          }
+        });
+        setSelectedTimes(timesById);
+      } else {
+        setSelectedTimes({});
+      }
     }
   };
 
@@ -223,10 +272,15 @@ const Addpoll = ({ isEditing = false, poll }) => {
                 ? "mingcute:edit-2-fill"
                 : "mingcute:classify-add-2-fill"
             }
-            width={20}
-            height={20}
+            width={16}
+            height={16}
           />
-          {isEditing ? "Edit Poll" : "Create Poll"}
+
+          {isEditing ? (
+            <span className="hidden md:block">Edit Poll</span>
+          ) : (
+            <span>Create Poll</span>
+          )}
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="rounded-2xl px-8 pb-4 pt-6">
@@ -245,7 +299,12 @@ const Addpoll = ({ isEditing = false, poll }) => {
         <div className="no-scrollbar max-h-[32rem] overflow-y-scroll">
           <Form {...form}>
             <form id="poll-form" onSubmit={form.handleSubmit(onSubmit)}>
-              <RenderContent currentStep={currentStep} form={form} />
+              <RenderContent
+                currentStep={currentStep}
+                form={form}
+                selectedTimes={selectedTimes}
+                setSelectedTimes={setSelectedTimes}
+              />
             </form>
           </Form>
         </div>
@@ -303,6 +362,16 @@ const Addpoll = ({ isEditing = false, poll }) => {
 Addpoll.propTypes = {
   isEditing: PropTypes.bool,
   poll: PropTypes.object,
+  dates: PropTypes.arrayOf(
+    PropTypes.shape({
+      date: PropTypes.string.isRequired,
+      poll_times: PropTypes.arrayOf(
+        PropTypes.shape({
+          time: PropTypes.string.isRequired,
+        })
+      ),
+    })
+  ),
 };
 
 const StepIndicatior = ({ currentStep, totalStep }) => {
@@ -507,11 +576,15 @@ SharePollPrivacy.propTypes = {
   form: PropTypes.object.isRequired,
 };
 
-const RenderContent = ({ currentStep, form }) => {
+const RenderContent = ({
+  currentStep,
+  form,
+  selectedTimes,
+  setSelectedTimes,
+}) => {
   const { control } = form;
 
   const [activeTimePickerIndex, setActiveTimePickerIndex] = useState(null); // Index of the date for which time picker is active
-  const [selectedTimes, setSelectedTimes] = useState({});
 
   const [activeExpiryTimePicker, setActiveExpiryTimePicker] = useState(false); // Time for poll expiration
 
@@ -688,6 +761,23 @@ const RenderContent = ({ currentStep, form }) => {
       const selectedDates = form.getValues("pollDates") || [];
 
       const timeInputRef = { current: null };
+
+      const formatTimeDisplay = (timeString) => {
+        try {
+          // First try HH:mm:ss format (from database)
+          return format(parse(timeString, "HH:mm:ss", new Date()), "hh:mm a");
+        } catch (e) {
+          console.error("Failed to parse time:", e);
+          try {
+            // Then try HH:mm format (from time picker)
+            return format(parse(timeString, "HH:mm", new Date()), "hh:mm a");
+          } catch (e) {
+            console.error("Failed to parse time:", e);
+            // If all parsing fails, return the original string
+            return timeString;
+          }
+        }
+      };
       return (
         <div className="my-5 text-accent">
           <RenderDescription
@@ -716,10 +806,7 @@ const RenderContent = ({ currentStep, form }) => {
                           >
                             <div className="flex items-center">
                               <Label className="font-semibold">
-                                {format(
-                                  parse(time, "HH:mm", new Date()),
-                                  "hh:mm a"
-                                )}
+                                {formatTimeDisplay(time)}
                               </Label>
                             </div>
                             <div className="flex items-center gap-x-2">
@@ -907,6 +994,8 @@ const RenderContent = ({ currentStep, form }) => {
 RenderContent.propTypes = {
   currentStep: PropTypes.number.isRequired,
   form: PropTypes.object.isRequired,
+  selectedTimes: PropTypes.object.isRequired,
+  setSelectedTimes: PropTypes.func.isRequired,
 };
 
 export default Addpoll;

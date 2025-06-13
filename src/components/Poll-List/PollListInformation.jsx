@@ -10,9 +10,17 @@ import {
 } from "@/components/ui/sheet";
 import { format, isPast, parseISO } from "date-fns";
 import { Label } from "../ui/label";
-import { useState } from "react";
 import { Button } from "../ui/button";
-import { cn } from "@/lib/utils";
+import { cn, convertTimeStringToDate, formatEventDate } from "@/lib/utils";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  answerSinglePoll,
+  fetchPollUserAnswers,
+} from "@/services/pollServices";
+import { Skeleton } from "../ui/skeleton";
+import usePoll from "@/hooks/usePoll";
+import { useUser } from "@/context/useUser";
+import { toast } from "@/hooks/use-toast";
 
 const PollListInformation = ({ poll, isMobile, isSheetOpen, setSheetOpen }) => {
   // Parse the ISO date string to a Date object
@@ -57,7 +65,7 @@ const PollListInformation = ({ poll, isMobile, isSheetOpen, setSheetOpen }) => {
         </Description>
         <Description>{poll.description}</Description>
       </div>
-      <PollEntriesVote />
+      <PollEntriesVote poll_id={poll.id} isExpired={isExpired} />
     </>
   ) : (
     <div className="flex h-full flex-col items-center justify-center py-8">
@@ -113,8 +121,148 @@ PollListInformation.propTypes = {
   setSheetOpen: PropTypes.func,
 };
 
-const PollEntriesVote = () => {
-  const [selectedStatus, setSelectedStatus] = useState("");
+const PollEntriesVote = ({ poll_id, isExpired }) => {
+  const { PollDates } = usePoll({ poll_id });
+  const { data: dates, isLoading, isError, error } = PollDates;
+
+  return (
+    <div className="mt-10 space-y-4">
+      <Label className="text-xl font-semibold">Entries</Label>
+      {isLoading ? (
+        <Skeleton className="h-20" />
+      ) : isError ? (
+        <div className="text-red-500">
+          Error fetching poll dates:{" "}
+          {error?.message || "An unknown error occurred"}
+        </div>
+      ) : (
+        dates?.map((date) => (
+          <div
+            key={date.id}
+            className="rounded-xl border border-primary px-2 py-4 md:px-6 md:py-4"
+          >
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center">
+                <Label className="flex-1 text-sm font-semibold md:text-lg">
+                  {formatEventDate(date.date)}
+                </Label>
+                <div className="flex flex-1 items-center gap-x-6 text-nowrap text-sm font-semibold text-accent md:gap-x-10">
+                  <p>Available</p>
+                  <p>If needed</p>
+                  <p>Unavailable</p>
+                </div>
+              </div>
+              {date.poll_times &&
+                date.poll_times.length > 0 &&
+                date.poll_times.map((time, timeIndex) => (
+                  <PollTime
+                    poll_date_id={date.id}
+                    poll_time_id={time.id}
+                    key={timeIndex}
+                    time={time.time}
+                    poll_id={poll_id}
+                    isExpired={isExpired}
+                  />
+                ))}
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  );
+};
+PollEntriesVote.propTypes = {
+  poll_id: PropTypes.string.isRequired,
+  isExpired: PropTypes.bool.isRequired,
+};
+
+const PollTime = ({ poll_id, poll_date_id, poll_time_id, time, isExpired }) => {
+  const { userData } = useUser();
+  const queryClient = useQueryClient();
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ["pollTimeAnswer", poll_time_id, userData?.id],
+    queryFn: () =>
+      fetchPollUserAnswers({
+        poll_time_id,
+        user_id: userData?.id,
+      }),
+    enabled: !!userData?.id || !!poll_time_id,
+    keepPreviousData: true,
+  });
+
+  const answerPollMutation = useMutation({
+    mutationFn: async ({ answer, id }) =>
+      await answerSinglePoll({
+        id,
+        poll_id,
+        poll_date_id,
+        poll_time_id,
+        user_id: userData?.id,
+        answer,
+      }),
+    onMutate: (newAnswer) => {
+      // Optimistically update the cache
+      // Cancel any ongoing queries for this poll time
+      queryClient.cancelQueries({
+        queryKey: ["pollTimeAnswer", poll_time_id, userData?.id],
+      });
+      // Get the snapshot of the previous data
+      const previousData = queryClient.getQueryData([
+        "pollTimeAnswer",
+        poll_time_id,
+        userData?.id,
+      ]);
+      // Optimistically update the data
+      queryClient.setQueryData(
+        ["pollTimeAnswer", poll_time_id, userData?.id],
+        (oldData) => ({
+          ...oldData,
+          answer: newAnswer.answer,
+        })
+      );
+      return { previousData, newAnswer };
+    },
+    onSuccess: () => {
+      toast({
+        title: "Poll answered successfully!",
+        description: "Your answer has been recorded.",
+      });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["pollTimeAnswer", poll_time_id, userData?.id],
+      });
+    },
+    onError: (error, newAnswer, context) => {
+      // If the mutation fails, roll back to the previous data
+
+      toast({
+        variant: "destructive",
+        title: "Error answering poll",
+        description: error.message || "An unknown error occurred.",
+      });
+      queryClient.setQueryData(
+        ["pollTimeAnswer", poll_time_id, userData?.id],
+        context.previousData
+      );
+    },
+  });
+
+  if (isLoading) {
+    return <Skeleton className="h-20" />;
+  }
+  if (isError) {
+    return (
+      <div className="text-red-500">
+        Error fetching poll time data:{" "}
+        {error?.message || "An unknown error occurred"}
+      </div>
+    );
+  }
+
+  const handleAnswer = async (answer, id) => {
+    answerPollMutation.mutate({ answer, id });
+  };
 
   const statusOptions = [
     {
@@ -122,73 +270,68 @@ const PollEntriesVote = () => {
       iconName: "mingcute:check-circle-line",
       iconColor: "#5BD071",
       activeColor: "bg-[#5BD071] hover:bg-[#5BD071]",
-      inactiveColor: "bg-white hover:bg-[#5BD071]",
+      inactiveColor:
+        "bg-white hover:bg-[#5BD071] hover:text-white text-[#5BD071]",
     },
     {
       key: "ifneeded",
       iconName: "mingcute:minus-circle-line",
       iconColor: "#3AABB8",
       activeColor: "bg-[#3AABB8] hover:bg-[#3AABB8]",
-      inactiveColor: "bg-white hover:bg-[#3AABB8]",
+      inactiveColor:
+        "bg-white hover:bg-[#3AABB8] hover:text-white text-[#3AABB8]",
     },
     {
       key: "unavailable",
       iconName: "mingcute:close-circle-line",
       iconColor: "#E24841",
-      activeColor: "bg-[#E24841] hover:bg-[#E24841]",
-      inactiveColor: "bg-white hover:bg-[#E24841] ",
+      activeColor: "bg-[#E24841] hover:bg-[#E24841] ",
+      inactiveColor:
+        "bg-white hover:bg-[#E24841] hover:text-white text-[#E24841]",
     },
   ];
-
   return (
-    <div className="mt-10 space-y-4">
-      <Label className="text-xl font-semibold">Entries</Label>
-      <div className="rounded-xl border border-primary px-2 py-4 md:px-6 md:py-4">
-        <div className="space-y-4">
-          <div className="flex flex-wrap items-center">
-            <Label className="flex-1 text-sm font-semibold md:text-lg">
-              18 February 2025
+    <div className="flex gap-x-2 rounded-xl bg-primary/50 px-4 py-2">
+      <div className="flex-1">
+        <div className="flex flex-wrap items-center justify-between">
+          <div className="flex-1">
+            <Label className="text-sm font-semibold md:text-lg">
+              {convertTimeStringToDate(time).toLocaleTimeString("en-US", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
             </Label>
-            <div className="flex flex-1 items-center gap-x-6 text-nowrap text-sm font-semibold text-accent md:gap-x-10">
-              <p>Available</p>
-              <p>If needed</p>
-              <p>Unavailable</p>
-            </div>
           </div>
-          <div className="flex gap-x-2 rounded-xl bg-primary/50 px-4 py-2">
-            <div className="flex-1">
-              <div className="flex flex-wrap items-center justify-between">
-                <div className="flex-1">
-                  <Label className="text-sm font-semibold md:text-xl">
-                    08:00 AM
-                  </Label>
-                </div>
-                <div className="flex flex-1 items-center gap-x-4 md:gap-x-10">
-                  {statusOptions.map((option) => {
-                    const isActive = selectedStatus === option.key;
-                    return (
-                      <Button
-                        key={option.key}
-                        variant="ghost"
-                        size="sm"
-                        className={cn(
-                          "rounded-full p-6 text-xs font-medium shadow-[inset_0px_2px_6px_rgba(0,0,0,0.12)] transition-colors",
-                          isActive ? option.activeColor : option.inactiveColor
-                        )}
-                        onClick={() => setSelectedStatus(option.key)}
-                      >
-                        <Icon
-                          icon={option.iconName}
-                          color={isActive ? "#FFFFFF" : option.iconColor}
-                          width={24}
-                          height={24}
-                        />
-                      </Button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
+          <div className="flex flex-1 items-center gap-x-4 md:gap-x-10">
+            {statusOptions.map((option) => {
+              const isActive = data?.answer === option.key;
+              return (
+                <Button
+                  key={option.key}
+                  variant="ghost"
+                  size="sm"
+                  disabled={isActive || isExpired}
+                  className={cn(
+                    "rounded-full p-6 text-xs font-medium shadow-[inset_0px_2px_6px_rgba(0,0,0,0.12)] transition-colors",
+                    isActive ? option.activeColor : option.inactiveColor
+                  )}
+                  onClick={() => handleAnswer(option.key, data?.id)}
+                >
+                  <Icon
+                    icon={option.iconName}
+                    className={cn(
+                      `text-[${option.iconColor}]`,
+                      isActive
+                        ? "text-white"
+                        : `hover:text-[${option.iconColor}]`
+                    )}
+                    // color={isActive ? "#FFFFFF" : option.iconColor}
+                    width={24}
+                    height={24}
+                  />
+                </Button>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -196,6 +339,13 @@ const PollEntriesVote = () => {
   );
 };
 
+PollTime.propTypes = {
+  poll_id: PropTypes.string.isRequired,
+  poll_date_id: PropTypes.string.isRequired,
+  poll_time_id: PropTypes.string.isRequired,
+  time: PropTypes.string.isRequired,
+  isExpired: PropTypes.bool.isRequired,
+};
 // const AvailabilityTimeSlot = ({
 //   date = "18 February 2025",
 //   time = "08:00 AM",

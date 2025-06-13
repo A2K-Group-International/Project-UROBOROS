@@ -67,12 +67,6 @@ const App = () => {
             <Route path="/events" element={<Events />} />
             <Route path="/family" element={<Family />} />
             <Route path="/consultation" element={<Consultation />} />
-          </Route>
-          {/* ========================================================= */}
-          <Route
-            element={<RequireRole roles={[ROLES[1], ROLES[2], ROLES[3]]} />}
-          >
-            {/* Add Route for OrganizedEvents */}
             <Route path="/poll-list" element={<PollList />} />
           </Route>
         </Route>

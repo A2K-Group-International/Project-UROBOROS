@@ -70,8 +70,8 @@ PollListCard.propTypes = {
   response: PropTypes.number,
   onClick: PropTypes.func.isRequired,
   isActive: PropTypes.bool,
-  expiryDate: PropTypes.instanceOf(Date),
-  expiryTime: PropTypes.string,
+  expiryDate: PropTypes.string,
+  // expiryTime: PropTypes.string,
 };
 
 // const ResponseBar = () => {
