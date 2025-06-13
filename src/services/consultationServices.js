@@ -86,115 +86,115 @@ const addConsultation = async ({ userId, consultation }) => {
  * @returns {Object} An object containing the total points and percentages for each preference, as well as counts for mass preferences.
  */
 
-const getTotalConsultations = async () => {
-  const { count: familyMembersTotalCount, error: familyMembersError } =
-    await supabase.from("parents").select("*", { count: "exact", head: true });
+// const getTotalConsultations = async () => {
+//   const { count: familyMembersTotalCount, error: familyMembersError } =
+//     await supabase.from("parents").select("*", { count: "exact", head: true });
 
-  if (familyMembersError) {
-    throw `Error fetching family members count: ${familyMembersError.message}`;
-  }
-  const { data: preferences, error } = await supabase
-    .from("consultations")
-    .select("*,family_group:family_id(id, parents:parents(id))", {
-      count: "exact",
-    });
+//   if (familyMembersError) {
+//     throw `Error fetching family members count: ${familyMembersError.message}`;
+//   }
+//   const { data: preferences, error } = await supabase
+//     .from("consultations")
+//     .select("*,family_group:family_id(id, parents:parents(id))", {
+//       count: "exact",
+//     });
 
-  if (error) throw `Error fetching total consultations: ${error.message}`;
+//   if (error) throw `Error fetching total consultations: ${error.message}`;
 
-  let preference_a_points = 0;
-  let preference_b_points = 0;
-  let preference_c_points = 0;
+//   let preference_a_points = 0;
+//   let preference_b_points = 0;
+//   let preference_c_points = 0;
 
-  let nineThirtyAMCount = 0;
-  let elevenAMCount = 0;
-  let sixPMCount = 0;
-  let eightAMCount = 0;
+//   let nineThirtyAMCount = 0;
+//   let elevenAMCount = 0;
+//   let sixPMCount = 0;
+//   let eightAMCount = 0;
 
-  const getPreferencePoints = (preference, totalFamilyMembers) => {
-    switch (preference) {
-      case "1st":
-        return 3 * totalFamilyMembers;
-      case "2nd":
-        return 2 * totalFamilyMembers;
-      case "3rd":
-        return 1 * totalFamilyMembers;
-      default:
-        return 0;
-    }
-  };
+//   const getPreferencePoints = (preference, totalFamilyMembers) => {
+//     switch (preference) {
+//       case "1st":
+//         return 3 * totalFamilyMembers;
+//       case "2nd":
+//         return 2 * totalFamilyMembers;
+//       case "3rd":
+//         return 1 * totalFamilyMembers;
+//       default:
+//         return 0;
+//     }
+//   };
 
-  let familyResponseCount = 0;
-  preferences.map((item) => {
-    if (!item.family_group || item.family_group.parents.length < 1) {
-      familyResponseCount += 1;
-    } else {
-      familyResponseCount += item.family_group.parents.length;
-    }
+//   let familyResponseCount = 0;
+//   preferences.map((item) => {
+//     if (!item.family_group || item.family_group.parents.length < 1) {
+//       familyResponseCount += 1;
+//     } else {
+//       familyResponseCount += item.family_group.parents.length;
+//     }
 
-    const familyMembersCount =
-      item.family_group?.parents?.length === 0
-        ? 1
-        : item.family_group.parents.length;
-    preference_a_points += getPreferencePoints(
-      item.preference_a,
-      familyMembersCount
-    );
-    preference_b_points += getPreferencePoints(
-      item.preference_b,
-      familyMembersCount
-    );
-    preference_c_points += getPreferencePoints(
-      item.preference_c,
-      familyMembersCount
-    );
+//     const familyMembersCount =
+//       item.family_group?.parents?.length === 0
+//         ? 1
+//         : item.family_group.parents.length;
+//     preference_a_points += getPreferencePoints(
+//       item.preference_a,
+//       familyMembersCount
+//     );
+//     preference_b_points += getPreferencePoints(
+//       item.preference_b,
+//       familyMembersCount
+//     );
+//     preference_c_points += getPreferencePoints(
+//       item.preference_c,
+//       familyMembersCount
+//     );
 
-    if (item.preference_mass === "9.30am") {
-      nineThirtyAMCount += familyMembersCount;
-    } else if (item.preference_mass === "11.00am") {
-      elevenAMCount += familyMembersCount;
-    } else if (item.preference_mass === "6.00pm; Saturday") {
-      sixPMCount += familyMembersCount;
-    } else if (item.preference_mass === "8.00am") {
-      eightAMCount += familyMembersCount;
-    }
-  });
-  const noResponseCount = 6 * (familyMembersTotalCount - familyResponseCount);
+//     if (item.preference_mass === "9.30am") {
+//       nineThirtyAMCount += familyMembersCount;
+//     } else if (item.preference_mass === "11.00am") {
+//       elevenAMCount += familyMembersCount;
+//     } else if (item.preference_mass === "6.00pm; Saturday") {
+//       sixPMCount += familyMembersCount;
+//     } else if (item.preference_mass === "8.00am") {
+//       eightAMCount += familyMembersCount;
+//     }
+//   });
+//   const noResponseCount = 6 * (familyMembersTotalCount - familyResponseCount);
 
-  const totalConsultationPoints =
-    preference_a_points +
-    preference_b_points +
-    preference_c_points +
-    noResponseCount;
+//   const totalConsultationPoints =
+//     preference_a_points +
+//     preference_b_points +
+//     preference_c_points +
+//     noResponseCount;
 
-  const preference_a_percentage = Math.round(
-    (preference_a_points / totalConsultationPoints) * 100
-  );
-  const preference_b_percentage = Math.round(
-    (preference_b_points / totalConsultationPoints) * 100
-  );
-  const preference_c_percentage = Math.round(
-    (preference_c_points / totalConsultationPoints) * 100
-  );
-  const no_response_percentage = Math.round(
-    (noResponseCount / totalConsultationPoints) * 100
-  );
+//   const preference_a_percentage = Math.round(
+//     (preference_a_points / totalConsultationPoints) * 100
+//   );
+//   const preference_b_percentage = Math.round(
+//     (preference_b_points / totalConsultationPoints) * 100
+//   );
+//   const preference_c_percentage = Math.round(
+//     (preference_c_points / totalConsultationPoints) * 100
+//   );
+//   const no_response_percentage = Math.round(
+//     (noResponseCount / totalConsultationPoints) * 100
+//   );
 
-  return {
-    preference_a_points,
-    preference_b_points,
-    preference_c_points,
-    preference_a_percentage,
-    preference_b_percentage,
-    preference_c_percentage,
-    noResponseCount: noResponseCount / 6,
-    nineThirtyAMCount,
-    elevenAMCount,
-    sixPMCount,
-    eightAMCount,
-    familyResponseCount,
-    no_response_percentage,
-  };
-};
+//   return {
+//     preference_a_points,
+//     preference_b_points,
+//     preference_c_points,
+//     preference_a_percentage,
+//     preference_b_percentage,
+//     preference_c_percentage,
+//     noResponseCount: noResponseCount / 6,
+//     nineThirtyAMCount,
+//     elevenAMCount,
+//     sixPMCount,
+//     eightAMCount,
+//     familyResponseCount,
+//     no_response_percentage,
+//   };
+// };
 
 const getTotalConsultationsV2 = async () => {
   const PREFERENCES = ["a", "b", "c"];
@@ -292,13 +292,14 @@ const getTotalConsultationsV2 = async () => {
           ? "c.) 8.00am, 9.30am, 11.30am"
           : "No preference";
 
+  const totalFirstVotes =
+    consultationData.preference_a_1st_count +
+    consultationData.preference_b_1st_count +
+    consultationData.preference_c_1st_count;
+
   consultationData.mostPreferredPercentage =
-    mostPreferred?.count > 0
-      ? Math.round(
-          (mostPreferred.count /
-            consultationData[`preference_${mostPreferred.key}_1st_count`]) *
-            100
-        )
+    mostPreferred?.count > 0 && totalFirstVotes > 0
+      ? Math.round((mostPreferred.count / totalFirstVotes) * 100)
       : 0;
 
   // Find the most preferred mass time (the one with the highest count)
@@ -317,9 +318,4 @@ const getTotalConsultationsV2 = async () => {
   return consultationData;
 };
 
-export {
-  addConsultation,
-  checkConsultationExistence,
-  getTotalConsultations,
-  getTotalConsultationsV2,
-};
+export { addConsultation, checkConsultationExistence, getTotalConsultationsV2 };

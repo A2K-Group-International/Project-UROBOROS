@@ -56,12 +56,15 @@ const Dashboard = () => {
               The option{" "}
               <span className="font-bold">{data.mostPreferredPreference}</span>{" "}
               is the most preferred by the parishioners with a vote of{" "}
-              {data?.mostPreferredPercentage}%.
+              <span className="font-bold">
+                {data?.mostPreferredPercentage}%
+              </span>
+              .
             </p>
 
             <p className="my-2 text-xs text-accent">
               Most parishioners prefer to attend the{" "}
-              <span className="font-bold">{data.mostPreferredMassTime}</span>
+              <span className="font-bold">{data.mostPreferredMassTime} </span>
               Mass
             </p>
           </div>
