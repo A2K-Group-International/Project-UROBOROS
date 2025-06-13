@@ -196,4 +196,130 @@ const getTotalConsultations = async () => {
   };
 };
 
-export { addConsultation, checkConsultationExistence, getTotalConsultations };
+const getTotalConsultationsV2 = async () => {
+  const PREFERENCES = ["a", "b", "c"];
+  const RANKS = ["1st", "2nd", "3rd"];
+  const MASS_TIMES = [
+    { key: "nineThirtyAMCount", value: "9.30am" },
+    { key: "elevenAMCount", value: "11.00am" },
+    { key: "sixPMCount", value: "6.00pm; Saturday" },
+    { key: "eightAMCount", value: "8.00am" },
+  ];
+
+  const { data: consultations, error } = await supabase
+    .from("consultations")
+    .select("*");
+
+  if (error) throw `Error fetching total consultations: ${error.message}`;
+
+  const { count: familyTotalCount, error: familyMembersError } = await supabase
+    .from("family_group")
+    .select("id", { count: "exact", head: true });
+
+  if (familyMembersError) {
+    throw `Error fetching family members count: ${familyMembersError.message}`;
+  }
+
+  // Initialize aggregation object
+  const consultationData = {
+    noResponseCount: familyTotalCount - consultations.length,
+  };
+
+  // Initialize preference counts and points
+  PREFERENCES.forEach((preference) => {
+    RANKS.forEach((rank) => {
+      consultationData[`preference_${preference}_${rank}_count`] = 0;
+      consultationData[`preference_${preference}_${rank}_percentage`] = 0;
+    });
+  });
+
+  // Initialize mass time counts
+  MASS_TIMES.forEach((massTime) => {
+    consultationData[massTime.key] = 0;
+  });
+
+  // Aggregate data
+  consultations.forEach((item) => {
+    PREFERENCES.forEach((preference) => {
+      RANKS.forEach((rank) => {
+        if (item[`preference_${preference}`] === rank) {
+          consultationData[`preference_${preference}_${rank}_count`] += 1;
+        }
+      });
+    });
+
+    MASS_TIMES.forEach((massTime) => {
+      if (item.preference_mass === massTime.value) {
+        consultationData[massTime.key] += 1;
+      }
+    });
+  });
+
+  // Calculate percentages for each preference
+  PREFERENCES.forEach((pref) => {
+    const total =
+      RANKS.reduce(
+        (sum, rank) =>
+          sum + consultationData[`preference_${pref}_${rank}_count`],
+        0
+      ) || 1;
+
+    RANKS.forEach((rank) => {
+      consultationData[`preference_${pref}_${rank}_percentage`] = Math.round(
+        (consultationData[`preference_${pref}_${rank}_count`] / total) * 100
+      );
+    });
+  });
+  consultationData.totalResponses = consultations.length;
+
+  // Find the preference with the highest "1st" count
+  const firstCounts = [
+    { key: "a", count: consultationData.preference_a_1st_count },
+    { key: "b", count: consultationData.preference_b_1st_count },
+    { key: "c", count: consultationData.preference_c_1st_count },
+  ];
+  const maxFirst = Math.max(...firstCounts.map((p) => p.count));
+  const mostPreferred = firstCounts.find(
+    (p) => p.count === maxFirst && maxFirst > 0
+  );
+
+  consultationData.mostPreferredPreference =
+    mostPreferred?.key === "a"
+      ? "a.) 7.45am, 9.15am, 11.15am"
+      : mostPreferred?.key === "b"
+        ? "b.) 7.45am, 9.30am, 11.30am"
+        : mostPreferred?.key === "c"
+          ? "c.) 8.00am, 9.30am, 11.30am"
+          : "No preference";
+
+  consultationData.mostPreferredPercentage =
+    mostPreferred?.count > 0
+      ? Math.round(
+          (mostPreferred.count /
+            consultationData[`preference_${mostPreferred.key}_1st_count`]) *
+            100
+        )
+      : 0;
+
+  // Find the most preferred mass time (the one with the highest count)
+  const massTimeCounts = MASS_TIMES.map((massTime) => ({
+    value: massTime.value,
+    count: consultationData[massTime.key],
+  }));
+  const maxMassCount = Math.max(...massTimeCounts.map((m) => m.count));
+  const mostPreferredMass = massTimeCounts.find(
+    (m) => m.count === maxMassCount && maxMassCount > 0
+  );
+
+  consultationData.mostPreferredMassTime =
+    mostPreferredMass?.value || "No preference";
+
+  return consultationData;
+};
+
+export {
+  addConsultation,
+  checkConsultationExistence,
+  getTotalConsultations,
+  getTotalConsultationsV2,
+};

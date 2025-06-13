@@ -14,14 +14,6 @@ const Events = () => {
     queryFn: () => fetchSelectedEvents(activeDate),
   });
 
-  if (data?.allDayEvents.length < 1 && data?.otherEvents.length < 1 === 0) {
-    return (
-      <div className="flex h-full items-center justify-center rounded-xl bg-white p-5">
-        <h1 className="text-xl font-semibold text-accent">No Events Found</h1>
-      </div>
-    );
-  }
-
   if (isLoading) {
     return (
       <div className="h-full rounded-xl bg-white p-5">
@@ -89,30 +81,36 @@ const Events = () => {
   return (
     <div className="h-full rounded-xl bg-white p-5">
       <p className="mb-2 font-bold text-accent">{getHeaderText()}</p>
-      {data.allDayEvents.length > 0 &&
-        data.allDayEvents.map((date, index) => (
-          <DateCard
-            key={index}
-            title={date.event_name}
-            status={date.status}
-            time={date.event_time}
-          />
-        ))}
-
-      {data.otherEvents.length > 0 && data.allDayEvents.length > 0 && (
-        <Separator className="mb-2" />
-      )}
-      {data.otherEvents.length > 0 && (
+      {data.allDayEvents.length < 1 && data.otherEvents.length < 1 ? (
+        <div className="py-8 text-center text-accent/60">No events found.</div>
+      ) : (
         <>
-          {data?.otherEvents.map((date, index) => (
-            <DateCard
-              key={index}
-              title={date.event_name}
-              status={date.status}
-              time={date.event_time}
-              date={date.event_date}
-            />
-          ))}
+          {data.allDayEvents.length > 0 &&
+            data.allDayEvents.map((date, index) => (
+              <DateCard
+                key={index}
+                title={date.event_name}
+                status={date.status}
+                time={date.event_time}
+              />
+            ))}
+
+          {data.otherEvents.length > 0 && data.allDayEvents.length > 0 && (
+            <Separator className="mb-2" />
+          )}
+          {data.otherEvents.length > 0 && (
+            <>
+              {data.otherEvents.map((date, index) => (
+                <DateCard
+                  key={index}
+                  title={date.event_name}
+                  status={date.status}
+                  time={date.event_time}
+                  date={date.event_date}
+                />
+              ))}
+            </>
+          )}
         </>
       )}
     </div>

@@ -7,72 +7,89 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
+import { ChartContainer } from "@/components/ui/chart";
 import PropTypes from "prop-types";
 
 export const description = "A pie chart with a label list";
 
-const chartConfig = {
-  preference_a: {
-    label: "Preference A",
-    color: "var(--chart-1)",
-  },
-  preference_b: {
-    label: "Preference B",
-    color: "var(--chart-2)",
-  },
-  preference_c: {
-    label: "Preference C",
-    color: "var(--chart-3)",
-  },
-
-  no_response: {
-    label: "No Response",
-    color: "var(--chart-5)",
-  },
-};
-
 const DashboardPieChart = ({
-  aPercent,
-  bPercent,
-  cPercent,
-  noResponsePercent,
+  firstPercent,
+  secondPercent,
+  thirdPercent,
+  firstCount,
+  secondCount,
+  thirdCount,
+  preference,
+  // noResponsePercent,
 }) => {
-  const chartData = [
-    { time: "preference_a", value: aPercent, fill: "hsl(var(--chart-1))" },
-    { time: "preference_b", value: bPercent, fill: "hsl(var(--chart-2))" },
-    { time: "preference_c", value: cPercent, fill: "hsl(var(--chart-3))" },
-    {
-      time: "no_response",
-      value: noResponsePercent,
-      fill: "hsl(var(--chart-5))",
+  const chartConfig = {
+    count_1: {
+      label: "1st Preference Votes",
+      color: "var(--chart-1)",
     },
+    count_2: {
+      label: "1st Preference Votes",
+      color: "var(--chart-2)",
+    },
+    count_3: {
+      label: "1st Preference Votes",
+      color: "var(--chart-3)",
+    },
+
+    // no_response: {
+    //   label: "No Response",
+    //   color: "var(--chart-5)",
+    // },
+  };
+  const chartData = [
+    {
+      time: "first",
+      count: firstCount,
+      value: firstPercent,
+      fill: "hsl(var(--chart-1))",
+    },
+    {
+      time: "second",
+      count: secondCount,
+      value: secondPercent,
+      fill: "hsl(var(--chart-2))",
+    },
+    {
+      time: "third",
+      count: thirdCount,
+      value: thirdPercent,
+      fill: "hsl(var(--chart-3))",
+    },
+    // {
+    //   time: "no_response",
+    //   value: noResponsePercent,
+    //   fill: "hsl(var(--chart-5))",
+    // },
   ];
 
   return (
     <Card className="h-full bg-primary">
       <CardHeader className="pb-0">
-        <CardTitle className={"text-lg"}>Consultation Results</CardTitle>
-        <CardDescription>
-          1st Preference - 3 points, 2nd Preference- 2 points, 3rd Preference -
-          1 point, No Response - 3 points
-        </CardDescription>
+        <CardTitle className={"text-lg"}>
+          {`Preference ${preference}`}
+        </CardTitle>
+        <CardDescription></CardDescription>
       </CardHeader>
-      <CardContent className="flex items-center justify-center pb-0">
+      <CardContent className="flex flex-col pb-0">
         <ChartContainer
           config={chartConfig}
           className="[&_.recharts-text]:fill-background aspect-square h-full flex-1 p-0"
         >
           <PieChart className="h-full w-full">
-            <ChartTooltip
+            {/* <ChartTooltip
               content={
-                <ChartTooltipContent className={"w-40"} nameKey="time" />
+                <ChartTooltipContent
+                  className={"w-40"}
+                  nameKey="time"
+                  valueKey="time"
+                />
               }
-            />
+            /> */}
             <Pie
               data={chartData}
               dataKey="value"
@@ -84,16 +101,18 @@ const DashboardPieChart = ({
                 innerRadius,
                 outerRadius,
                 value,
+                index,
               }) => {
                 // Calculate label position
                 const RADIAN = Math.PI / 180;
                 const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
                 const x = cx + radius * Math.cos(-midAngle * RADIAN);
                 const y = cy + radius * Math.sin(-midAngle * RADIAN);
-                const rectWidth = 45;
-                const rectHeight = 25;
+                const rectWidth = 60;
+                const rectHeight = 35;
                 const rectX = x - rectWidth / 2;
                 const rectY = y - rectHeight / 2;
+                const count = chartData[index]?.count ?? 0;
 
                 return (
                   <g>
@@ -107,15 +126,24 @@ const DashboardPieChart = ({
                     />
                     <text
                       x={x}
-                      y={y + 1}
+                      y={y - 5}
                       textAnchor="middle"
                       fill="#663F30"
                       fontSize={13}
                       fontWeight="bold"
                       alignmentBaseline="middle"
-                      // dominantBaseline="middle"
                     >
                       {value} %
+                    </text>
+                    <text
+                      x={x}
+                      y={y + 12}
+                      textAnchor="middle"
+                      fill="#663F30"
+                      fontSize={11}
+                      alignmentBaseline="middle"
+                    >
+                      {count} votes
                     </text>
                   </g>
                 );
@@ -126,20 +154,20 @@ const DashboardPieChart = ({
         <div className="flex flex-1 flex-col gap-3">
           <div className="flex items-center gap-2">
             <div className="shadow-[0px_3px_2px_0px_rgba(59, 25, 11, 0.59)] size-4 rounded-md bg-[hsl(var(--chart-1))] shadow-md" />
-            <p>Preference A</p>
+            <p>1st Choice</p>
           </div>
           <div className="flex items-center gap-2">
             <div className="size-4 rounded-md bg-[hsl(var(--chart-2))]" />
-            <p>Preference B</p>
+            <p>2nd Choice</p>
           </div>
           <div className="flex items-center gap-2">
             <div className="size-4 rounded-md bg-[hsl(var(--chart-3))]" />
-            <p>Preference C</p>
+            <p>3rd Choice</p>
           </div>
-          <div className="flex items-center gap-2">
+          {/* <div className="flex items-center gap-2">
             <div className="size-4 rounded-md bg-[hsl(var(--chart-5))]" />
             <p>No Response</p>
-          </div>
+          </div> */}
         </div>
       </CardContent>
       {/* <CardFooter className="flex-col gap-2 text-sm">
@@ -155,10 +183,14 @@ const DashboardPieChart = ({
 };
 
 DashboardPieChart.propTypes = {
-  aPercent: PropTypes.number.isRequired,
-  bPercent: PropTypes.number.isRequired,
-  cPercent: PropTypes.number.isRequired,
-  noResponsePercent: PropTypes.number.isRequired,
+  firstPercent: PropTypes.number.isRequired,
+  secondPercent: PropTypes.number.isRequired,
+  thirdPercent: PropTypes.number.isRequired,
+  firstCount: PropTypes.number.isRequired,
+  secondCount: PropTypes.number.isRequired,
+  thirdCount: PropTypes.number.isRequired,
+  // noResponsePercent: PropTypes.number, // Remove required if not used
+  preference: PropTypes.string.isRequired,
 };
 
 export default DashboardPieChart;

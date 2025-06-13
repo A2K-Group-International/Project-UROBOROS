@@ -23,10 +23,10 @@ const DashboardBarchart = ({
   eightAMCount,
 }) => {
   const chartData = [
-    { time: "6.00pm", value: sixPMCount || 0 },
-    { time: "8.00am", value: eightAMCount || 0 },
-    { time: "9.30am", value: nineThirtyAMCount || 0 },
-    { time: "11.00am", value: elevenAMCount || 0 },
+    { time: "6.00pm", votes: sixPMCount || 0 },
+    { time: "8.00am", votes: eightAMCount || 0 },
+    { time: "9.30am", votes: nineThirtyAMCount || 0 },
+    { time: "11.00am", votes: elevenAMCount || 0 },
   ];
 
   return (
@@ -59,7 +59,7 @@ const DashboardBarchart = ({
             <Bar
               barSize={55}
               className="relative"
-              dataKey="value"
+              dataKey="votes"
               radius={[12, 12, 0, 0]}
             >
               {chartData.map((entry) => (
@@ -69,7 +69,7 @@ const DashboardBarchart = ({
                 ></Cell>
               ))}
               <LabelList
-                dataKey="value"
+                dataKey="votes"
                 content={({ x, y, width, height, value }) => {
                   // y = top of bar, height = bar height
                   const rectWidth = 45;
