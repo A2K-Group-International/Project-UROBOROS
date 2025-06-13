@@ -108,68 +108,67 @@ export const getAssignedMinistries = async (userId) => {
 };
 
 export const getMinistryGroups = async (userId) => {
-  if (!userId) {
-    console.error("User ID is required");
-    return [];
-  }
-
   try {
     const { data, error } = await supabase
       .from("group_members")
       .select(
         `id, 
          joined_at, 
-         groups(id, name, description, ministry_id, ministry:ministries(id, ministry_name, image_url)), 
+         groups(id, name, description, ministry_id, image_url, ministry:ministries(id, ministry_name, image_url)), 
          users(id)`
       )
       .eq("user_id", userId);
 
-    if (error) {
-      console.error("Error fetching ministry groups:", error);
-      throw new Error(error.message);
-    }
+    if (error) throw error;
 
-    // Transform the data to group by ministries
-    const groupedData = data.reduce((acc, item) => {
+    // Process data to group by ministries
+    const ministryMap = {};
+
+    for (const item of data) {
+      if (!item.groups) continue;
+
       const ministryId = item.groups.ministry.id;
       const ministryName = item.groups.ministry.ministry_name;
-      const imageUrl = item.groups.ministry.image_url;
 
-      // Get the public URL properly
-      let publicUrl = null;
-      if (imageUrl) {
+      // Process ministry image URL
+      let ministryImageUrl = item.groups.ministry.image_url;
+      if (ministryImageUrl) {
         const { data: urlData } = supabase.storage
           .from("Uroboros")
-          .getPublicUrl(imageUrl);
-        publicUrl = urlData.publicUrl;
+          .getPublicUrl(ministryImageUrl);
+        ministryImageUrl = urlData.publicUrl;
       }
 
-      if (!acc[ministryId]) {
-        acc[ministryId] = {
+      // Process group image URL
+      let groupImageUrl = item.groups.image_url;
+      if (groupImageUrl) {
+        const { data: urlData } = supabase.storage
+          .from("Uroboros")
+          .getPublicUrl(groupImageUrl);
+        groupImageUrl = urlData.publicUrl;
+      }
+
+      if (!ministryMap[ministryId]) {
+        ministryMap[ministryId] = {
           ministry_id: ministryId,
           ministry_name: ministryName,
-          image_url: publicUrl,
+          image_url: ministryImageUrl,
           groups: [],
         };
       }
 
-      acc[ministryId].groups.push({
+      ministryMap[ministryId].groups.push({
         group_id: item.groups.id,
         group_name: item.groups.name,
         description: item.groups.description,
-        joined_at: item.joined_at,
+        ministry_id: item.groups.ministry_id,
+        image_url: groupImageUrl, // Add the processed image URL
       });
+    }
 
-      return acc;
-    }, {});
-
-    // Convert the grouped data into an array
-    const result = Object.values(groupedData);
-
-    return result;
+    return Object.values(ministryMap);
   } catch (error) {
-    console.error("Exception in getMinistryGroups:", error);
-    return [];
+    throw new Error(`Error fetching ministry groups: ${error.message}`);
   }
 };
 
