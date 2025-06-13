@@ -6,6 +6,7 @@ import {
   deletePoll,
   editPolls,
   fetchPollDates,
+  manualClosePoll,
 } from "@/services/pollServices";
 
 const usePoll = ({ poll_id, user_id } = { poll_id: null, user_id: null }) => {
@@ -99,12 +100,37 @@ const usePoll = ({ poll_id, user_id } = { poll_id: null, user_id: null }) => {
     },
   });
 
+  const manualClosePollMutation = useMutation({
+    mutationFn: () => manualClosePoll(poll_id),
+    onSuccess: () => {
+      toast({
+        title: "Poll closed successfully",
+        description: "The poll has been manually closed.",
+      });
+
+      // Invalidate relevant queries to refresh data
+      queryClient.invalidateQueries(["polls"]);
+      queryClient.invalidateQueries(["poll", poll_id]);
+      queryClient.invalidateQueries(["pollDates", poll_id]);
+    },
+
+    onError: (error) => {
+      toast({
+        title: "Failed to close poll",
+        description:
+          error.message || "An error occurred while closing the poll.",
+        variant: "destructive",
+      });
+    },
+  });
+
   return {
     createPollMutation,
     addTimeSlotMutation,
     PollDates,
     DeletePollMutation,
     editPollMutation,
+    manualClosePollMutation,
   };
 };
 

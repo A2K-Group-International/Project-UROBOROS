@@ -339,6 +339,8 @@ const Addpoll = ({ isEditing = false, poll, dates }) => {
               >
                 Next
               </Button>
+            ) : isEditing ? (
+              <Button>Update</Button>
             ) : (
               <Button
                 type="submit"

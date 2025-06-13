@@ -21,6 +21,7 @@ import { Skeleton } from "../ui/skeleton";
 import usePoll from "@/hooks/usePoll";
 import { useUser } from "@/context/useUser";
 import { toast } from "@/hooks/use-toast";
+import VoteResults from "../Poll-Management/VoteResults";
 
 const PollListInformation = ({ poll, isMobile, isSheetOpen, setSheetOpen }) => {
   // Parse the ISO date string to a Date object
@@ -65,7 +66,11 @@ const PollListInformation = ({ poll, isMobile, isSheetOpen, setSheetOpen }) => {
         </Description>
         <Description>{poll.description}</Description>
       </div>
-      <PollEntriesVote poll_id={poll.id} isExpired={isExpired} />
+      <PollEntriesVote
+        poll_id={poll.id}
+        isExpired={isExpired}
+        pollName={poll.name}
+      />
     </>
   ) : (
     <div className="flex h-full flex-col items-center justify-center py-8">
@@ -121,13 +126,17 @@ PollListInformation.propTypes = {
   setSheetOpen: PropTypes.func,
 };
 
-const PollEntriesVote = ({ poll_id, isExpired }) => {
+const PollEntriesVote = ({ poll_id, isExpired, pollName }) => {
   const { PollDates } = usePoll({ poll_id });
   const { data: dates, isLoading, isError, error } = PollDates;
 
   return (
     <div className="mt-10 space-y-4">
-      <Label className="text-xl font-semibold">Entries</Label>
+      <div className="flex items-center justify-between">
+        <Label className="text-xl font-semibold">Entries</Label>
+        {isExpired && <VoteResults pollName={pollName} dates={dates} />}
+      </div>
+
       {isLoading ? (
         <Skeleton className="h-20" />
       ) : isError ? (
@@ -174,6 +183,7 @@ const PollEntriesVote = ({ poll_id, isExpired }) => {
 PollEntriesVote.propTypes = {
   poll_id: PropTypes.string.isRequired,
   isExpired: PropTypes.bool.isRequired,
+  pollName: PropTypes.string.isRequired,
 };
 
 const PollTime = ({ poll_id, poll_date_id, poll_time_id, time, isExpired }) => {
