@@ -1,60 +1,60 @@
-import { useState } from "react";
-import ConsultationDialog from "@/components/Consultation/ConsultationDialog";
+// import { useState } from "react";
+// import ConsultationDialog from "@/components/Consultation/ConsultationDialog";
 import { Title } from "@/components/Title";
-import ConsultationQuestion from "@/components/Consultation/ConsultationQuestion";
+// import ConsultationQuestion from "@/components/Consultation/ConsultationQuestion";
 import { cn } from "@/lib/utils";
-import { checkConsultationExistence } from "@/services/consultationServices";
-import { useQuery } from "@tanstack/react-query";
-import Loading from "@/components/Loading";
-import { useUser } from "@/context/useUser";
+// import { checkConsultationExistence } from "@/services/consultationServices";
+// import { useQuery } from "@tanstack/react-query";
+// import Loading from "@/components/Loading";
+// import { useUser } from "@/context/useUser";
 import { Icon } from "@iconify/react";
 
 const Consultation = () => {
-  const { userData } = useUser();
-  const [showConsultationDialog, setShowConsultationDialog] = useState(true);
+  // const { userData } = useUser();
+  // const [showConsultationDialog, setShowConsultationDialog] = useState(true);
 
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["consultationExistence"],
-    queryFn: async () => await checkConsultationExistence(userData?.id),
-    enabled: !!userData?.id && showConsultationDialog === false,
-  });
+  // const { data, isLoading, isError, error } = useQuery({
+  //   queryKey: ["consultationExistence"],
+  //   queryFn: async () => await checkConsultationExistence(userData?.id),
+  //   enabled: !!userData?.id && showConsultationDialog === false,
+  // });
   // Close the consultation dialog
-  const handleCloseDialog = () => {
-    setShowConsultationDialog(false);
-  };
+  // const handleCloseDialog = () => {
+  //   setShowConsultationDialog(false);
+  // };
 
-  if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Loading />
-      </div>
-    );
-  }
+  // if (isLoading) {
+  //   return (
+  //     <div className="flex h-screen items-center justify-center">
+  //       <Loading />
+  //     </div>
+  //   );
+  // }
 
-  if (isError) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <h1 className="text-2xl font-semibold text-accent">{`${error}`}</h1>
-      </div>
-    );
-  }
+  // if (isError) {
+  //   return (
+  //     <div className="flex h-screen items-center justify-center">
+  //       <h1 className="text-2xl font-semibold text-accent">{`${error}`}</h1>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="flex h-full flex-col">
-      {showConsultationDialog && (
+      {/* {showConsultationDialog && (
         <ConsultationDialog onClose={handleCloseDialog} />
-      )}
+      )} */}
       <div className="border-b border-accent/20 px-2 py-6 lg:p-8">
-        <Title>{`Sunday Mass Times at St Laurence's`}</Title>
+        <Title>Sunday Mass Times at St Laurence&apos;s - Closed</Title>
       </div>
       {/* Main Content */}
       <div
         className={cn(
-          "flex-grow transition-opacity duration-500",
-          showConsultationDialog ? "opacity-0" : "opacity-100"
+          "flex-grow transition-opacity duration-500"
+          // showConsultationDialog ? "opacity-0" : "opacity-100"
         )}
       >
-        {data?.consultationExist ? (
+        {/* {data?.consultationExist ? (
           <div className="flex h-full flex-col items-center justify-center">
             <Icon
               className="h-80 w-80 text-accent"
@@ -86,7 +86,19 @@ const Consultation = () => {
             </div>
             <ConsultationQuestion />
           </div>
-        )}
+        )} */}
+        <div className="flex h-full flex-col items-center justify-center space-y-6">
+          <Icon
+            className="h-80 w-80 text-accent"
+            icon="mingcute:close-circle-fill"
+          />
+
+          <div className="max-w-2xl space-y-4 text-center">
+            <h1 className="text-2xl font-semibold text-accent">
+              The consultation period has closed.
+            </h1>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -2,25 +2,25 @@ import PropTypes from "prop-types";
 import { Icon } from "@iconify/react";
 import { Button } from "../ui/button";
 import { useNavigate } from "react-router-dom";
-import { checkConsultationExistence } from "@/services/consultationServices";
-import { useQuery } from "@tanstack/react-query";
-import { useUser } from "@/context/useUser";
+// import { checkConsultationExistence } from "@/services/consultationServices";
+// import { useQuery } from "@tanstack/react-query";
+// import { useUser } from "@/context/useUser";
 
 const ConsultationButton = ({ isMobile = true }) => {
   const navigate = useNavigate();
-  const { userData } = useUser();
+  // const { userData } = useUser();
 
   const handleNavigation = () => {
     navigate("/consultation");
   };
 
-  const { data, isFetched } = useQuery({
-    queryKey: ["consultationExistence"],
-    queryFn: async () => await checkConsultationExistence(userData?.id),
-    enabled: !!userData?.id,
-  });
+  // const { data, isFetched } = useQuery({
+  //   queryKey: ["consultationExistence"],
+  //   queryFn: async () => await checkConsultationExistence(userData?.id),
+  //   enabled: !!userData?.id,
+  // });
 
-  const showExclamationMark = isFetched && !data?.consultationExist;
+  // const showExclamationMark = isFetched && !data?.consultationExist;
 
   if (isMobile) {
     return (
@@ -33,13 +33,13 @@ const ConsultationButton = ({ isMobile = true }) => {
             variant="ghost"
             className="relative block h-auto p-0 hover:bg-inherit"
           >
-            {showExclamationMark && (
+            {/* {showExclamationMark && (
               <div className="absolute -right-4 -top-4">
                 <div className="flex h-5 w-5 items-center justify-center rounded-full bg-danger text-[11px] text-white">
                   !
                 </div>
               </div>
-            )}
+            )} */}
             <Icon
               icon="hugeicons:task-daily-01"
               className="text-white"
@@ -62,11 +62,11 @@ const ConsultationButton = ({ isMobile = true }) => {
         <Icon icon="hugeicons:task-daily-01" className="h-6 w-6" />
         <span>Consultation</span>
       </div>
-      {showExclamationMark && (
+      {/* {showExclamationMark && (
         <span className="flex h-full w-12 items-center justify-center rounded-full bg-danger text-white">
           !
         </span>
-      )}
+      )} */}
     </div>
   );
 };
