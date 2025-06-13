@@ -41,6 +41,20 @@ const getUsersByRole = async (role) => {
   }
 };
 
+const getAllUsers = async () => {
+  try {
+    const { data: users, error } = await supabase
+      .from("users")
+      .select("id, first_name, last_name");
+
+    if (error) throw error.message;
+    return users;
+  } catch (error) {
+    console.error("Error fetching all users:", error.message);
+    throw error;
+  }
+};
+
 const getUsers = async ({ page, pageSize, roles }) => {
   try {
     const filters = {
@@ -276,4 +290,5 @@ export {
   updateName,
   resetPassword,
   toggleEmailNotification,
+  getAllUsers,
 };

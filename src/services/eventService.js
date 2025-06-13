@@ -1,66 +1,60 @@
 import { paginate } from "@/lib/utils";
-import { supabase } from "@/services/supabaseClient"; // Ensure supabase client is imported
+import { supabase } from "@/services/supabaseClient";
 import { deleteImageFromStorage } from "./ministryService";
 
-// // Function to create an event
-// export const createEvent = async (eventData) => {
-//   try {
-//     const {
-//       eventName,
-//       eventCategory,
-//       eventVisibility,
-//       ministry,
-//       eventDate, // formatted date from the form
-//       eventTime, // formatted time from the form
-//       eventDescription,
-//       userId, // Creator's ID
-//       assignVolunteer, // Array of volunteer IDs
-//     } = eventData;
+export const fetchSelectedEvents = async (date) => {
+  if (!date) {
+    return { allDayEvents: [], otherEvents: [] };
+  }
+  const jsDate = new Date(date);
+  const formattedDate = `${jsDate.getFullYear()}-${String(jsDate.getMonth() + 1).padStart(2, "0")}-${String(jsDate.getDate()).padStart(2, "0")}`;
+  const { data, error } = await supabase
+    .from("events")
+    .select("*")
+    .eq("event_date", formattedDate)
+    .order("event_time", { ascending: true });
+  if (error) {
+    throw new Error(`Error fetching today's events: ${error.message}`);
+  }
+  const getEventStatus = (event) => {
+    const now = new Date();
+    const eventDate = new Date(
+      `${event.event_date}T${event.event_time || "24:00:00"}` // Default to midnight if no time is provided
+    );
 
-//     // Step 1: Insert event data into Supabase
-//     const { data: event, error: eventError } = await supabase
-//       .from("events")
-//       .insert([
-//         {
-//           event_name: eventName,
-//           event_category: eventCategory,
-//           event_visibility: eventVisibility,
-//           ministry_id: ministry || null, // Ministry is optional
-//           event_date: eventDate, // formatted date (yyyy-MM-dd)
-//           event_time: eventTime, // formatted time (HH:mm:ss)
-//           event_description: eventDescription || null, // Optional field
-//           creator_id: userId, // Assuming userId is passed in the form data
-//         },
-//       ])
-//       .select("id") // Return the new event ID
-//       .single(); // Single object
+    if (eventDate < now || (event.event_time === null && eventDate < now)) {
+      return "Done";
+    } else if (event.event_time === null && eventDate > now) {
+      return "All Day";
+    } else if (eventDate === now) {
+      return "Ongoing";
+    } else if (eventDate > now) {
+      return "Upcoming";
+    }
+  };
 
-//     if (eventError) {
-//       throw new Error(eventError.message); // Handle any errors
-//     }
+  const formattedData = data.map((event) => {
+    const status = getEventStatus(event);
 
-//     // Step 2: Insert assigned volunteers into event_volunteers table
-//     if (assignVolunteer?.length > 0) {
-//       const volunteerData = assignVolunteer.map((volunteerId) => ({
-//         event_id: event.id, // Use the created event ID
-//         volunteer_id: volunteerId,
-//       }));
+    return {
+      ...event,
+      status,
+    };
+  });
 
-//       const { error: volunteerError } = await supabase
-//         .from("event_volunteers")
-//         .insert(volunteerData);
+  const allDayEvents = formattedData.filter(
+    (event) => event.status === "All Day"
+  );
 
-//       if (volunteerError) {
-//         throw new Error(volunteerError.message); // Handle any errors
-//       }
-//     }
-
-//     return { success: true, data: event }; // Return success structure
-//   } catch (error) {
-//     console.error("Error creating event:", error);
-//     return { success: false, error: error.message }; // Return error structure
-//   }
-// };
+  const otherEvents = formattedData.filter(
+    (event) => event.status !== "All Day"
+  );
+  const segregatedData = {
+    allDayEvents,
+    otherEvents,
+  };
+  return segregatedData;
+};
 
 export const createEvent = async (eventData) => {
   const {

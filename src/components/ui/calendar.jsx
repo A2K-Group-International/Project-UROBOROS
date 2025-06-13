@@ -17,7 +17,7 @@ const Calendar = ({
       className={cn("p-3", className)}
       classNames={{
         months:
-          " sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 justify-center  ",
+          "sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 justify-center  ",
         month: "space-y-4",
         caption: " pt-1 flex items-center gap-x-2 px-4  ",
         caption_label: "text-sm font-bold",
@@ -36,13 +36,13 @@ const Calendar = ({
         cell: "h-9 w-9 mr-1 flex-1 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20 dark:[&:has([aria-selected].day-outside)]:bg-neutral-800/50 dark:[&:has([aria-selected])]:bg-neutral-800",
         day: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-9 w-9 p-0 font-normal rounded-full aria-selected:opacity-100"
+          "h-9 w-9 p-0 font-normal hover:bg-accent hover:text-white rounded-full aria-selected:opacity-100"
         ),
         day_range_end: "day-range-end",
-        day_selected: "bg-accent/70 text-white",
-        day_today: "bg-accent text-white",
+        day_selected: "bg-accent text-white hover:bg-accent hover:text-white",
+        day_today: "text-accent dark:text-accent",
         day_outside:
-          "day-outside text-neutral-500 aria-selected:bg-neutral-100/50 aria-selected:text-neutral-500 dark:text-neutral-400 dark:aria-selected:bg-neutral-800/50 dark:aria-selected:text-neutral-400",
+          "day-outside text-neutral-500 aria-selected:bg-accent aria-selected:text-white dark:text-neutral-400 dark:aria-selected:bg-accent dark:aria-selected:text-white",
         day_disabled: "text-neutral-500 opacity-50 dark:text-neutral-400",
         day_range_middle:
           "aria-selected:bg-neutral-100 aria-selected:text-neutral-900 dark:aria-selected:bg-neutral-800 dark:aria-selected:text-neutral-50",

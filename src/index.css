@@ -29,6 +29,10 @@
 
 @layer base {
   :root {
+    --chart-1: 16.67, 36%, 29.41%;
+    --chart-2: 16, 20%, 44%;
+    --chart-3: 17, 15%, 58%;
+    --chart-5: 20, 26%, 88%;
     --radius: 0.5rem;
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -56,6 +60,10 @@
     scrollbar-width: none; /* Firefox */
   }
   .dark {
+    --chart-1: 16.67, 36%, 29.41%;
+    --chart-2: 16, 20%, 44%;
+    --chart-3: 17, 15%, 58%;
+    --chart-5: 20, 26%, 88%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;

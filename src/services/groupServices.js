@@ -27,6 +27,45 @@ const fetchGroupMembers = async (groupId) => {
 
   return data;
 };
+const fetchGroupsMembers = async (groupIds) => {
+  if (!groupIds || groupIds.length === 0) {
+    console.error("No groupIds provided to fetchGroupsMembers");
+    return [];
+  }
+  const { data, error } = await supabase
+    .from("group_members")
+    .select(
+      `
+        id,
+        users:user_id (
+          id)
+        `
+    )
+    .in("group_id", groupIds);
+
+  if (error) {
+    throw new Error(`Error fetching group members: ${error.message}`);
+  }
+  // Extract unique user IDs into an array
+  const uniqueMembers = Array.from(
+    new Set(data.map((member) => member.users.id))
+  );
+
+  return uniqueMembers;
+};
+
+const fetchAllGroups = async () => {
+  const { data, error } = await supabase
+    .from("groups")
+    .select("id, name, ministries(ministry_name)");
+
+  if (error) {
+    console.error("Error fetching all groups:", error.message);
+    throw new Error(`Error fetching all groups: ${error.message}`);
+  }
+
+  return data;
+};
 
 const fetchGroups = async (ministryId) => {
   const { data, error } = await supabase
@@ -357,4 +396,6 @@ export {
   fetchGroups,
   transferMembersFetchGroups,
   transferUserToGroup,
+  fetchAllGroups,
+  fetchGroupsMembers,
 };

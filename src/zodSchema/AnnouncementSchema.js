@@ -8,6 +8,7 @@ const allowedMimeTypes = [
   "image/png",
   "image/gif",
   "image/webp", // webp
+
   "video/mp4",
   "video/avi",
   "video/quicktime", // mov

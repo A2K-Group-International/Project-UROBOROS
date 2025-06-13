@@ -3,11 +3,10 @@ import { format, isPast, parseISO } from "date-fns";
 import { Icon } from "@iconify/react";
 import { Label } from "../ui/label";
 
-const Pollcard = ({
+const PollListCard = ({
   title,
   description,
   expiryDate,
-  response,
   onClick,
   isActive,
 }) => {
@@ -59,17 +58,13 @@ const Pollcard = ({
             </span>
           </div>
         )}
-        <p className="text-[12px] text-accent/70">
-          <span className="font-bold">Response Received: </span>
-          {response || 0}
-        </p>
         {/* <ResponseBar /> */}
       </div>
     </div>
   );
 };
 
-Pollcard.propTypes = {
+PollListCard.propTypes = {
   title: PropTypes.string.isRequired,
   description: PropTypes.string,
   response: PropTypes.number,
@@ -89,4 +84,4 @@ Pollcard.propTypes = {
 //   );
 // };
 
-export default Pollcard;
+export default PollListCard;
