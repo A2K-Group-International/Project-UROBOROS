@@ -21,6 +21,7 @@ import Feedback from "./pages/Feedback";
 import Consultation from "./pages/Consultation";
 import Profile from "./pages/Profile";
 import Poll from "./pages/Poll";
+import PollList from "./components/Poll-List/PollList";
 
 const App = () => {
   return (
@@ -66,8 +67,8 @@ const App = () => {
             <Route path="/events" element={<Events />} />
             <Route path="/family" element={<Family />} />
             <Route path="/consultation" element={<Consultation />} />
+            <Route path="/poll-list" element={<PollList />} />
           </Route>
-          {/* ========================================================= */}
         </Route>
       </Routes>
     </Router>

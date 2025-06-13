@@ -30,7 +30,7 @@ import { useUser } from "@/context/useUser";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const ParishionerRegister = () => {
-  const [activeTab, setActiveTab] = useState("profile"); // State to manage active tab
+  const [activeTab, setActiveTab] = useState("profile");
 
   const [isProfileDisabled, setIsProfileDisabled] = useState(false);
   const [isAgreed, setIsAgreed] = useState(false);

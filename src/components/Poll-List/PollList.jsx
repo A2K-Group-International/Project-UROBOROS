@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
-import Addpoll from "@/components/Poll-Management/Addpoll";
-import Pollcard from "@/components/Poll-Management/Pollcard";
-import PollInformation from "@/components/Poll-Management/PollInformation";
 import { Description, Title } from "@/components/Title";
 import { useUser } from "@/context/useUser";
-import { fetchPollsByUser } from "@/services/pollServices";
+import { fetchPolls } from "@/services/pollServices";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
+import PollListCard from "./PollListCard";
+import PollListInformation from "./PollListInformation";
 
-const Poll = () => {
+const PollList = () => {
   // Access user data from context
   const { userData } = useUser();
   // State to manage selected poll card and mobile view
@@ -16,6 +15,7 @@ const Poll = () => {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
+  //   Seperate fetching backend
   const {
     data: pollsData,
     isLoading,
@@ -23,7 +23,7 @@ const Poll = () => {
     error,
   } = useQuery({
     queryKey: ["polls", userData?.id],
-    queryFn: () => fetchPollsByUser({ user_id: userData?.id }),
+    queryFn: () => fetchPolls({ user_id: userData?.id }),
     enabled: !!userData?.id,
   });
 
@@ -38,7 +38,7 @@ const Poll = () => {
   // Check if we're on mobile
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024); // lg breakpoint in Tailwind is 1024px
+      setIsMobile(window.innerWidth < 1024);
     };
 
     checkMobile(); // Initial check
@@ -87,13 +87,13 @@ const Poll = () => {
       return <p>No polls available at the moment.</p>;
     }
 
-    return pollsData?.map((poll) => (
-      <Pollcard
+    return pollsData.map((poll) => (
+      <PollListCard
         key={poll.id}
         title={poll.name}
         description={poll.description}
-        response={poll.answer_count || 0} // Changed from answers_count based on service
         expiryDate={poll.expiration_date}
+        // expiryTime={poll.expiryTime}
         onClick={() => handlePollCardSelect(poll)}
         isActive={selectedPollCard?.id === poll.id}
       />
@@ -105,12 +105,10 @@ const Poll = () => {
       {/* LEFT VIEW */}
       <div className="no-scrollbar flex flex-col overflow-y-scroll p-2">
         <div className="mb-4">
-          <Title className="text-2xl">Poll Management</Title>
-          <Description>Create and manage polls for your church.</Description>
-        </div>
-        <div className="mb-4">
-          <Addpoll />
-          {/* Consider passing a refetch function from useQuery to Addpoll to trigger refresh on new poll */}
+          <Title className="text-2xl">Polling List</Title>
+          <Description>
+            Share your availability and preferences by voting in polls.
+          </Description>
         </div>
         {/* POLL CARDS */}
         <div className="no-scrollbar flex flex-1 flex-col gap-y-2 overflow-y-auto">
@@ -122,7 +120,7 @@ const Poll = () => {
       {!isMobile && (
         <div className="no-scrollbar hidden overflow-y-scroll rounded-xl border border-accent/40 p-8 lg:block">
           {selectedPollCard ? (
-            <PollInformation poll={selectedPollCard} isMobile={false} />
+            <PollListInformation poll={selectedPollCard} isMobile={false} />
           ) : (
             <div className="flex h-full items-center justify-center">
               <p className="text-gray-500">Select a poll to view details.</p>
@@ -133,7 +131,7 @@ const Poll = () => {
 
       {/* MOBILE VIEW (Sheet) */}
       {isMobile && selectedPollCard && (
-        <PollInformation
+        <PollListInformation
           poll={selectedPollCard}
           isMobile={true}
           isSheetOpen={sheetOpen}
@@ -144,4 +142,4 @@ const Poll = () => {
   );
 };
 
-export default Poll;
+export default PollList;

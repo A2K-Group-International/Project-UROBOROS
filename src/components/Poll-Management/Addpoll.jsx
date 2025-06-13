@@ -1,4 +1,5 @@
 import { useState } from "react";
+import PropTypes from "prop-types";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -14,7 +15,15 @@ import { Icon } from "@iconify/react";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { Input } from "@/components/ui/input";
-import PropTypes from "prop-types";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import CustomReactSelect from "../CustomReactSelect";
 
 import {
   Form,
@@ -28,16 +37,22 @@ import { Textarea } from "../ui/textarea";
 import { Calendar } from "../ui/calendar";
 import { format, parse } from "date-fns";
 import TimePickerv2 from "../TimePickerv2/TimePickerv2";
-import { useMutation } from "@tanstack/react-query";
-import { toast } from "@/hooks/use-toast";
-import { addPoll } from "@/services/pollServices";
+
 import { useUser } from "@/context/useUser";
 
-const Addpoll = () => {
+import usePoll from "@/hooks/usePoll";
+import { Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchAllMinistryBasics } from "@/services/ministryService";
+import { getAllUsers } from "@/services/userService";
+import { fetchAllGroups } from "@/services/groupServices";
+
+const Addpoll = ({ isEditing = false, poll, dates }) => {
   const { userData } = useUser();
-  const [openPollDialog, setOpenPollDialog] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
-  const totalStep = 6;
+  const [openPollDialog, setOpenPollDialog] = useState(false); // State to control dialog open/close
+  const [currentStep, setCurrentStep] = useState(1); // Start at step 1
+  const totalStep = 6; // Total number of steps in the poll creation process
+  const [selectedTimes, setSelectedTimes] = useState({}); // State to hold selected times for each date
 
   const handleBack = () => {
     if (currentStep > 1) {
@@ -50,33 +65,67 @@ const Addpoll = () => {
     setOpenPollDialog(open);
     if (open) {
       setCurrentStep(1);
+      // Parse dates for editing mode - dates is an array directly
+      const parsedDates =
+        isEditing && dates
+          ? dates?.map((dateItem) => {
+              // Each dateItem has a 'date' property with ISO string
+              const dateObj = new Date(dateItem.date);
+              return dateObj;
+            })
+          : [];
+
+      // Parse time slots for editing mode
+      const parsedTimeSlots =
+        isEditing && dates
+          ? dates?.flatMap(
+              (dateItem, dateIndex) =>
+                dateItem.poll_times?.map((timeSlot, timeIndex) => ({
+                  dateIndex,
+                  timeIndex,
+                  time: timeSlot.time,
+                })) || []
+            )
+          : [];
+
+      // Parse expiration date and time
+      let expiryDate = null;
+      let expiryTime = null;
+
+      if (poll?.expiration_date) {
+        const expiryDateTime = new Date(poll?.expiration_date);
+        expiryDate = expiryDateTime;
+        expiryTime = format(expiryDateTime, "HH:mm");
+      }
+
       form.reset({
-        pollName: "",
-        pollDescription: "",
-        pollDates: [],
-        timeSlots: [],
-        pollDateExpiry: null,
-        pollTimeExpiry: null,
+        pollName: isEditing ? poll?.name : "",
+        pollDescription: isEditing ? poll?.description : "",
+        pollDates: parsedDates,
+        timeSlots: parsedTimeSlots,
+        pollDateExpiry: expiryDate,
+        pollTimeExpiry: expiryTime,
+        ministryIds: [],
+        groupIds: [],
+        userIds: [],
       });
+
+      // If editing, also set the selectedTimes state for step 4
+      if (isEditing && dates) {
+        const timesById = {};
+        dates.forEach((dateItem, dateIndex) => {
+          if (dateItem.poll_times && dateItem.poll_times.length > 0) {
+            timesById[dateIndex] = dateItem.poll_times.map(
+              (timeSlot) => timeSlot.time
+            );
+          }
+        });
+        setSelectedTimes(timesById);
+      } else {
+        setSelectedTimes({});
+      }
     }
   };
-  const { mutate, _isPending } = useMutation({
-    mutationFn: addPoll,
-    onSuccess: () => {
-      toast({
-        title: "Poll created successfully!",
-        description:
-          "Your poll has been created and shared with the community.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error creating poll",
-        description: error.message || "An unexpected error occurred.",
-        variant: "destructive",
-      });
-    },
-  });
 
   // Initialize form
   const form = useForm({
@@ -88,6 +137,10 @@ const Addpoll = () => {
       timeSlots: [],
       pollDateExpiry: null,
       pollTimeExpiry: null,
+      shareMode: "public",
+      ministryIds: [],
+      groupIds: [],
+      userIds: [],
     },
     mode: "onChange",
   });
@@ -184,30 +237,58 @@ const Addpoll = () => {
     }
   };
 
+  const { createPollMutation } = usePoll();
+
   const onSubmit = (data) => {
-    mutate({
-      creator_id: userData.id,
-      pollName: data.pollName,
-      pollDescription: data.pollDescription,
-      pollDates: data.pollDates,
-      timeSlots: data.timeSlots,
-      pollDateExpiry: data.pollDateExpiry,
-      pollTimeExpiry: data.pollTimeExpiry,
-    });
+    createPollMutation.mutate(
+      {
+        creator_id: userData.id,
+        pollName: data.pollName,
+        pollDescription: data.pollDescription,
+        pollDates: data.pollDates,
+        timeSlots: data.timeSlots,
+        pollDateExpiry: data.pollDateExpiry,
+        pollTimeExpiry: data.pollTimeExpiry,
+        shareMode: data.shareMode,
+        ministryIds: data.ministryIds,
+        userIds: data.userIds,
+        groupIds: data.groupIds,
+      },
+      {
+        onSuccess: () => {
+          setOpenPollDialog(false);
+        },
+      }
+    );
   };
 
   return (
     <AlertDialog open={openPollDialog} onOpenChange={handleOpenChange}>
       <AlertDialogTrigger asChild>
-        <Button size="sm" className="rounded-xl">
-          <Icon icon="mingcute:classify-add-2-fill" width={20} height={20} />
-          Add Poll
+        <Button type="button" size="sm" className="rounded-xl">
+          <Icon
+            icon={
+              isEditing
+                ? "mingcute:edit-2-fill"
+                : "mingcute:classify-add-2-fill"
+            }
+            width={16}
+            height={16}
+          />
+
+          {isEditing ? (
+            <span className="hidden md:block">Edit Poll</span>
+          ) : (
+            <span>Create Poll</span>
+          )}
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="rounded-2xl px-8 pb-4 pt-6">
         <AlertDialogHeader className="p-0">
           <AlertDialogTitle className="flex items-center justify-between pb-1">
-            <p className="text-lg font-bold">Create a poll</p>
+            <p className="text-lg font-bold">
+              {isEditing ? "Edit your poll" : "Create a poll"}
+            </p>
             <StepIndicatior currentStep={currentStep} totalStep={totalStep} />
           </AlertDialogTitle>
           <AlertDialogDescription className="sr-only">
@@ -218,7 +299,12 @@ const Addpoll = () => {
         <div className="no-scrollbar max-h-[32rem] overflow-y-scroll">
           <Form {...form}>
             <form id="poll-form" onSubmit={form.handleSubmit(onSubmit)}>
-              <RenderContent currentStep={currentStep} form={form} />
+              <RenderContent
+                currentStep={currentStep}
+                form={form}
+                selectedTimes={selectedTimes}
+                setSelectedTimes={setSelectedTimes}
+              />
             </form>
           </Form>
         </div>
@@ -227,6 +313,7 @@ const Addpoll = () => {
         <div className="flex justify-between p-0 pt-1">
           {currentStep > 1 && (
             <Button
+              type="button"
               variant="ghost"
               className="justify-self-start font-medium text-accent hover:text-accent"
               onClick={() => setOpenPollDialog(false)}
@@ -236,7 +323,7 @@ const Addpoll = () => {
           )}
           <div className="ml-auto flex gap-x-2">
             {currentStep > 1 ? (
-              <Button variant="outline" onClick={handleBack}>
+              <Button type="button" variant="outline" onClick={handleBack}>
                 Back
               </Button>
             ) : (
@@ -253,8 +340,16 @@ const Addpoll = () => {
                 Next
               </Button>
             ) : (
-              <Button type="submit" form="poll-form">
-                Submit
+              <Button
+                type="submit"
+                form="poll-form"
+                disabled={createPollMutation.isPending}
+              >
+                {createPollMutation.isPending ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  "Finish"
+                )}
               </Button>
             )}
           </div>
@@ -262,6 +357,21 @@ const Addpoll = () => {
       </AlertDialogContent>
     </AlertDialog>
   );
+};
+
+Addpoll.propTypes = {
+  isEditing: PropTypes.bool,
+  poll: PropTypes.object,
+  dates: PropTypes.arrayOf(
+    PropTypes.shape({
+      date: PropTypes.string.isRequired,
+      poll_times: PropTypes.arrayOf(
+        PropTypes.shape({
+          time: PropTypes.string.isRequired,
+        })
+      ),
+    })
+  ),
 };
 
 const StepIndicatior = ({ currentStep, totalStep }) => {
@@ -312,11 +422,169 @@ RenderDescription.propTypes = {
   description: PropTypes.string.isRequired,
 };
 
-const RenderContent = ({ currentStep, form }) => {
+const SharePollPrivacy = ({ form }) => {
+  const { control } = form;
+
+  const { data: ministries, isLoading: ministriesLoading } = useQuery({
+    queryKey: ["pollMinistries"],
+    queryFn: fetchAllMinistryBasics,
+    enabled: form.getValues("shareMode") === "ministry",
+  });
+  const { data: users, isLoading: usersLoading } = useQuery({
+    queryKey: ["pollUsers"],
+    queryFn: getAllUsers,
+    enabled: form.getValues("shareMode") === "specific",
+  });
+  const { data: groups, isLoading: groupsLoading } = useQuery({
+    queryKey: ["pollGroups"],
+    queryFn: fetchAllGroups,
+    enabled: form.getValues("shareMode") === "group",
+  });
+
+  const groupOptions = groups?.map((group) => ({
+    value: group.id,
+    label: `${group.name} - ${group.ministries?.ministry_name}`,
+  }));
+
+  return (
+    <div className="mt-4 space-y-4">
+      {/* Share Mode Selection */}
+      <FormField
+        key="shareMode"
+        control={control}
+        name="shareMode"
+        render={({ field }) => (
+          <FormItem>
+            <Label className="font-semibold">Share poll to</Label>
+            <Select
+              value={field.value}
+              onValueChange={(value) => {
+                if (value === "public") {
+                  form.setValue("ministryIds", []);
+                  form.setValue("groupIds", []);
+                  form.setValue("userIds", []);
+                }
+                if (value === "ministry") {
+                  form.setValue("userIds", []);
+                  form.setValue("groupIds", []);
+                }
+                if (value === "group") {
+                  form.setValue("ministryIds", []);
+                  form.setValue("userIds", []);
+                }
+                field.onChange(value); // Pass the value to field.onChange instead of just referencing it
+              }}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select sharing mode" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="public">Public</SelectItem>
+                  <SelectItem value="ministry">Ministry</SelectItem>
+                  <SelectItem value="group">Group</SelectItem>
+                  <SelectItem value="specific">Specific Users</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      {/* Conditionally show appropriate selector based on share mode */}
+      {form.watch("shareMode") === "ministry" && (
+        <FormField
+          key="ministryIds"
+          control={control}
+          name="ministryIds"
+          render={({ field }) => (
+            <FormItem>
+              <Label className="font-semibold">Select ministry</Label>
+              <FormControl>
+                <CustomReactSelect
+                  isLoading={ministriesLoading}
+                  options={ministries?.map((ministry) => ({
+                    value: ministry.id,
+                    label: ministry.ministry_name,
+                  }))}
+                  placeholder="Select ministry"
+                  isClearable
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
+
+      {form.watch("shareMode") === "group" && (
+        <FormField
+          key="groupIds"
+          control={control}
+          name="groupIds"
+          render={({ field }) => (
+            <FormItem>
+              <Label className="font-semibold">Select group</Label>
+              <FormControl>
+                <CustomReactSelect
+                  placeholder="Select group"
+                  isClearable
+                  isLoading={groupsLoading}
+                  isMulti={true}
+                  options={groupOptions}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
+
+      {form.watch("shareMode") === "specific" && (
+        <FormField
+          key="userIds"
+          control={control}
+          name="userIds"
+          render={({ field }) => (
+            <FormItem>
+              <Label className="font-semibold">Select users</Label>
+              <FormControl>
+                <CustomReactSelect
+                  isMulti={true}
+                  options={users?.map((user) => ({
+                    value: user.id,
+                    label: `${user.first_name} ${user.last_name}`,
+                  }))}
+                  isLoading={usersLoading}
+                  placeholder="Select specific users"
+                  isClearable
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
+    </div>
+  );
+};
+
+SharePollPrivacy.propTypes = {
+  form: PropTypes.object.isRequired,
+};
+
+const RenderContent = ({
+  currentStep,
+  form,
+  selectedTimes,
+  setSelectedTimes,
+}) => {
   const { control } = form;
 
   const [activeTimePickerIndex, setActiveTimePickerIndex] = useState(null); // Index of the date for which time picker is active
-  const [selectedTimes, setSelectedTimes] = useState({});
 
   const [activeExpiryTimePicker, setActiveExpiryTimePicker] = useState(false); // Time for poll expiration
 
@@ -445,6 +713,7 @@ const RenderContent = ({ currentStep, form }) => {
               <FormItem className="mt-4">
                 <FormControl>
                   <Calendar
+                    disabled={(date) => date < new Date()}
                     mode="multiple"
                     selected={field.value}
                     onSelect={field.onChange}
@@ -492,6 +761,23 @@ const RenderContent = ({ currentStep, form }) => {
       const selectedDates = form.getValues("pollDates") || [];
 
       const timeInputRef = { current: null };
+
+      const formatTimeDisplay = (timeString) => {
+        try {
+          // First try HH:mm:ss format (from database)
+          return format(parse(timeString, "HH:mm:ss", new Date()), "hh:mm a");
+        } catch (e) {
+          console.error("Failed to parse time:", e);
+          try {
+            // Then try HH:mm format (from time picker)
+            return format(parse(timeString, "HH:mm", new Date()), "hh:mm a");
+          } catch (e) {
+            console.error("Failed to parse time:", e);
+            // If all parsing fails, return the original string
+            return timeString;
+          }
+        }
+      };
       return (
         <div className="my-5 text-accent">
           <RenderDescription
@@ -520,10 +806,7 @@ const RenderContent = ({ currentStep, form }) => {
                           >
                             <div className="flex items-center">
                               <Label className="font-semibold">
-                                {format(
-                                  parse(time, "HH:mm", new Date()),
-                                  "hh:mm a"
-                                )}
+                                {formatTimeDisplay(time)}
                               </Label>
                             </div>
                             <div className="flex items-center gap-x-2">
@@ -643,6 +926,7 @@ const RenderContent = ({ currentStep, form }) => {
                       <FormControl>
                         <div className="relative">
                           <Button
+                            type="button"
                             className="w-full rounded-xl bg-[rgba(246,240,237)] p-6 text-primary-text"
                             onClick={() => setActiveExpiryTimePicker(true)}
                           >
@@ -699,8 +983,9 @@ const RenderContent = ({ currentStep, form }) => {
         <div className="my-5 text-accent">
           <RenderDescription
             title="Share with coordinators & volunteers"
-            description="Send the poll to coordinators and volunteers for participation."
+            description="Send the poll to users for participation."
           />
+          <SharePollPrivacy form={form} />
         </div>
       );
   }
@@ -709,6 +994,8 @@ const RenderContent = ({ currentStep, form }) => {
 RenderContent.propTypes = {
   currentStep: PropTypes.number.isRequired,
   form: PropTypes.object.isRequired,
+  selectedTimes: PropTypes.object.isRequired,
+  setSelectedTimes: PropTypes.func.isRequired,
 };
 
 export default Addpoll;

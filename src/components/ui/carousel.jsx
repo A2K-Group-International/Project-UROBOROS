@@ -217,6 +217,50 @@ const CarouselNext = React.forwardRef(
 );
 CarouselNext.displayName = "CarouselNext";
 
+const CarouselDots = React.forwardRef(({ className, ...props }, ref) => {
+  const { api } = useCarousel();
+
+  const [currentSlide, setCurrentSlide] = React.useState(0);
+  const numberOfSlides = api?.scrollSnapList().length || 0;
+
+  React.useEffect(() => {
+    if (!api) return;
+
+    const updateCurrentSlide = () => setCurrentSlide(api.selectedScrollSnap());
+
+    api.on("select", updateCurrentSlide);
+    api.on("reInit", updateCurrentSlide);
+
+    return () => {
+      api.off("select", updateCurrentSlide);
+      api.off("reInit", updateCurrentSlide);
+    };
+  }, [api]);
+
+  if (numberOfSlides <= 1) return null;
+
+  return (
+    <div
+      ref={ref}
+      className={cn("flex justify-center space-x-2", className)}
+      {...props}
+    >
+      {Array.from({ length: numberOfSlides }).map((_, i) => (
+        <div
+          key={i}
+          className={cn(
+            "h-2 w-2 cursor-pointer rounded-full transition",
+            i === currentSlide ? "bg-accent" : "bg-accent/50"
+          )}
+          aria-label={`Go to slide ${i + 1}`}
+          onClick={() => api?.scrollTo(i)}
+        />
+      ))}
+    </div>
+  );
+});
+CarouselDots.displayName = "CarouselDots";
+
 Carousel.propTypes = {
   orientation: PropTypes.oneOf(["horizontal", "vertical"]),
   opts: PropTypes.object,
@@ -246,10 +290,15 @@ CarouselNext.propTypes = {
   size: PropTypes.string,
 };
 
+CarouselDots.propTypes = {
+  className: PropTypes.string,
+};
+
 export {
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselPrevious,
   CarouselNext,
+  CarouselDots,
 };
