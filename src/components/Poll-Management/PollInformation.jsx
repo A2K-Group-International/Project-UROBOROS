@@ -33,6 +33,7 @@ import { convertTimeStringToDate } from "@/lib/utils";
 import usePoll from "@/hooks/usePoll";
 import { useUser } from "@/context/useUser";
 import VoteResults from "./VoteResults";
+import ManualClosePoll from "./ManualClosePoll";
 
 const PollInformation = ({ poll, isMobile, isSheetOpen, setSheetOpen }) => {
   const { addTimeSlotMutation, PollDates } = usePoll({ poll_id: poll?.id }); // Fetch poll dates and add time slot mutation
@@ -97,6 +98,8 @@ const PollInformation = ({ poll, isMobile, isSheetOpen, setSheetOpen }) => {
           <div className="flex flex-col gap-2">
             {/* Edit Poll */}
             <Addpoll isEditing={true} poll={poll} dates={dates} />
+            {/* Close the Poll */}
+            <ManualClosePoll poll_id={poll?.id} />
             {/* Delete poll */}
             <DeletePoll poll_id={poll.id} />
           </div>

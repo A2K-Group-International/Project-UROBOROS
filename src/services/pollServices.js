@@ -527,6 +527,27 @@ const addTimeSlot = async ({ poll_date_id, time }) => {
   return { message: "Time slot added successfully" };
 };
 
+const manualClosePoll = async (poll_id) => {
+  if (!poll_id) {
+    throw new Error("Poll ID is required");
+  }
+
+  try {
+    const now = new Date().toISOString();
+
+    const { error } = await supabase
+      .from("polls")
+      .update({ expiration_date: now })
+      .eq("id", poll_id);
+
+    if (error) throw error.message;
+
+    return { message: "Poll closed successfully" };
+  } catch (error) {
+    throw new Error(`Error closing poll: ${error.message}`);
+  }
+};
+
 export {
   addPoll,
   editPolls,
@@ -539,4 +560,5 @@ export {
   fetchPollsByUser,
   fetchPollDates,
   addTimeSlot,
+  manualClosePoll,
 };
