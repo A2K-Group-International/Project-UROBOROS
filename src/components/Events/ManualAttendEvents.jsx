@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { useState, useCallback, useEffect } from "react";
 import PropTypes from "prop-types";
 import {
@@ -17,7 +18,7 @@ import { Icon } from "@iconify/react";
 import { formatEventDate, formatEventTime } from "@/lib/utils";
 import FamilyData from "./FamilyData";
 
-const ManualAttendEvents = ({ eventId, eventName, eventTime, eventDate, width }) => {
+const ManualAttendEvents = ({ eventId, eventName, eventTime, eventDate, elWidth }) => {
   const [selectedEvent, setSelectedEvent] = useState(null); // set the selected event
 
   // Get the userId
@@ -34,8 +35,8 @@ const ManualAttendEvents = ({ eventId, eventName, eventTime, eventDate, width })
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button onClick={handleSelectEvent} className={"sm:w-full flex-grow"+ (width==='full'?" w-full":" w-[calc(90vw-13rem)]")}>
-          <span className={width==='full'? "" : "hidden min-[500px]:block"}>Manage </span>Attendance
+        <Button onClick={handleSelectEvent} className={`sm:w-full flex-grow${elWidth==='full'?" w-full":" w-[calc(90vw-13rem)]"}`}>
+          <span className={elWidth==='full'? "" : "hidden min-[500px]:block"}>Manage </span>Attendance
         </Button>
       </DialogTrigger>
       <DialogContent className="no-scrollbar h-auto max-h-[37rem] overflow-scroll text-primary-text">

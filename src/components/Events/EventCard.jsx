@@ -78,6 +78,7 @@ const EventCard = ({
                       eventName={eventName}
                       eventTime={eventTime}
                       eventDate={eventDate}
+                      elWidth={''}
                     />
                   </div>
                 )}
@@ -138,7 +139,7 @@ const EventCard = ({
                   eventName={eventName}
                   eventTime={eventTime}
                   eventDate={eventDate}
-                  width='full'
+                  elWidth={'full'}
                 />
               </div>
             )}
