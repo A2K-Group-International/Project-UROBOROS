@@ -29,11 +29,11 @@ const Events = () => {
     <>
       <Title>Events</Title>
       <Description>Latest upcoming events at the church</Description>
-      <div className="no-scrollbar mt-5 flex justify-center gap-x-2 md:justify-start">
+      <div className="no-scrollbar mt-5 flex justify-stretch gap-x-2 md:justify-start">
         <ParishionerDialogCalendar events={parishionerEvents?.data} />
         <QrScannerEvents eventData={parishionerEvents?.data} />
       </div>
-      <div className="mt-5 grid place-items-center justify-center gap-2 sm:grid-cols-2 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
+      <div className="mt-5 grid place-items-center justify-center gap-3 sm:grid-cols-2 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
         {isLoading ? (
           <Loading />
         ) : parishionerEvents?.data?.length === 0 ? (

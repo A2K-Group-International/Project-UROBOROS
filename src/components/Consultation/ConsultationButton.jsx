@@ -25,7 +25,7 @@ const ConsultationButton = ({ isMobile = true }) => {
   if (isMobile) {
     return (
       <div
-        className="consultation-button mt-2 h-full rounded-full px-[10px] py-[13px] shadow-lg lg:hidden"
+        className="consultation-button mt-2 h-full rounded-full px-[10px] py-[13px] shadow-lg lg:hidden hidden"
         onClick={handleNavigation}
       >
         <div className="flex h-full flex-col items-center justify-end">
@@ -55,7 +55,7 @@ const ConsultationButton = ({ isMobile = true }) => {
   }
   return (
     <div
-      className="flex h-10 w-full cursor-pointer select-none items-center justify-between rounded-full bg-white py-1 pl-3 pr-1 text-[16px] font-medium text-accent"
+      className="hidden h-10 w-full cursor-pointer select-none items-center justify-between rounded-full bg-white py-1 pl-3 pr-1 text-[16px] font-medium text-accent"
       onClick={handleNavigation}
     >
       <div className="flex w-full items-center gap-x-2">

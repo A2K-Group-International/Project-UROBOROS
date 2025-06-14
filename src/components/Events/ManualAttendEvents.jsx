@@ -17,7 +17,7 @@ import { Icon } from "@iconify/react";
 import { formatEventDate, formatEventTime } from "@/lib/utils";
 import FamilyData from "./FamilyData";
 
-const ManualAttendEvents = ({ eventId, eventName, eventTime, eventDate }) => {
+const ManualAttendEvents = ({ eventId, eventName, eventTime, eventDate, width }) => {
   const [selectedEvent, setSelectedEvent] = useState(null); // set the selected event
 
   // Get the userId
@@ -34,8 +34,8 @@ const ManualAttendEvents = ({ eventId, eventName, eventTime, eventDate }) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button onClick={handleSelectEvent} className="w-full">
-          Manage Attendance
+        <Button onClick={handleSelectEvent} className={"sm:w-full flex-grow"+ (width==='full'?" w-full":" w-[calc(90vw-13rem)]")}>
+          <span className={width==='full'? "" : "hidden min-[500px]:block"}>Manage </span>Attendance
         </Button>
       </DialogTrigger>
       <DialogContent className="no-scrollbar h-auto max-h-[37rem] overflow-scroll text-primary-text">
@@ -48,7 +48,7 @@ const ManualAttendEvents = ({ eventId, eventName, eventTime, eventDate }) => {
             <Label>{formatEventTime(eventTime)}</Label>
           </div>
           <DialogDescription className="font-medium">
-            <div className="flex items-center justify-center gap-x-1 text-primary-text sm:justify-start">
+            <div className="flex items-center justify-center mt-2 gap-x-1 text-[0.8rem] text-primary-text sm:justify-start">
               <Icon icon="mingcute:information-line" width="20" height="20" />
               Choose who you would like to attend with.
             </div>

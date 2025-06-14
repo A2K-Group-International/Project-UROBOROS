@@ -253,7 +253,7 @@ const FamilyData = ({ userId, selectedEvent }) => {
       <section>
         {availableParents.length > 0 && (
           <>
-            <Label>Available Parents/Guardians</Label>
+            <Label className="font-bold">Available Parents/Guardians</Label>
             {availableParents.map((parent) => (
               <ParentMemberCard
                 key={parent.id}
@@ -268,8 +268,8 @@ const FamilyData = ({ userId, selectedEvent }) => {
           </>
         )}
       </section>
-      <section>
-        {availableChildren.length > 0 && <Label>Available Children</Label>}
+      <section className="mt-6">
+        {availableChildren.length > 0 && <Label className="font-bold">Available Children</Label>}
         {availableChildren?.map((child) => (
           <ChildMemberCard
             key={child.id}
@@ -281,7 +281,7 @@ const FamilyData = ({ userId, selectedEvent }) => {
         ))}
       </section>
       {registeredAttendees.length > 0 && (
-        <section>
+        <section className="mt-6">
           <Label>Attendees from your Family</Label>
           <RegisteredAttendees
             attendees={registeredAttendees}

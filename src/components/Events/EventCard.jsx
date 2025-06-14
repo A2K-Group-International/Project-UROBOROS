@@ -47,44 +47,50 @@ const EventCard = ({
 
   return (
     <>
-      <Card className="h-[27rem] max-h-[27rem] w-72 rounded-2xl border-primary-text/30 text-primary-text">
+      <Card className="sm:h-[27rem] max-h-[27rem] w-full max-w-[90vw] sm:w-72 rounded-2xl border-primary-text/20 text-primary-text">
         <CardContent
-          className="flex h-full cursor-pointer flex-col gap-y-1 p-4"
+          className="flex h-full cursor-pointer sm:flex-col sm:gap-y-1 p-4 gap-x-3"
           onClick={handleToggleEventCard}
         >
           {/* Image container with fixed size and aspect ratio */}
-          <div className="aspect-square w-full overflow-hidden rounded-2xl border border-primary-text/30">
+          <div className="min-w-[6rem] h-[6rem] sm:h-[unset] aspect-square sm:w-full overflow-hidden rounded-2xl border border-primary-text/30">
             <img
               src={eventImage || SampleImage}
               alt="Event Image"
               className="h-full w-full object-cover"
             />
           </div>
-          <CardTitle className="mt-4 break-words px-2 text-[16px] font-bold">
-            {eventName}
-          </CardTitle>
-          <Description className="flex-grow break-words px-2 text-[14px] font-medium">
-            {requireAttendance
-              ? `${formatEventDate(eventDate)} ${formatEventTime(eventTime)}`
-              : formatEventDate(eventDate)}
-          </Description>
-          <div>
-            {requireAttendance && (
-              <div onClick={(e) => e.stopPropagation()}>
-                <ManualAttendEvents
-                  eventId={eventId}
-                  eventName={eventName}
-                  eventTime={eventTime}
-                  eventDate={eventDate}
-                />
+          <div className="flex flex-col gap-y-1 flex-grow items-start">
+            <CardTitle className="sm:mt-4 break-words px-2 text-[16px] font-bold truncate max-w-[calc(90vw-9rem)]">
+              {eventName}
+            </CardTitle>
+            <Description className="flex-grow break-words px-2 text-[14px] font-medium">
+              {requireAttendance
+                ? `${formatEventDate(eventDate)} ${formatEventTime(eventTime)}`
+                : formatEventDate(eventDate)}
+            </Description>
+            <div className="flex w-full sm:flex-col sm:items-stretch flex-grow items-end justify-items-stretch gap-2 sm:gap-1">
+              <div>
+                {requireAttendance && (
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <ManualAttendEvents
+                      eventId={eventId}
+                      eventName={eventName}
+                      eventTime={eventTime}
+                      eventDate={eventDate}
+                    />
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-          <SaveEventButton
-            eventName={eventName}
-            eventDate={eventDate}
-            eventTime={eventTime}
-          />
+              <SaveEventButton
+                eventName={eventName}
+                eventDate={eventDate}
+                eventTime={eventTime}
+              />
+            </div>
+            </div>
+            
+          
         </CardContent>
       </Card>
       {/* Full screen event carad */}
@@ -132,6 +138,7 @@ const EventCard = ({
                   eventName={eventName}
                   eventTime={eventTime}
                   eventDate={eventDate}
+                  width='full'
                 />
               </div>
             )}
