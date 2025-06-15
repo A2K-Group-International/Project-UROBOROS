@@ -16,7 +16,7 @@ const MainLayout = () => {
         <Sidebar />
         <div
           className={cn(
-            "no-scrollbar relative flex-1 overflow-auto bg-white px-4 pt-4 md:m-4 md:rounded-[20px] md:p-9 md:shadow-lg",
+            "no-scrollbar relative flex-1 overflow-auto bg-white px-4 pt-4 md:m-4 md:rounded-[20px] md:p-9 md:shadow-lg after:fixed after:w-full after:h-[calc(100%_-_5.8rem)] after:left-0 after:top-0 after:bg-[linear-gradient(180deg,rgba(102,63,48,0)_0%,rgba(102,63,48,0)_96%,rgba(102,63,48,0.1)_100%)] after:pointer-events-none after:content-[''] after:border-b-[1px] after:border-accent/15 sm:after:hidden",
             { "lg:p-0": isZeroPadding }
           )}
         >
