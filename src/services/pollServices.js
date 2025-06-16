@@ -15,21 +15,19 @@ const addPoll = async ({
   userIds,
   groupIds,
 }) => {
-  //date to isostring
-  let expiration_date;
-  try {
-    // If pollDateExpiry is a Date object or date string, this will handle it correctly
-    const dateObj = new Date(pollDateExpiry);
-
-    // Extract just the date part (YYYY-MM-DD)
-    const datePart = dateObj.toISOString().split("T")[0];
-
-    // Combine with time (and ensure seconds are included)
-    expiration_date = new Date(
-      `${datePart}T${pollTimeExpiry}:00`
-    ).toISOString();
-  } catch (error) {
-    console.error("Error formatting expiration date:", error);
+  // Validate and construct expiration date
+  let dateObj;
+  if (pollDateExpiry instanceof Date) {
+    dateObj = pollDateExpiry;
+  } else {
+    dateObj = new Date(pollDateExpiry);
+  }
+  if (isNaN(dateObj.getTime()) || typeof pollTimeExpiry !== "string") {
+    throw new Error("Invalid date or time format for poll expiration");
+  }
+  const datePart = dateObj.toISOString().split("T")[0];
+  const expirationDate = new Date(`${datePart}T${pollTimeExpiry}:00`);
+  if (isNaN(expirationDate.getTime())) {
     throw new Error("Invalid date or time format for poll expiration");
   }
 
@@ -40,7 +38,7 @@ const addPoll = async ({
       description: pollDescription,
       visibility: shareMode,
       creator_id,
-      expiration_date,
+      expiration_date: expirationDate.toISOString(),
     })
     .select("id")
     .single();
