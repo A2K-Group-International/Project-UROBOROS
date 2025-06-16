@@ -6,7 +6,9 @@ export const getOneMinistryGroup = async (ministryId) => {
     .select("id, name, description, ministry_id")
     .eq("ministry_id", ministryId);
 
-  if (error) throw new Error();
+  if (error) {
+    throw new Error(error.message);
+  }
 
   return data;
 };
@@ -26,11 +28,17 @@ export const getMinistryVolunteers = async (ministryId) => {
     throw new Error(groupError.message);
   }
 
+  // Make sure getGroup exists before proceeding
+  if (!getGroup) {
+    throw new Error("No volunteer group found");
+  }
+
   const { data: volunteerList, error: volunteerError } = await supabase
     .from("group_members")
     .select(`users(id, first_name, last_name)`)
     .eq("group_id", getGroup.id);
 
+  // Throw here if there's an error
   if (volunteerError) {
     throw new Error(volunteerError.message);
   }
@@ -43,11 +51,15 @@ export const getMinistryVolunteers = async (ministryId) => {
       )
       .eq("ministry_id", ministryId);
 
+  // Throw here if there's an error
   if (ministryCoordinatorsError) {
     throw new Error(ministryCoordinatorsError.message);
   }
 
-  const volunteers = [...volunteerList, ...ministryCoordinators];
+  const volunteers = [
+    ...(volunteerList || []),
+    ...(ministryCoordinators || []),
+  ];
 
   // Transform data to a more usable format
   return volunteers || [];
@@ -62,14 +74,14 @@ export const fetchAllMinistryBasics = async () => {
   try {
     const { data: ministries, error } = await supabase
       .from("ministries")
-      .select("* ");
+      .select("*");
 
     if (error) {
       console.error("Error fetching ministry basics:", error);
       throw new Error(error.message);
     }
 
-    return ministries || [];
+    return ministries ?? [];
   } catch (error) {
     console.error("Error in fetchMinistryBasics:", error);
     throw error;
@@ -185,7 +197,7 @@ export const getMinistryGroups = async (userId) => {
         group_name: item.groups.name,
         description: item.groups.description,
         ministry_id: item.groups.ministry_id,
-        image_url: groupImageUrl, // Add the processed image URL
+        image_url: groupImageUrl,
       });
     }
 
