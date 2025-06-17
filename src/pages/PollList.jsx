@@ -4,8 +4,8 @@ import { useUser } from "@/context/useUser";
 import { fetchPolls } from "@/services/pollServices";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
-import PollListCard from "./PollListCard";
-import PollListInformation from "./PollListInformation";
+import PollListCard from "../components/Poll-List/PollListCard";
+import PollListInformation from "../components/Poll-List/PollListInformation";
 
 const PollList = () => {
   // Access user data from context
