@@ -45,7 +45,7 @@ const getAllUsers = async () => {
   try {
     const { data: users, error } = await supabase
       .from("users")
-      .select("id, first_name, last_name");
+      .select("id, first_name, last_name,email");
 
     if (error) throw error.message;
     return users;
@@ -53,6 +53,26 @@ const getAllUsers = async () => {
     console.error("Error fetching all users:", error.message);
     throw error;
   }
+};
+const getAllUserLicenses = async ({ status }) => {
+  const is_license_verified = status === "active" ? true : false;
+
+  const { data: licenses, error } = await supabase
+    .from("users")
+    .select(
+      "id, first_name, last_name,email, is_license_verified, licenses(id,license_code)"
+    )
+    .eq("is_license_verified", is_license_verified);
+  if (error) {
+    throw new Error(`Error fetching all user licenses:  ${error.message}`); // Improved error handling
+  }
+
+  if (status === "pending") {
+    // Filter out users who have no licenses
+    return licenses.filter((license) => license.licenses.length > 0);
+  }
+
+  return licenses;
 };
 
 const getUsers = async ({ page, pageSize, roles }) => {
@@ -291,4 +311,5 @@ export {
   resetPassword,
   toggleEmailNotification,
   getAllUsers,
+  getAllUserLicenses,
 };

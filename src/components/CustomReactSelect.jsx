@@ -12,11 +12,16 @@ const customStyles = {
     backgroundColor: "#F6F0ED",
     padding: "14px",
     boxShadow: "none",
+
     outline: "none",
     borderColor: "transparent",
     "&:hover": {
       borderColor: "transparent",
     },
+  }),
+  singleValue: (styles) => ({
+    ...styles,
+    color: "#663F30",
   }),
   placeholder: (styles) => ({
     ...styles,
@@ -100,12 +105,14 @@ const CustomReactSelect = React.forwardRef(
       disabled,
       isLoading = false,
       className = "",
+      defaultValue = null,
     },
     ref
   ) => {
     return (
       <ReactSelect
         ref={ref}
+        defaultValue={defaultValue}
         isMulti={isMulti}
         isLoading={isLoading}
         styles={styles}
@@ -139,6 +146,7 @@ CustomReactSelect.propTypes = {
       image: PropTypes.string,
     })
   ),
+  defaultValue: PropTypes.nullable,
   onChange: PropTypes.func.isRequired,
   placeholder: PropTypes.string,
   disabled: PropTypes.bool,
