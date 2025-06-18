@@ -211,27 +211,27 @@ const ActionButton = ({ license, user, statusLabel }) => {
     },
   });
 
-  const handleSendLicenseMutation = useMutation({
-    // mutationFn: ,
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: `Failed to send license: ${error.message}`,
-      });
-    },
-    onSuccess: () => {
-      toast({
-        title: "Success",
-        description: "License sent successfully.",
-      });
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries(["user-licenses", license.status]);
-      setPopoverOpen(false);
-      setOpenDialog(null);
-      form.reset();
-    },
-  });
+  // const handleSendLicenseMutation = useMutation({
+  //   // mutationFn: ,
+  //   onError: (error) => {
+  //     toast({
+  //       title: "Error",
+  //       description: `Failed to send license: ${error.message}`,
+  //     });
+  //   },
+  //   onSuccess: () => {
+  //     toast({
+  //       title: "Success",
+  //       description: "License sent successfully.",
+  //     });
+  //   },
+  //   onSettled: () => {
+  //     queryClient.invalidateQueries(["user-licenses", license.status]);
+  //     setPopoverOpen(false);
+  //     setOpenDialog(null);
+  //     form.reset();
+  //   },
+  // });
 
   const activateLicenseMutation = useMutation({
     mutationFn: ({ licenseId, licenseCode }) =>
@@ -270,12 +270,12 @@ const ActionButton = ({ license, user, statusLabel }) => {
     handleRemoveLicenseMutation.mutate(licenseId);
   };
   // Handle sending license
-  const handleSendLicense = (data) => {
-    handleSendLicenseMutation.mutate({
-      email: user?.email,
-      licenseCode: data.licenseCode.trim(),
-    });
-  };
+  // const handleSendLicense = (data) => {
+  //   handleSendLicenseMutation.mutate({
+  //     email: user?.email,
+  //     licenseCode: data.licenseCode.trim(),
+  //   });
+  // };
 
   // Handle activating license
   const handleActivateLicense = (data) => {
@@ -472,7 +472,7 @@ const ActionButton = ({ license, user, statusLabel }) => {
               <Form {...form}>
                 <form
                   id="send-license-form"
-                  onSubmit={form.handleSubmit(handleSendLicense)}
+                  onSubmit={form.handleSubmit(handleActivateLicense)}
                   className="space-y-4"
                 >
                   <FormField
