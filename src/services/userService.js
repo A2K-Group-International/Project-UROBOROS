@@ -1,5 +1,7 @@
+import axios from "axios";
 import { supabase } from "./supabaseClient"; // Supabase client import
 import { paginate } from "@/lib/utils";
+import { getAuthToken } from "./emailService";
 
 /**
  * This function will fetch for user information from the database.
@@ -54,6 +56,8 @@ const getAllUsers = async () => {
     throw error;
   }
 };
+
+// This function fetches all user licenses based on their status
 const getAllUserLicenses = async ({ status }) => {
   const is_license_verified = status === "active" ? true : false;
 
@@ -64,7 +68,7 @@ const getAllUserLicenses = async ({ status }) => {
     )
     .eq("is_license_verified", is_license_verified);
   if (error) {
-    throw new Error(`Error fetching all user licenses:  ${error.message}`); // Improved error handling
+    throw new Error(`Error fetching all user licenses:  ${error.message}`);
   }
 
   if (status === "pending") {
@@ -73,6 +77,35 @@ const getAllUserLicenses = async ({ status }) => {
   }
 
   return licenses;
+};
+
+const assignNewLicense = async (data) => {
+  const token = await getAuthToken();
+  try {
+    const { data: result } = await axios.post(
+      // `${import.meta.env.VITE_SPARKD_API_URL}/feedback/create`,
+      `http://localhost:3000/licenses/`,
+      {
+        user_id: data.userId,
+        license_code: data.groupCode,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return {
+      success: true,
+      message: "License successfully sent",
+      details: result,
+    };
+  } catch (error) {
+    console.error("Error in assigning license:", error);
+    throw new Error(
+      error.response?.data?.message || "Failed to create license request"
+    );
+  }
 };
 
 const getUsers = async ({ page, pageSize, roles }) => {
@@ -312,4 +345,5 @@ export {
   toggleEmailNotification,
   getAllUsers,
   getAllUserLicenses,
+  assignNewLicense,
 };

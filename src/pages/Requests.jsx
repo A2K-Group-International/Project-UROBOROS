@@ -29,23 +29,12 @@ import NewProfileForm from "@/components/NewProfileForm";
 import { Icon } from "@iconify/react";
 import LicenseList from "@/components/Request/LicenseList";
 import AddLicenseForm from "@/components/Request/AddLicenseForm";
-import {
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+
 const Requests = () => {
   const [tab, setTab] = useState("users");
   const [role, setRole] = useState("parishioner");
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState("active");
-  const [licenseOpen, setLicenseOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
 
   const onRowEdit = (row) => {
@@ -86,45 +75,15 @@ const Requests = () => {
               <SelectContent>
                 <SelectGroup>
                   <SelectLabel>Status</SelectLabel>
+                  <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="inactive">Inactive</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
             <Separator orientation="vertical" />
-            <AlertDialog open={licenseOpen} onOpenChange={setLicenseOpen}>
-              <AlertDialogTrigger className="rounded-3xl" asChild>
-                <Button>
-                  <Icon
-                    className="h-4 w-4 text-white"
-                    icon="mingcute:IDcard-fill"
-                  />
-                  Assign New License
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Assign New License</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Assign a new license to a user profile.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogBody>
-                  <AddLicenseForm />
-                </AlertDialogBody>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <Button
-                    className="flex-1"
-                    type="submit"
-                    form="add-license-form"
-                  >
-                    Send License Email
-                  </Button>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            {/* License form */}
+            <AddLicenseForm />
           </div>
         )}
         {tab === "users" && (

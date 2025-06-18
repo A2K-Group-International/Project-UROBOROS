@@ -1,15 +1,17 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
-import { getAllUserLicenses } from "@/services/userService";
+import { assignNewLicense, getAllUserLicenses } from "@/services/userService";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { licenseSchema } from "@/zodSchema/Request/LicenseSchema";
 
-const useLicense = ({ status = null }) => {
+const useLicense = ({ status = null, setLicenseOpen }) => {
+  const queryClient = useQueryClient();
+
   const form = useForm({
     resolver: zodResolver(licenseSchema),
     defaultValues: {
-      email: null,
+      userId: "",
       groupCode: "",
     },
   });
@@ -21,12 +23,18 @@ const useLicense = ({ status = null }) => {
   });
 
   const addLicenseMutation = useMutation({
-    // mutationFn: addLicense(),
-    onSuccess: (data) => {
+    mutationFn: assignNewLicense,
+    onSuccess: () => {
       toast({
         title: "License has been sent",
-        description: `License has been sent to ${data.name}.`,
+        description:
+          "The license has been successfully sent to the user via email.",
       });
+      queryClient.invalidateQueries({ queryKey: ["user-licenses"] });
+
+      if (setLicenseOpen) {
+        setLicenseOpen(false); // Close the modal after successful submission
+      }
     },
     onError: (error) => {
       toast({

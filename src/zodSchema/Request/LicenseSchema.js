@@ -1,13 +1,13 @@
 import z from "zod";
 
 export const licenseSchema = z.object({
-  email: z
+  userId: z
     .string({
-      required_error: "Email is required",
-      invalid_type_error: "Email must be a string",
+      required_error: "User ID is required",
+      invalid_type_error: "User ID must be a string",
     })
-    .email()
-    .min(1, { message: "Email is required" }),
+    .uuid({ message: "Invalid UUID format" })
+    .min(1, { message: "User ID is required" }),
   groupCode: z
     .string()
     .min(1, { message: "Code is required" })
