@@ -57,23 +57,19 @@ const getAllUsers = async () => {
   }
 };
 
-// This function fetches all user licenses based on their status
 const getAllUserLicenses = async ({ status }) => {
+  const is_token_used =
+    status === "active" || status === "inactive" ? true : false;
   const is_license_verified = status === "active" ? true : false;
-
   const { data: licenses, error } = await supabase
-    .from("users")
+    .from("licenses")
     .select(
-      "id, first_name, last_name,email, is_license_verified, licenses(id,license_code)"
+      "id, license_code,is_token_used, users!inner(id, first_name, last_name, email, is_license_verified)"
     )
-    .eq("is_license_verified", is_license_verified);
+    .eq("users.is_license_verified", is_license_verified)
+    .eq("is_token_used", is_token_used);
   if (error) {
     throw new Error(`Error fetching all user licenses:  ${error.message}`);
-  }
-
-  if (status === "pending") {
-    // Filter out users who have no licenses
-    return licenses.filter((license) => license.licenses.length > 0);
   }
 
   return licenses;

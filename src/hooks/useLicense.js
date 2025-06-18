@@ -33,7 +33,7 @@ const useLicense = ({ status = null, setLicenseOpen }) => {
       queryClient.invalidateQueries({ queryKey: ["user-licenses"] });
 
       if (setLicenseOpen) {
-        setLicenseOpen(false); // Close the modal after successful submission
+        setLicenseOpen(false);
       }
     },
     onError: (error) => {
