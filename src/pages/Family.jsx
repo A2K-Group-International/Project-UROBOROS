@@ -108,7 +108,7 @@ const Family = () => {
               ) : (
                 parentData?.flatMap((parent) => (
                   <TableRow key={parent.id}>
-                    <TableCell className="text-center">
+                    <TableCell className="rounded-l-lg text-center">
                       {`${parent.first_name} ${parent.last_name}`}
                       {parent.parishioner_id === userId && " (You)"}
                     </TableCell>
@@ -117,7 +117,7 @@ const Family = () => {
                     </TableCell>
                     {userRole !== "coparent" &&
                       parent.parishioner_id !== userId && (
-                        <TableCell className="text-center">
+                        <TableCell className="rounded-r-lg text-center">
                           <DropdownMenu>
                             <DropdownMenuTrigger>
                               <ThreeDotsIcon />

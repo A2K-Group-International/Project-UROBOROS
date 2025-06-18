@@ -1,4 +1,8 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { assignNewLicense, getAllUserLicenses } from "@/services/userService";
@@ -16,10 +20,23 @@ const useLicense = ({ status = null, setLicenseOpen }) => {
     },
   });
 
-  const licenseQuery = useQuery({
+  const licenseInfiniteQuery = useInfiniteQuery({
     queryKey: ["user-licenses", status],
-    queryFn: () => getAllUserLicenses({ status }),
-    staleTime: 1000 * 60 * 10,
+    queryFn: async ({ pageParam = 1 }) => {
+      const response = await getAllUserLicenses({
+        status,
+        page: pageParam,
+        pageSize: 5,
+      });
+      return response;
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      if (lastPage.nextPage) {
+        return lastPage.currentPage + 1;
+      }
+    },
+    enabled: !!status,
   });
 
   const addLicenseMutation = useMutation({
@@ -30,7 +47,7 @@ const useLicense = ({ status = null, setLicenseOpen }) => {
         description:
           "The license has been successfully sent to the user via email.",
       });
-      queryClient.invalidateQueries({ queryKey: ["user-licenses"] });
+      queryClient.invalidateQueries({ queryKey: ["user-licenses", status] });
 
       if (setLicenseOpen) {
         setLicenseOpen(false);
@@ -55,7 +72,7 @@ const useLicense = ({ status = null, setLicenseOpen }) => {
   return {
     form,
     onSubmit,
-    licenseQuery,
+    licenseInfiniteQuery,
     isPending: addLicenseMutation.isPending,
   };
 };

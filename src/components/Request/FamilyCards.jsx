@@ -133,8 +133,10 @@ const FamilyCards = () => {
                   <Table>
                     <TableHeader className="bg-primary">
                       <TableRow>
-                        <TableHead className="w-[200px]">Name</TableHead>
-                        <TableHead>Contact</TableHead>
+                        <TableHead className="w-[200px] rounded-l-lg">
+                          Name
+                        </TableHead>
+                        <TableHead className="rounded-r-lg">Contact</TableHead>
                       </TableRow>
                     </TableHeader>
 
@@ -165,10 +167,10 @@ const FamilyCards = () => {
                               : "bg-white"
                           )}
                         >
-                          <TableCell className="text-nowrap py-1 md:p-4">
+                          <TableCell className="text-nowrap rounded-l-lg py-1 md:p-4">
                             <p>{`${parent.first_name} ${parent.last_name}`}</p>
                           </TableCell>
-                          <TableCell className="text-nowrap py-1 md:p-4">
+                          <TableCell className="text-nowrap rounded-r-lg py-1 md:p-4">
                             <p>{`${parent.contact_number}`}</p>
                           </TableCell>
                         </TableRow>

@@ -57,22 +57,34 @@ const getAllUsers = async () => {
   }
 };
 
-const getAllUserLicenses = async ({ status }) => {
-  const is_token_used =
-    status === "active" || status === "inactive" ? true : false;
-  const is_license_verified = status === "active" ? true : false;
-  const { data: licenses, error } = await supabase
-    .from("licenses")
-    .select(
-      "id, license_code,is_token_used, users!inner(id, first_name, last_name, email, is_license_verified)"
-    )
-    .eq("users.is_license_verified", is_license_verified)
-    .eq("is_token_used", is_token_used);
-  if (error) {
-    throw new Error(`Error fetching all user licenses:  ${error.message}`);
-  }
+const getAllUserLicenses = async ({ status, page = 1, pageSize = 10 }) => {
+  try {
+    const is_token_used =
+      status === "active" || status === "inactive" ? true : false;
+    const is_license_verified = status === "active" ? true : false;
 
-  return licenses;
+    const filters = {
+      eq: [
+        { column: "users.is_license_verified", value: is_license_verified },
+        { column: "is_token_used", value: is_token_used },
+      ],
+    };
+
+    const data = await paginate({
+      key: "licenses",
+      page,
+      pageSize,
+      filters,
+      select:
+        "id, license_code, is_token_used, users!inner(id, first_name, last_name, email, is_license_verified)",
+      order: [{ column: "created_at", ascending: false }],
+    });
+
+    return data;
+  } catch (error) {
+    console.error("Error fetching user licenses:", error.message);
+    throw new Error(`Error fetching all user licenses: ${error.message}`);
+  }
 };
 
 const assignNewLicense = async (data) => {

@@ -26,8 +26,9 @@ import {
 import { Button } from "../ui/button";
 import { Icon } from "@iconify/react";
 import { Loader2 } from "lucide-react";
+import PropTypes from "prop-types";
 
-const AddLicenseForm = () => {
+const AddLicenseForm = ({ status }) => {
   const [licenseOpen, setLicenseOpen] = useState(false);
 
   const { data, isLoading, isError, error } = useQuery({
@@ -36,7 +37,8 @@ const AddLicenseForm = () => {
     staleTime: 1000 * 60 * 10,
   });
   const { form, onSubmit, isPending } = useLicense({
-    setLicenseOpen, // This will be used inside the hook to close the modal
+    status,
+    setLicenseOpen,
   });
 
   const selectOptions =
@@ -53,7 +55,7 @@ const AddLicenseForm = () => {
     <AlertDialog open={licenseOpen} onOpenChange={setLicenseOpen}>
       <AlertDialogTrigger className="rounded-3xl" asChild>
         <Button>
-          <Icon className="h-4 w-4 text-white" icon="mingcute:IDcard-fill" />
+          <Icon icon={"mingcute:idcard-fill"} className="h-6 w-6" />
           Assign New License
         </Button>
       </AlertDialogTrigger>
@@ -131,6 +133,10 @@ const AddLicenseForm = () => {
       </AlertDialogContent>
     </AlertDialog>
   );
+};
+
+AddLicenseForm.propTypes = {
+  status: PropTypes.string.isRequired,
 };
 
 export default AddLicenseForm;

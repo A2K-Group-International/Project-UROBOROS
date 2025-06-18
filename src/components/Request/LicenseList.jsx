@@ -48,19 +48,36 @@ import {
   removeLicense,
   resendLicense,
 } from "@/services/userService";
+import useInterObserver from "@/hooks/useInterObserver";
 
 const LicenseList = ({ status }) => {
-  const { licenseQuery } = useLicense({ status });
-  const { data, isError, error, isLoading } = licenseQuery;
+  const { licenseInfiniteQuery } = useLicense({ status });
+  const {
+    data,
+    isError,
+    error,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = licenseInfiniteQuery;
+
+  const { ref } = useInterObserver(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  });
 
   if (isLoading) return <Loading />;
   if (isError) return <div>Error loading licenses: {error.message}</div>;
+
+  const allLicenses = data?.pages?.flatMap((page) => page.items) || [];
 
   return (
     <Table>
       <TableHeader className="bg-primary">
         <TableRow>
-          <TableHead className="text-center">Name</TableHead>
+          <TableHead className="rounded-l-lg text-center">Name</TableHead>
           <TableHead className="text-center">Email</TableHead>
           <TableHead className="text-center">License Code</TableHead>
           <TableHead className="text-center">Status</TableHead>
@@ -68,21 +85,24 @@ const LicenseList = ({ status }) => {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {data && data?.length > 0 ? (
-          data?.map((license, index) => {
+        {allLicenses.length > 0 ? (
+          allLicenses.map((license, index) => {
             let statusLabel, statusClass;
-            if (!license.is_token_used && !license.users?.is_license_verified) {
+            if (
+              !license?.is_token_used &&
+              !license?.users?.is_license_verified
+            ) {
               statusLabel = "Pending";
               statusClass = "bg-orange-100 text-orange-800";
             } else if (
-              license.is_token_used &&
-              license.users?.is_license_verified
+              license?.is_token_used &&
+              license?.users?.is_license_verified
             ) {
               statusLabel = "Active";
               statusClass = "bg-green-100 text-green-800";
             } else if (
-              license.is_token_used &&
-              !license.users?.is_license_verified
+              license?.is_token_used &&
+              !license?.users?.is_license_verified
             ) {
               statusLabel = "Inactive";
               statusClass = "bg-red-100 text-red-800";
@@ -93,19 +113,19 @@ const LicenseList = ({ status }) => {
 
             return (
               <TableRow
-                key={`${license.id}-${license.users?.id}`}
+                key={`${license?.id}-${license?.users?.id}`}
                 className={
                   index % 2 !== 0 ? "bg-primary bg-opacity-35" : "bg-white"
                 }
               >
                 <TableCell className="text-center">
-                  {`${license.users?.first_name} ${license.users?.last_name}`}
+                  {`${license?.users?.first_name} ${license?.users?.last_name}`}
                 </TableCell>
                 <TableCell className="text-center">
-                  {license.users?.email}
+                  {license?.users?.email}
                 </TableCell>
                 <TableCell className="text-center">
-                  {license.license_code || "N/A"}
+                  {license?.license_code || "N/A"}
                 </TableCell>
                 <TableCell className="text-center">
                   <span className={`rounded px-2 py-1 text-sm ${statusClass}`}>
@@ -115,7 +135,7 @@ const LicenseList = ({ status }) => {
                 <TableCell className="text-center">
                   <ActionButton
                     license={license}
-                    user={license.users}
+                    user={license?.users}
                     statusLabel={statusLabel}
                   />
                 </TableCell>
@@ -126,6 +146,14 @@ const LicenseList = ({ status }) => {
           <TableRow>
             <TableCell colSpan={5} className="py-4 text-center">
               No licenses found.
+            </TableCell>
+          </TableRow>
+        )}
+        {/* Intersection observer trigger element */}
+        {hasNextPage && (
+          <TableRow ref={ref}>
+            <TableCell colSpan={5} className="py-4 text-center">
+              {isFetchingNextPage ? <Loading /> : "Load more..."}
             </TableCell>
           </TableRow>
         )}
@@ -161,7 +189,7 @@ const ActionButton = ({ license, user, statusLabel }) => {
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries(["user-licenses", license.status]);
+      queryClient.invalidateQueries(["user-licenses", license?.status]);
       setPopoverOpen(false);
       setOpenDialog(null);
     },
@@ -182,7 +210,7 @@ const ActionButton = ({ license, user, statusLabel }) => {
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries(["user-licenses", license.status]);
+      queryClient.invalidateQueries(["user-licenses", license?.status]);
       setPopoverOpen(false);
       setOpenDialog(null);
       form.reset();
@@ -204,7 +232,7 @@ const ActionButton = ({ license, user, statusLabel }) => {
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries(["user-licenses", license.status]);
+      queryClient.invalidateQueries(["user-licenses", license?.status]);
       setPopoverOpen(false);
       setOpenDialog(null);
       form.reset();
@@ -249,7 +277,7 @@ const ActionButton = ({ license, user, statusLabel }) => {
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries(["user-licenses", license.status]);
+      queryClient.invalidateQueries(["user-licenses", license?.status]);
       setPopoverOpen(false);
       setOpenDialog(null);
     },

@@ -136,10 +136,10 @@ const paginate = async ({
     // Apply range (only for data query)
     supabaseQuery = supabaseQuery.range(from, to);
 
-    // Initialize query for total count
+    // Initialize query for total count - use same select for count to ensure filters work
     let countQuery = supabase
       .from(key)
-      .select("*", { count: "exact", head: true });
+      .select(select, { count: "exact", head: true });
     countQuery = applyAllFiltersToQueryBuilder(countQuery);
 
     const { count, error: countError } = await countQuery;

@@ -23,12 +23,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import NewProfileForm from "@/components/NewProfileForm";
 import { Icon } from "@iconify/react";
 import LicenseList from "@/components/Request/LicenseList";
 import AddLicenseForm from "@/components/Request/AddLicenseForm";
+import LicensePieChart from "@/components/Request/LicensePieChart";
 
 const Requests = () => {
   const [tab, setTab] = useState("users");
@@ -62,32 +63,51 @@ const Requests = () => {
             <TabsTrigger value="licenses">Licenses</TabsTrigger>
           </TabsList>
         </Tabs>
-        <Separator orientation="vertical" />
+
         {tab === "licenses" && (
-          <div className="flex gap-4">
-            <Select
-              defaultValue={status}
-              onValueChange={(value) => setStatus(value)}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select a role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Status</SelectLabel>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-            <Separator orientation="vertical" />
-            {/* License form */}
-            <AddLicenseForm />
+          <div className="flex w-full justify-between">
+            <div className="flex gap-4">
+              <Separator orientation="vertical" />
+              <Select
+                defaultValue={status}
+                onValueChange={(value) => setStatus(value)}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Select a role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Status</SelectLabel>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <Separator orientation="vertical" />
+              {/* License form */}
+              <AddLicenseForm status={status} />
+            </div>
+            <Sheet>
+              <SheetTrigger className="rounded-3xl" asChild>
+                <Button className="rounded-xl p-2" variant="outline">
+                  <Icon
+                    className="h-6 w-6 text-accent"
+                    icon={"mingcute:chart-pie-2-fill"}
+                  ></Icon>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-fit">
+                <div>
+                  <LicensePieChart inactiveCount={100} activeCount={200} />
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         )}
         {tab === "users" && (
           <div className="flex gap-4">
+            <Separator orientation="vertical" />
             <Select
               defaultValue={role}
               onValueChange={(value) => setRole(value)}
