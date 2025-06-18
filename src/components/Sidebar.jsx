@@ -77,6 +77,7 @@ const Sidebar = () => {
                     icon={link.icon}
                     selectedIcon={link.selectedIcon}
                     isActive={url.pathname === link.link}
+                    isBeta={link.isBeta}
                   />
                 );
               }
@@ -187,9 +188,9 @@ const SidebarProfile = ({ availableRoles, onSwitchRole }) => {
       <div className="flex items-center gap-1">
         {/* Avatar (Future Avatar Image) */}
         <Avatar className="h-8 w-8">
-          <AvatarFallback>{initials}</AvatarFallback>
+          <AvatarFallback className="text-accent">{initials}</AvatarFallback>
         </Avatar>
-        <p className="w-32 overflow-hidden text-ellipsis text-nowrap text-[16px] font-medium capitalize">
+        <p className="w-32 overflow-hidden text-ellipsis text-nowrap text-[16px] font-medium capitalize text-accent">
           {fullName}
         </p>
         {/* </Link> */}
@@ -229,7 +230,7 @@ const SidebarProfile = ({ availableRoles, onSwitchRole }) => {
   );
 };
 
-const SidebarLink = ({ label, link, icon, selectedIcon, isActive }) => {
+const SidebarLink = ({ label, link, icon, selectedIcon, isActive, isBeta }) => {
   return (
     <div className="w-16 md:w-16 lg:w-fit">
       <li
@@ -240,15 +241,20 @@ const SidebarLink = ({ label, link, icon, selectedIcon, isActive }) => {
       >
         <Link
           to={link}
-          className="flex items-center justify-center text-[16px] font-medium lg:gap-2"
+          className="relative flex items-center justify-center text-[16px] font-medium lg:gap-2"
         >
           <Icon icon={isActive ? selectedIcon : icon} className="h-5 w-5" />
           <p className="hidden lg:block">{label}</p>
+          {isBeta && (
+            <span className="absolute -right-7 -top-2 rounded-full bg-danger px-2 py-0.5 text-[7px] font-bold text-white md:-right-10 md:-top-3 md:text-[9px]">
+              BETA
+            </span>
+          )}
         </Link>
       </li>
-      <p className="mt-1 text-center text-[8px] font-bold text-accent sm:mt-0 lg:hidden">
-        {label}
-      </p>
+      <div className="mt-1 flex flex-col items-center justify-center sm:mt-0 lg:hidden">
+        <p className="text-center text-[8px] font-bold text-accent">{label}</p>
+      </div>
     </div>
   );
 };
@@ -259,6 +265,7 @@ SidebarLink.propTypes = {
   icon: PropTypes.string.isRequired,
   selectedIcon: PropTypes.string.isRequired,
   isActive: PropTypes.bool.isRequired,
+  isBeta: PropTypes.bool,
 };
 
 SidebarProfile.propTypes = {

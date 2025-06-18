@@ -21,7 +21,7 @@ import Feedback from "./pages/Feedback";
 import Consultation from "./pages/Consultation";
 import Profile from "./pages/Profile";
 import Poll from "./pages/Poll";
-import PollList from "./components/Poll-List/PollList";
+import PollList from "./pages/PollList";
 
 const App = () => {
   return (
@@ -67,12 +67,6 @@ const App = () => {
             <Route path="/events" element={<Events />} />
             <Route path="/family" element={<Family />} />
             <Route path="/consultation" element={<Consultation />} />
-          </Route>
-          {/* ========================================================= */}
-          <Route
-            element={<RequireRole roles={[ROLES[1], ROLES[2], ROLES[3]]} />}
-          >
-            {/* Add Route for OrganizedEvents */}
             <Route path="/poll-list" element={<PollList />} />
           </Route>
         </Route>

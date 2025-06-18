@@ -39,7 +39,7 @@ import { Label } from "../ui/label";
 import { Calendar } from "../ui/calendar";
 import { Icon } from "@iconify/react";
 
-import { convertTimeStringToDate, formatEventTime } from "@/lib/utils";
+import { cn, convertTimeStringToDate, formatEventTime } from "@/lib/utils";
 import { getQuickAccessEvents } from "@/services/eventService";
 import {
   fetchAllMinistryVolunteers,
@@ -312,7 +312,7 @@ const NewCreateEventForm = () => {
                 Schedule an upcoming event
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogBody className="no-scrollbar flex h-[calc(35rem-8rem)] flex-col gap-6 overflow-y-scroll md:max-h-[calc(100dvh-10%)] md:flex-row md:overflow-y-auto">
+            <AlertDialogBody className="no-scrollbar flex h-[calc(35rem-2rem)] flex-col gap-6 overflow-y-scroll md:h-auto md:max-h-[calc(100dvh-10%)] md:flex-row md:overflow-y-auto">
               <div className="flex flex-1 flex-col gap-6">
                 <FormField
                   control={form.control}
@@ -350,7 +350,6 @@ const NewCreateEventForm = () => {
                         Description
                       </FormLabel>
                       <span className="text-sm font-light text-accent">
-                        {" "}
                         (optional)
                       </span>
                       <FormControl>
@@ -383,7 +382,7 @@ const NewCreateEventForm = () => {
                             </SelectTrigger>
                             <SelectContent>
                               {categoriesLoading ? (
-                                <SelectItem value="" disabled>
+                                <SelectItem disabled>
                                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                   Loading categories...
                                 </SelectItem>
@@ -648,10 +647,10 @@ const NewCreateEventForm = () => {
                             }
                             placeholder={"Select Volunteer"}
                             disabled={!watchObservation}
-                            className={
+                            className={cn(
                               !watchObservation &&
-                              "cursor-not-allowed opacity-50"
-                            }
+                                "cursor-not-allowed opacity-50"
+                            )}
                           />
                         </FormControl>
                         <FormMessage />

@@ -40,12 +40,14 @@ const COMMON_LINKS = {
     link: "/poll",
     icon: "mingcute:chart-horizontal-fill",
     selectedIcon: "mingcute:chart-horizontal-fill",
+    isBeta: true,
   },
   poll_list: {
     label: "Poll List",
     link: "/poll-list",
     icon: "mingcute:chart-horizontal-fill",
     selectedIcon: "mingcute:chart-horizontal-fill",
+    isBeta: true,
   },
   requests: {
     label: "Requests",

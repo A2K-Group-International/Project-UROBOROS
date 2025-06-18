@@ -49,8 +49,8 @@ const Dashboard = () => {
             <p className="my-2 text-xs text-accent">
               {" "}
               You have received{" "}
-              <span className="font-bold">{data?.totalResponses}</span> resonses
-              on your consultation form as of today.
+              <span className="font-bold">{data?.totalResponses}</span>{" "}
+              responses on your consultation form as of today.
             </p>
             <p className="my-2 text-xs text-accent">
               The option{" "}

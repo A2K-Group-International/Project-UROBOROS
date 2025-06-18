@@ -4,8 +4,8 @@ import { useUser } from "@/context/useUser";
 import { fetchPolls } from "@/services/pollServices";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
-import PollListCard from "./PollListCard";
-import PollListInformation from "./PollListInformation";
+import PollListCard from "../components/Poll-List/PollListCard";
+import PollListInformation from "../components/Poll-List/PollListInformation";
 
 const PollList = () => {
   // Access user data from context
@@ -101,12 +101,14 @@ const PollList = () => {
   };
 
   return (
-    <div className="no-scrollbar grid h-dvh gap-x-8 overflow-scroll lg:grid-cols-[0.6fr,1.3fr]">
+    <div className="no-scrollbar grid h-full gap-x-8 overflow-scroll lg:grid-cols-[0.6fr,1.3fr]">
       {/* LEFT VIEW */}
-      <div className="flex max-h-dvh flex-col p-2">
+      <div className="no-scrollbar flex flex-col overflow-y-scroll p-2">
         <div className="mb-4">
-          <Title className="text-2xl">Poll Management</Title>
-          <Description>Create and manage polls for your church.</Description>
+          <Title className="text-2xl">Polling List</Title>
+          <Description>
+            Share your availability and preferences by voting in polls.
+          </Description>
         </div>
         {/* POLL CARDS */}
         <div className="no-scrollbar flex flex-1 flex-col gap-y-2 overflow-y-auto">
@@ -116,7 +118,7 @@ const PollList = () => {
 
       {/* RIGHT VIEW (Desktop) */}
       {!isMobile && (
-        <div className="hidden h-full rounded-xl border border-accent/40 p-8 lg:block">
+        <div className="no-scrollbar hidden overflow-y-scroll rounded-xl border border-accent/40 p-8 lg:block">
           {selectedPollCard ? (
             <PollListInformation poll={selectedPollCard} isMobile={false} />
           ) : (
