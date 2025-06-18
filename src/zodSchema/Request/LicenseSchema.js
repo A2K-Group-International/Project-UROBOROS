@@ -8,12 +8,12 @@ export const licenseSchema = z.object({
     })
     .uuid({ message: "Invalid UUID format" })
     .min(1, { message: "User ID is required" }),
-  groupCode: z
+  licenseCode: z
     .string()
     .min(1, { message: "Code is required" })
     .max(50, { message: "Code must not exceed 50 characters" }),
 });
 
 export const sendLicenseSchema = licenseSchema.pick({
-  groupCode: true,
+  licenseCode: true,
 });

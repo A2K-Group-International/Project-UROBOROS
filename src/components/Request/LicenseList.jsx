@@ -42,6 +42,12 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { sendLicenseSchema } from "@/zodSchema/Request/LicenseSchema";
+import {
+  activateLicense,
+  deactivateLicense,
+  removeLicense,
+  resendLicense,
+} from "@/services/userService";
 
 const LicenseList = ({ status }) => {
   const { licenseQuery } = useLicense({ status });
@@ -56,14 +62,14 @@ const LicenseList = ({ status }) => {
         <TableRow>
           <TableHead className="text-center">Name</TableHead>
           <TableHead className="text-center">Email</TableHead>
-          <TableHead className="text-center">Code</TableHead>
+          <TableHead className="text-center">License Code</TableHead>
           <TableHead className="text-center">Status</TableHead>
           <TableHead className="rounded-r-lg text-center">Action</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {data && data.length > 0 ? (
-          data.map((license, index) => {
+        {data && data?.length > 0 ? (
+          data?.map((license, index) => {
             let statusLabel, statusClass;
             if (!license.is_token_used && !license.users?.is_license_verified) {
               statusLabel = "Pending";
@@ -136,19 +142,12 @@ const ActionButton = ({ license, user, statusLabel }) => {
   const form = useForm({
     resolver: zodResolver(sendLicenseSchema),
     defaultValues: {
-      groupCode: "",
-    },
-  });
-
-  const resendForm = useForm({
-    resolver: zodResolver(sendLicenseSchema),
-    defaultValues: {
-      groupCode: license.license_code || "",
+      licenseCode: "",
     },
   });
 
   const deactivateLicenseMutation = useMutation({
-    // mutationFn: ,
+    mutationFn: deactivateLicense,
     onError: (error) => {
       toast({
         title: "Error",
@@ -169,7 +168,7 @@ const ActionButton = ({ license, user, statusLabel }) => {
   });
 
   const handleResendEmailMutation = useMutation({
-    // mutationFn: ,
+    mutationFn: (licenseId) => resendLicense(licenseId),
     onError: (error) => {
       toast({
         title: "Error",
@@ -191,7 +190,7 @@ const ActionButton = ({ license, user, statusLabel }) => {
   });
 
   const handleRemoveLicenseMutation = useMutation({
-    // mutationFn: RemoveLicense,
+    mutationFn: removeLicense,
     onError: (error) => {
       toast({
         title: "Error",
@@ -234,81 +233,57 @@ const ActionButton = ({ license, user, statusLabel }) => {
     },
   });
 
-  const handleDeactivate = () => {
-    deactivateLicenseMutation.mutate({
-      userId: user?.id,
-    });
+  const activateLicenseMutation = useMutation({
+    mutationFn: ({ licenseId, licenseCode }) =>
+      activateLicense({ licenseId, licenseCode }),
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Failed to activate license: ${error.message}`,
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "License activated successfully.",
+      });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries(["user-licenses", license.status]);
+      setPopoverOpen(false);
+      setOpenDialog(null);
+    },
+  });
+
+  // Handle deactivating license
+  const handleDeactivate = (licenseId) => {
+    deactivateLicenseMutation.mutate(licenseId);
   };
 
-  const handleResendEmail = (data) => {
-    handleResendEmailMutation.mutate({
-      email: user?.email,
-      groupCode: data.groupCode.trim(),
-    });
+  // Handle resending email
+  const handleResendEmail = (licenseId) => {
+    handleResendEmailMutation.mutate(licenseId);
   };
 
-  const handleRemoveLicense = () => {
-    handleRemoveLicenseMutation.mutate({
-      userId: user?.id,
-      licenseId: license.id,
-    });
+  // Handle removing license
+  const handleRemoveLicense = (licenseId) => {
+    handleRemoveLicenseMutation.mutate(licenseId);
   };
-
+  // Handle sending license
   const handleSendLicense = (data) => {
     handleSendLicenseMutation.mutate({
       email: user?.email,
-      groupCode: data.groupCode.trim(),
+      licenseCode: data.licenseCode.trim(),
     });
   };
 
-  if (statusLabel === "Verified") {
-    return (
-      <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-        <PopoverTrigger asChild>
-          <Button variant="ghost" size="sm">
-            <Icon icon={"mingcute:more-1-line"} className="h-4 w-4" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-56 p-0">
-          <AlertDialog
-            open={openDialog === "deactivate"}
-            onOpenChange={(open) => !open && setOpenDialog(null)}
-          >
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-red-600 hover:text-red-700"
-                onClick={() => setOpenDialog("deactivate")}
-              >
-                Deactivate License
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Deactivate License</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to deactivate the license for{" "}
-                  {user?.first_name} {user?.last_name}?
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel onClick={() => setOpenDialog(null)}>
-                  Cancel
-                </AlertDialogCancel>
-                <Button
-                  className="flex-1"
-                  variant="destructive"
-                  onClick={handleDeactivate}
-                >
-                  Continue
-                </Button>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </PopoverContent>
-      </Popover>
-    );
-  }
+  // Handle activating license
+  const handleActivateLicense = (data) => {
+    activateLicenseMutation.mutate({
+      licenseId: license.id,
+      licenseCode: data?.licenseCode?.trim() || license.license_code,
+    });
+  };
 
   if (statusLabel === "Active") {
     return (
@@ -329,12 +304,12 @@ const ActionButton = ({ license, user, statusLabel }) => {
                 className="w-full justify-start text-red-600 hover:text-red-700"
                 onClick={() => setOpenDialog("deactivate")}
               >
-                Deactivate License
+                Deactivate
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Deactivate License</AlertDialogTitle>
+                <AlertDialogTitle>Deactivate</AlertDialogTitle>
                 <AlertDialogDescription>
                   Are you sure you want to deactivate the license for{" "}
                   {user?.first_name} {user?.last_name}?
@@ -347,9 +322,12 @@ const ActionButton = ({ license, user, statusLabel }) => {
                 <Button
                   className="flex-1"
                   variant="destructive"
-                  onClick={handleDeactivate}
+                  onClick={() => handleDeactivate(license.id)}
+                  disabled={deactivateLicenseMutation.isPending}
                 >
-                  Continue
+                  {deactivateLicenseMutation.isPending
+                    ? "Deactivating..."
+                    : "Deactivate"}
                 </Button>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -390,32 +368,6 @@ const ActionButton = ({ license, user, statusLabel }) => {
                     code.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
-                <AlertDialogBody>
-                  <Form {...resendForm}>
-                    <form
-                      id="resend-email-form"
-                      onSubmit={resendForm.handleSubmit(handleResendEmail)}
-                      className="space-y-4"
-                    >
-                      <FormField
-                        control={resendForm.control}
-                        name="groupCode"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Group Code</FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                placeholder="Enter group code"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </form>
-                  </Form>
-                </AlertDialogBody>
                 <AlertDialogFooter>
                   <AlertDialogCancel onClick={() => setOpenDialog(null)}>
                     Cancel
@@ -424,9 +376,12 @@ const ActionButton = ({ license, user, statusLabel }) => {
                     className="flex-1"
                     type="submit"
                     form="resend-email-form"
-                    onClick={resendForm.handleSubmit(handleResendEmail)}
+                    onClick={() => handleResendEmail(license.id)}
+                    disabled={handleResendEmailMutation.isPending}
                   >
-                    Continue
+                    {handleResendEmailMutation.isPending
+                      ? "Sending..."
+                      : "Resend Email"}
                   </Button>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -442,7 +397,7 @@ const ActionButton = ({ license, user, statusLabel }) => {
                   className="w-full justify-start text-red-600 hover:text-red-700"
                   onClick={() => setOpenDialog("remove")}
                 >
-                  Remove License
+                  Remove
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -460,9 +415,12 @@ const ActionButton = ({ license, user, statusLabel }) => {
                   <Button
                     className="flex-1"
                     variant="destructive"
-                    onClick={handleRemoveLicense}
+                    onClick={() => handleRemoveLicense(license.id)}
+                    disabled={handleRemoveLicenseMutation.isPending}
                   >
-                    Continue
+                    {handleRemoveLicenseMutation.isPending
+                      ? "Removing..."
+                      : "Remove License"}
                   </Button>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -475,70 +433,81 @@ const ActionButton = ({ license, user, statusLabel }) => {
 
   // Inactive status
   return (
-    <AlertDialog
-      open={openDialog === "send"}
-      onOpenChange={(open) => {
-        if (!open) {
-          setOpenDialog(null);
-          form.reset();
-        }
-      }}
-    >
-      <AlertDialogTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setOpenDialog("send")}
-        >
-          Send License
+    <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" size="sm">
+          <Icon icon={"mingcute:more-1-line"} className="h-4 w-4" />
         </Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Send License</AlertDialogTitle>
-          <AlertDialogDescription>
-            Send a license to {user?.first_name} {user?.last_name} (
-            {user?.email})
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogBody>
-          <Form {...form}>
-            <form
-              id="send-license-form"
-              onSubmit={form.handleSubmit(handleSendLicense)}
-              className="space-y-4"
+      </PopoverTrigger>
+      <PopoverContent className="w-fit p-0">
+        <AlertDialog
+          open={openDialog === "activate"}
+          onOpenChange={(open) => {
+            if (!open) {
+              setOpenDialog(null);
+            }
+          }}
+        >
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                form.reset({ licenseCode: license.license_code || "" });
+                setOpenDialog("activate");
+              }}
             >
-              <FormField
-                control={form.control}
-                name="groupCode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Group Code</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Enter group code" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </form>
-          </Form>
-        </AlertDialogBody>
-        <AlertDialogFooter>
-          <AlertDialogCancel onClick={() => setOpenDialog(null)}>
-            Cancel
-          </AlertDialogCancel>
-          <Button
-            type="submit"
-            className="flex-1"
-            form="send-license-form"
-            onClick={form.handleSubmit(handleSendLicense)}
-          >
-            Send License
-          </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+              Activate
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Activate License</AlertDialogTitle>
+              <AlertDialogDescription>
+                Activate License for {user?.first_name} {user?.last_name} (
+                {user?.email})
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogBody>
+              <Form {...form}>
+                <form
+                  id="send-license-form"
+                  onSubmit={form.handleSubmit(handleSendLicense)}
+                  className="space-y-4"
+                >
+                  <FormField
+                    control={form.control}
+                    name="licenseCode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>License Code</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Enter license code" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </form>
+              </Form>
+            </AlertDialogBody>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setOpenDialog(null)}>
+                Cancel
+              </AlertDialogCancel>
+              <Button
+                type="submit"
+                className="flex-1"
+                form="send-license-form"
+                onClick={form.handleSubmit(handleActivateLicense)}
+              >
+                Activate
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </PopoverContent>
+    </Popover>
   );
 };
 ActionButton.propTypes = {

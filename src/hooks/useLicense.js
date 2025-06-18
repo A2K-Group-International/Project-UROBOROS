@@ -12,7 +12,7 @@ const useLicense = ({ status = null, setLicenseOpen }) => {
     resolver: zodResolver(licenseSchema),
     defaultValues: {
       userId: "",
-      groupCode: "",
+      licenseCode: "",
     },
   });
 
