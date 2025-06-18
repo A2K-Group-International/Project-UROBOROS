@@ -99,12 +99,12 @@ const AddLicenseForm = () => {
               />
               <FormField
                 control={form.control}
-                name="groupCode"
+                name="licenseCode"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Group Code</FormLabel>
+                    <FormLabel>License Code</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} placeholder="Enter license code" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
