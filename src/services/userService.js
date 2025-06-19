@@ -197,6 +197,65 @@ const removeLicense = async (licenseId) => {
   return license;
 };
 
+const totalLicenses = async () => {
+  const { count, error } = await supabase
+    .from("licenses")
+    .select("id", { count: "exact", head: true });
+
+  if (error) {
+    console.error("Error fetching total licenses:", error.message);
+    throw error;
+  }
+
+  return count;
+};
+
+const activeLicenses = async () => {
+  try {
+    const { count, error } = await supabase
+      .from("licenses")
+      .select("*, users!inner(is_license_verified)", {
+        count: "exact",
+        head: true,
+      })
+      .eq("is_token_used", true)
+      .eq("users.is_license_verified", true);
+
+    if (error) {
+      console.error("Error fetching active licenses:", error.message);
+      throw error;
+    }
+
+    return count || 0;
+  } catch (err) {
+    console.error("Exception in activeLicenses:", err);
+    throw err;
+  }
+};
+
+const inactiveLicenses = async () => {
+  try {
+    const { count, error } = await supabase
+      .from("licenses")
+      .select("*, users!inner(is_license_verified)", {
+        count: "exact",
+        head: true,
+      })
+      .eq("is_token_used", true)
+      .eq("users.is_license_verified", false);
+
+    if (error) {
+      console.error("Error fetching active licenses:", error.message);
+      throw error;
+    }
+
+    return count || 0;
+  } catch (err) {
+    console.error("Exception in activeLicenses:", err);
+    throw err;
+  }
+};
+
 const getUsers = async ({ page, pageSize, roles }) => {
   try {
     const filters = {
@@ -505,4 +564,7 @@ export {
   deactivateLicense,
   removeLicense,
   activateLicense,
+  totalLicenses,
+  activeLicenses,
+  inactiveLicenses,
 };

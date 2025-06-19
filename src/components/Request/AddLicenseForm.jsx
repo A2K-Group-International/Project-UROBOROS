@@ -28,7 +28,7 @@ import { Icon } from "@iconify/react";
 import { Loader2 } from "lucide-react";
 import PropTypes from "prop-types";
 
-const AddLicenseForm = ({ status }) => {
+const AddLicenseForm = ({ status, className }) => {
   const [licenseOpen, setLicenseOpen] = useState(false);
 
   const { data, isLoading, isError, error } = useQuery({
@@ -53,8 +53,8 @@ const AddLicenseForm = ({ status }) => {
 
   return (
     <AlertDialog open={licenseOpen} onOpenChange={setLicenseOpen}>
-      <AlertDialogTrigger className="rounded-3xl" asChild>
-        <Button>
+      <AlertDialogTrigger asChild>
+        <Button className={`rounded-3xl ${className}`}>
           <Icon icon={"mingcute:idcard-fill"} className="h-6 w-6" />
           Assign New License
         </Button>
@@ -137,6 +137,7 @@ const AddLicenseForm = ({ status }) => {
 
 AddLicenseForm.propTypes = {
   status: PropTypes.string.isRequired,
+  className: PropTypes.string,
 };
 
 export default AddLicenseForm;

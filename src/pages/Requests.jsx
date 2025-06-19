@@ -23,7 +23,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import NewProfileForm from "@/components/NewProfileForm";
 import { Icon } from "@iconify/react";
@@ -55,7 +62,7 @@ const Requests = () => {
         <Title>Requests</Title>
         <Description>Manage your organisation&apos;s community.</Description>
       </div>
-      <div className="flex gap-4">
+      <div className="flex flex-col gap-4 md:flex-row">
         <Tabs onValueChange={(value) => setTab(value)} defaultValue={tab}>
           <TabsList>
             <TabsTrigger value="users">Users</TabsTrigger>
@@ -65,9 +72,9 @@ const Requests = () => {
         </Tabs>
 
         {tab === "licenses" && (
-          <div className="flex w-full justify-between">
-            <div className="flex gap-4">
-              <Separator orientation="vertical" />
+          <div className="flex w-full flex-col justify-between gap-y-4 md:flex-row">
+            <div className="flex gap-1 md:gap-4">
+              <Separator orientation="vertical" className="hidden md:visible" />
               <Select
                 defaultValue={status}
                 onValueChange={(value) => setStatus(value)}
@@ -89,17 +96,28 @@ const Requests = () => {
               <AddLicenseForm status={status} />
             </div>
             <Sheet>
-              <SheetTrigger className="rounded-3xl" asChild>
-                <Button className="rounded-xl p-2" variant="outline">
-                  <Icon
-                    className="h-6 w-6 text-accent"
-                    icon={"mingcute:chart-pie-2-fill"}
-                  ></Icon>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-fit">
+              <SheetTrigger asChild>
                 <div>
-                  <LicensePieChart inactiveCount={100} activeCount={200} />
+                  <Button className="w-auto rounded-xl p-2" variant="outline">
+                    <Icon
+                      className="h-6 w-6 text-accent"
+                      icon={"mingcute:chart-pie-2-fill"}
+                    ></Icon>
+                  </Button>
+                </div>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-fit border-none">
+                <SheetHeader className="mb-4">
+                  <SheetTitle className="font-extrabold text-accent">
+                    License Statistics
+                  </SheetTitle>
+                  <SheetDescription className="sr-only">
+                    Chart for number of licenses
+                  </SheetDescription>
+                </SheetHeader>
+                <div className="flex h-[calc(100vh-100px)] flex-col gap-y-4">
+                  <LicensePieChart />
+                  <AddLicenseForm status={status} />
                 </div>
               </SheetContent>
             </Sheet>
@@ -107,7 +125,7 @@ const Requests = () => {
         )}
         {tab === "users" && (
           <div className="flex gap-4">
-            <Separator orientation="vertical" />
+            <Separator orientation="vertical" className="hidden md:visible" />
             <Select
               defaultValue={role}
               onValueChange={(value) => setRole(value)}
