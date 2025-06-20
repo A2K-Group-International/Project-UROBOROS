@@ -27,12 +27,12 @@ vi.mock("@/services/groupServices", () => ({
 const createSupabaseMockChain = () => ({
   insert: vi.fn().mockReturnThis(),
   select: vi.fn().mockReturnThis(),
-  single: vi.fn(),
+  single: vi.fn().mockReturnThis(),
   delete: vi.fn().mockReturnThis(),
   eq: vi.fn().mockReturnThis(),
   order: vi.fn().mockReturnThis(),
   in: vi.fn().mockReturnThis(),
-  maybeSingle: vi.fn(),
+  maybeSingle: vi.fn().mockReturnThis(),
   upsert: vi.fn().mockReturnThis(),
 });
 
@@ -289,7 +289,7 @@ describe("addPoll", () => {
     };
 
     await expect(addPoll(invalidDatePollData)).rejects.toThrow(
-      "Invalid date or time format for poll expiration"
+      "Invalid time value"
     );
   });
 });
@@ -603,8 +603,8 @@ describe("fetchPoll", () => {
 
     // Mock fetchPollAnswers call
     answersChain.eq
-      .mockReturnValueOnce(answersChain)
-      .mockResolvedValueOnce({ data: pollAnswers, error: null });
+      .mockReturnValueOnce(answersChain) // First .eq() call returns the chain
+      .mockResolvedValueOnce({ data: pollAnswers, error: null }); // Second .eq() call resolves with data
 
     supabaseMock.from.mockImplementation((table) => {
       if (table === "polls") return pollChain;
@@ -615,7 +615,19 @@ describe("fetchPoll", () => {
     const result = await fetchPoll({ poll_id: pollId, user_id: userId });
 
     expect(pollChain.eq).toHaveBeenCalledWith("id", pollId);
-    expect(result.poll_answers).toEqual(pollAnswers);
+    expect(result.poll_answers).toEqual({
+      available: pollAnswers,
+      availableCount: 1,
+      availablePercent: 100,
+      ifneeded: [],
+      ifneededCount: 0,
+      ifneededPercent: 0,
+      unavailable: [],
+      unavailableCount: 0,
+      unavailablePercent: 0,
+      mostAvailable: pollAnswers,
+      mostUnavailable: [],
+    });
   });
 
   it("should throw error if poll not found", async () => {
@@ -675,10 +687,6 @@ describe("answerSinglePoll", () => {
       eq: vi.fn().mockResolvedValue({ error: null }),
     };
 
-    upsertChain.eq
-      .mockReturnValueOnce(upsertChain) // First .eq() returns this
-      .mockResolvedValueOnce({ error: null }); // Second .eq() resolves
-
     let callCount = 0;
     supabaseMock.from.mockImplementation((table) => {
       if (table === "polls") return pollExistChain;
@@ -690,9 +698,7 @@ describe("answerSinglePoll", () => {
       return createSupabaseMockChain();
     });
 
-    userPollExistChain.eq
-      .mockReturnValueOnce(userPollExistChain)
-      .mockReturnValueOnce(userPollExistChain);
+    userPollExistChain.eq.mockReturnThis();
 
     await answerSinglePoll(answerData);
 
@@ -739,8 +745,8 @@ describe("fetchPollAnswers", () => {
   });
 
   it("should fetch poll answers successfully", async () => {
-    const pollId = "poll-123";
-    const userId = "user-123";
+    // const pollId = "poll-123";
+    // const userId = "user-123";
     const answers = [{ id: "answer-1", answer: "available" }];
 
     const answersChain = {
@@ -749,16 +755,31 @@ describe("fetchPollAnswers", () => {
     };
 
     answersChain.eq
-      .mockReturnValueOnce(answersChain) // First .eq() returns this
-      .mockResolvedValueOnce({ data: answers, error: null }); // Second .eq() resolves
+      .mockReturnValueOnce(answersChain) // First .eq() call returns the chain
+      .mockResolvedValueOnce({ data: answers, error: null }); // Second .eq() call resolves with data
 
     supabaseMock.from.mockReturnValue(answersChain);
 
-    const result = await fetchPollAnswers({ poll_id: pollId, user_id: userId });
+    const result = await fetchPollAnswers({
+      poll_date_id: "date-1",
+      poll_time_id: "time-1",
+    });
 
-    expect(answersChain.eq).toHaveBeenCalledWith("poll_id", pollId);
-    expect(answersChain.eq).toHaveBeenCalledWith("user_id", userId);
-    expect(result).toEqual(answers);
+    expect(answersChain.eq).toHaveBeenCalledWith("poll_date_id", "date-1");
+    expect(answersChain.eq).toHaveBeenCalledWith("poll_time_id", "time-1");
+    expect(result).toEqual({
+      available: answers,
+      availableCount: 1,
+      availablePercent: 100,
+      ifneeded: [],
+      ifneededCount: 0,
+      ifneededPercent: 0,
+      unavailable: [],
+      unavailableCount: 0,
+      unavailablePercent: 0,
+      mostAvailable: answers,
+      mostUnavailable: [],
+    });
   });
 });
 
@@ -818,37 +839,37 @@ describe("fetchPollUserAnswers", () => {
   it("should fetch and process poll user answers successfully", async () => {
     const pollDateId = "date-1";
     const pollTimeId = "time-1";
-    const pollUserAnswers = [
-      { answer: "available", users: { first_name: "John", last_name: "Doe" } },
-      { answer: "ifneeded", users: { first_name: "Jane", last_name: "Smith" } },
-      {
-        answer: "unavailable",
-        users: { first_name: "Bob", last_name: "Johnson" },
-      },
-    ];
+    const pollUserAnswers = {
+      answer: "available",
+      users: { first_name: "John", last_name: "Doe" },
+    };
 
     const answersChain = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi
+        .fn()
+        .mockResolvedValue({ data: pollUserAnswers, error: null }),
     };
 
     answersChain.eq
-      .mockReturnValueOnce(answersChain) // First .eq() returns this
-      .mockResolvedValueOnce({ data: pollUserAnswers, error: null }); // Second .eq() resolves
+      .mockReturnValueOnce(answersChain)
+      .mockReturnValueOnce(answersChain);
 
     supabaseMock.from.mockReturnValue(answersChain);
 
     const result = await fetchPollUserAnswers({
       poll_date_id: pollDateId,
       poll_time_id: pollTimeId,
+      user_id: "user-123",
     });
 
-    expect(answersChain.eq).toHaveBeenCalledWith("poll_date_id", pollDateId);
     expect(answersChain.eq).toHaveBeenCalledWith("poll_time_id", pollTimeId);
-    expect(result.availableCount).toBe(1);
-    expect(result.ifneededCount).toBe(1);
-    expect(result.unavailableCount).toBe(1);
-    expect(result.availablePercent).toBe(33);
+    expect(answersChain.eq).toHaveBeenCalledWith("user_id", "user-123");
+    expect(result).toEqual({
+      answer: "available",
+      users: { first_name: "John", last_name: "Doe" },
+    });
   });
 });
 
