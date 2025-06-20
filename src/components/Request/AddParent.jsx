@@ -79,9 +79,9 @@ const AddParent = ({ familyId, familyFirstName, familyLastName }) => {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>
+      <DialogTrigger asChild>
         <Button className="h-6 w-5 rounded-lg">
-          <Icon className="h-2 w-2 text-white" icon="mingcute:add-fill"></Icon>
+          <Icon className="h-3 w-3 text-white" icon="mingcute:add-fill"></Icon>
         </Button>
       </DialogTrigger>
       <DialogContent className="text-primary-text">
@@ -109,7 +109,7 @@ const AddParent = ({ familyId, familyFirstName, familyLastName }) => {
                         First Name
                       </FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input {...field} placeholder="John" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -124,7 +124,7 @@ const AddParent = ({ familyId, familyFirstName, familyLastName }) => {
                         Last Name
                       </FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input {...field} placeholder="Doe" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -139,15 +139,23 @@ const AddParent = ({ familyId, familyFirstName, familyLastName }) => {
                         Contact Tel. No
                       </FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input
+                          {...field}
+                          placeholder="09123456789"
+                          type="tel"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
                 <DialogFooter>
-                  <DialogClose>
-                    <Button variant="secondary" disabled={isAdding}>
+                  <DialogClose asChild>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      disabled={isAdding}
+                    >
                       Cancel
                     </Button>
                   </DialogClose>
