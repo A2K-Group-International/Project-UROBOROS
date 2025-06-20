@@ -101,7 +101,6 @@ const editPolls = async ({
   userIds,
   groupIds,
 }) => {
-  console.log("poll id", pollId);
   // Validate and construct expiration date
   let dateObj;
   if (pollDateExpiry instanceof Date) {
@@ -541,18 +540,18 @@ const fetchPollAnswers = async ({ poll_date_id, poll_time_id }) => {
 
   const available = pollUserAnswers.filter((pollUserAnswer) => {
     if (pollUserAnswer.answer === "available") {
-      return `${pollUserAnswer.users.first_name} ${pollUserAnswer.users.last_name}`;
+      return `${pollUserAnswer.users?.first_name} ${pollUserAnswer.users?.last_name}`;
     }
   });
 
   const ifneeded = pollUserAnswers.filter((pollUserAnswer) => {
     if (pollUserAnswer.answer === "ifneeded") {
-      return `${pollUserAnswer.users.first_name} ${pollUserAnswer.users.last_name}`;
+      return `${pollUserAnswer.users.first_name} ${pollUserAnswer.users?.last_name}`;
     }
   });
   const unavailable = pollUserAnswers.filter((pollUserAnswer) => {
     if (pollUserAnswer.answer === "unavailable") {
-      return `${pollUserAnswer.users.first_name} ${pollUserAnswer.users.last_name}`;
+      return `${pollUserAnswer.users?.first_name} ${pollUserAnswer.users.last_name}`;
     }
   });
   const mostAvailable =
