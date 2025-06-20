@@ -106,6 +106,8 @@ const CustomReactSelect = React.forwardRef(
       isLoading = false,
       className = "",
       defaultValue = null,
+      hideSelectedOptions = true,
+      ...rest
     },
     ref
   ) => {
@@ -123,6 +125,8 @@ const CustomReactSelect = React.forwardRef(
         placeholder={placeholder}
         isDisabled={disabled}
         className={className}
+        hideSelectedOptions={hideSelectedOptions}
+        {...rest}
       />
     );
   }
@@ -130,27 +134,16 @@ const CustomReactSelect = React.forwardRef(
 
 CustomReactSelect.propTypes = {
   isMulti: PropTypes.bool,
-  isLoading: PropTypes.bool,
   styles: PropTypes.object,
-  options: PropTypes.arrayOf(
-    PropTypes.shape({
-      value: PropTypes.string.isRequired,
-      label: PropTypes.string.isRequired,
-      image: PropTypes.string,
-    })
-  ),
-  value: PropTypes.arrayOf(
-    PropTypes.shape({
-      value: PropTypes.string.isRequired,
-      label: PropTypes.string.isRequired,
-      image: PropTypes.string,
-    })
-  ),
-  defaultValue: PropTypes.nullable,
+  options: PropTypes.array.isRequired,
+  value: PropTypes.array,
   onChange: PropTypes.func.isRequired,
   placeholder: PropTypes.string,
   disabled: PropTypes.bool,
+  isLoading: PropTypes.bool,
   className: PropTypes.string,
+  defaultValue: PropTypes.any,
+  hideSelectedOptions: PropTypes.bool,
 };
 
 CustomMultiValue.propTypes = {

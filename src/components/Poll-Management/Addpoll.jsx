@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -46,6 +46,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchAllMinistryBasics } from "@/services/ministryService";
 import { getAllUsers } from "@/services/userService";
 import { fetchAllGroups } from "@/services/groupServices";
+import { fetchPollGroups, fetchPollMinistries } from "@/services/pollServices";
 
 const Addpoll = ({ isEditing = false, poll, dates }) => {
   const { userData } = useUser();
@@ -105,6 +106,7 @@ const Addpoll = ({ isEditing = false, poll, dates }) => {
         timeSlots: parsedTimeSlots,
         pollDateExpiry: expiryDate,
         pollTimeExpiry: expiryTime,
+        shareMode: isEditing ? poll?.visibility : "public",
         ministryIds: [],
         groupIds: [],
         userIds: [],
@@ -237,29 +239,52 @@ const Addpoll = ({ isEditing = false, poll, dates }) => {
     }
   };
 
-  const { createPollMutation } = usePoll();
+  const { createPollMutation, editPollMutation } = usePoll();
 
   const onSubmit = (data) => {
-    createPollMutation.mutate(
-      {
-        creator_id: userData.id,
-        pollName: data.pollName,
-        pollDescription: data.pollDescription,
-        pollDates: data.pollDates,
-        timeSlots: data.timeSlots,
-        pollDateExpiry: data.pollDateExpiry,
-        pollTimeExpiry: data.pollTimeExpiry,
-        shareMode: data.shareMode,
-        ministryIds: data.ministryIds,
-        userIds: data.userIds,
-        groupIds: data.groupIds,
-      },
-      {
-        onSuccess: () => {
-          setOpenPollDialog(false);
+    if (!isEditing) {
+      createPollMutation.mutate(
+        {
+          creator_id: userData.id,
+          pollName: data.pollName,
+          pollDescription: data.pollDescription,
+          pollDates: data.pollDates,
+          timeSlots: data.timeSlots,
+          pollDateExpiry: data.pollDateExpiry,
+          pollTimeExpiry: data.pollTimeExpiry,
+          shareMode: data.shareMode,
+          ministryIds: data.ministryIds,
+          userIds: data.userIds,
+          groupIds: data.groupIds,
         },
-      }
-    );
+        {
+          onSuccess: () => {
+            setOpenPollDialog(false);
+          },
+        }
+      );
+    } else {
+      editPollMutation.mutate(
+        {
+          pollId: poll.id,
+          pollName: data.pollName,
+          pollDescription: data.pollDescription,
+          pollDates: data.pollDates,
+          timeSlots: data.timeSlots,
+          pollDateExpiry: data.pollDateExpiry,
+          pollTimeExpiry: data.pollTimeExpiry,
+          shareMode: data.shareMode,
+          ministryIds: data.ministryIds,
+          userIds: data.userIds,
+          groupIds: data.groupIds,
+        },
+        {
+          onSuccess: () => {
+            setOpenPollDialog(false);
+          },
+        }
+      );
+    }
   };
 
   return (
@@ -300,6 +325,8 @@ const Addpoll = ({ isEditing = false, poll, dates }) => {
           <Form {...form}>
             <form id="poll-form" onSubmit={form.handleSubmit(onSubmit)}>
               <RenderContent
+                isEditing={isEditing}
+                pollId={poll?.id}
                 currentStep={currentStep}
                 form={form}
                 selectedTimes={selectedTimes}
@@ -340,7 +367,9 @@ const Addpoll = ({ isEditing = false, poll, dates }) => {
                 Next
               </Button>
             ) : isEditing ? (
-              <Button>Update</Button>
+              <Button type="submit" form="poll-form">
+                Update
+              </Button>
             ) : (
               <Button
                 type="submit"
@@ -424,8 +453,23 @@ RenderDescription.propTypes = {
   description: PropTypes.string.isRequired,
 };
 
-const SharePollPrivacy = ({ form }) => {
+const SharePollPrivacy = ({ isEditing, pollId, form }) => {
   const { control } = form;
+
+  const { data: pollMinistries, isLoading: editMinistriesLoading } = useQuery({
+    queryKey: ["pollMinistries", pollId],
+    queryFn: () => fetchPollMinistries(pollId),
+    enabled:
+      form.getValues("shareMode") === "ministry" &&
+      isEditing &&
+      pollId !== null,
+  });
+  const { data: pollGroups, isLoading: editGroupsLoading } = useQuery({
+    queryKey: ["pollGroups", pollId],
+    queryFn: () => fetchPollGroups(pollId),
+    enabled:
+      form.getValues("shareMode") === "group" && isEditing && pollId !== null,
+  });
 
   const { data: ministries, isLoading: ministriesLoading } = useQuery({
     queryKey: ["pollMinistries"],
@@ -443,9 +487,38 @@ const SharePollPrivacy = ({ form }) => {
     enabled: form.getValues("shareMode") === "group",
   });
 
+  useEffect(() => {
+    if (
+      isEditing &&
+      pollMinistries &&
+      form.getValues("shareMode") === "ministry"
+    ) {
+      const ministryIds = pollMinistries.map((ministry) => ({
+        value: ministry.ministries.id,
+        label: ministry.ministries.ministry_name,
+      }));
+      form.setValue("ministryIds", ministryIds);
+    }
+  }, [pollMinistries, isEditing, form]);
+
+  useEffect(() => {
+    if (isEditing && pollGroups && form.getValues("shareMode") === "group") {
+      const groupValues = pollGroups.map((group) => ({
+        value: group.groups.id,
+        label: `${group.groups.name} - ${group.groups.ministries?.ministry_name}`,
+      }));
+      form.setValue("groupIds", groupValues);
+    }
+  }, [pollGroups, isEditing, form]);
+
   const groupOptions = groups?.map((group) => ({
     value: group.id,
     label: `${group.name} - ${group.ministries?.ministry_name}`,
+  }));
+
+  const ministryOptions = ministries?.map((ministry) => ({
+    value: ministry.id,
+    label: ministry.ministry_name,
   }));
 
   return (
@@ -474,7 +547,11 @@ const SharePollPrivacy = ({ form }) => {
                   form.setValue("ministryIds", []);
                   form.setValue("userIds", []);
                 }
-                field.onChange(value); // Pass the value to field.onChange instead of just referencing it
+                if (value === "specific") {
+                  form.setValue("ministryIds", []);
+                  form.setValue("groupIds", []);
+                }
+                field.onChange(value);
               }}
             >
               <SelectTrigger className="w-full">
@@ -504,12 +581,15 @@ const SharePollPrivacy = ({ form }) => {
               <Label className="font-semibold">Select ministry</Label>
               <FormControl>
                 <CustomReactSelect
-                  isLoading={ministriesLoading}
-                  options={ministries?.map((ministry) => ({
-                    value: ministry.id,
-                    label: ministry.ministry_name,
-                  }))}
+                  onChange={(selectedOptions) => {
+                    field.onChange(selectedOptions || []);
+                  }}
+                  value={field.value}
+                  isLoading={ministriesLoading || editMinistriesLoading}
+                  options={ministryOptions}
                   placeholder="Select ministry"
+                  isMulti={true}
+                  hideSelectedOptions={true}
                   isClearable
                   {...field}
                 />
@@ -530,10 +610,15 @@ const SharePollPrivacy = ({ form }) => {
               <Label className="font-semibold">Select group</Label>
               <FormControl>
                 <CustomReactSelect
+                  onChange={(selectedOptions) => {
+                    field.onChange(selectedOptions || []);
+                  }}
+                  value={field.value}
                   placeholder="Select group"
                   isClearable
-                  isLoading={groupsLoading}
+                  isLoading={groupsLoading || editGroupsLoading}
                   isMulti={true}
+                  hideSelectedOptions={true}
                   options={groupOptions}
                   {...field}
                 />
@@ -560,6 +645,7 @@ const SharePollPrivacy = ({ form }) => {
                     label: `${user.first_name} ${user.last_name}`,
                   }))}
                   isLoading={usersLoading}
+                  hideSelectedOptions={true}
                   placeholder="Select specific users"
                   isClearable
                   {...field}
@@ -576,11 +662,16 @@ const SharePollPrivacy = ({ form }) => {
 
 SharePollPrivacy.propTypes = {
   form: PropTypes.object.isRequired,
+  isEditing: PropTypes.bool,
+  pollId: PropTypes.string,
+  poll: PropTypes.object,
 };
 
 const RenderContent = ({
+  isEditing,
   currentStep,
   form,
+  pollId,
   selectedTimes,
   setSelectedTimes,
 }) => {
@@ -987,7 +1078,7 @@ const RenderContent = ({
             title="Share with coordinators & volunteers"
             description="Send the poll to users for participation."
           />
-          <SharePollPrivacy form={form} />
+          <SharePollPrivacy isEditing={isEditing} pollId={pollId} form={form} />
         </div>
       );
   }
@@ -998,6 +1089,8 @@ RenderContent.propTypes = {
   form: PropTypes.object.isRequired,
   selectedTimes: PropTypes.object.isRequired,
   setSelectedTimes: PropTypes.func.isRequired,
+  isEditing: PropTypes.bool,
+  pollId: PropTypes.string,
 };
 
 export default Addpoll;
