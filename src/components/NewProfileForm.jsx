@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+
 import PropTypes from "prop-types";
 
 import {
@@ -22,53 +21,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import useCreateUser from "@/hooks/Request/useCreateUser";
-import useUpdateUser from "@/hooks/Request/useUpdateUser";
-import {
-  editingUserSchema,
-  newUserSchema,
-} from "@/zodSchema/Request/NewUserSchema";
+
 import { Label } from "./ui/label";
+import useManageUsers from "@/hooks/Request/useManageUser";
+import { DialogClose, DialogFooter } from "./ui/dialog";
+import { Button } from "./ui/button";
 
 const NewProfileForm = ({ id = "new-user-form", user, onClose }) => {
   const [showPassword, setShowPassword] = useState(false);
 
-  const form = useForm({
-    resolver: zodResolver(user ? editingUserSchema : newUserSchema),
-    defaultValues: {
-      first_name: user?.first_name || "",
-      last_name: user?.last_name || "",
-      contact_number: user?.contact_number || "",
-      role: user?.role || "",
-      email: "",
-      password: "",
-      confirm_password: "",
-    },
+  const { form, onSubmit, isPending } = useManageUsers({
+    user,
+    onSuccessCallback: onClose,
   });
-
-  const { mutate: createUser } = useCreateUser(onClose);
-  const { mutate: updateUser } = useUpdateUser(onClose);
-
-  const onSubmit = async (data) => {
-    try {
-      const newUserPayload = {
-        firstName: data.first_name,
-        lastName: data.last_name,
-        email: data.email,
-        password: data.password,
-        contactNumber: data.contact_number,
-        role: data.role,
-      };
-
-      const { password: _, confirm_password: __, ...updateUserPayload } = data;
-
-      !user
-        ? createUser(newUserPayload)
-        : updateUser({ id: user?.id, payload: updateUserPayload });
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
   return (
     <Form id={id} {...form}>
@@ -207,6 +172,18 @@ const NewProfileForm = ({ id = "new-user-form", user, onClose }) => {
             <Label>Show Password</Label>
           </div>
         )}
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline">Cancel</Button>
+          </DialogClose>
+          <Button type="submit" disabled={isPending}>
+            {isPending
+              ? "Saving..."
+              : !user
+                ? "Create Profile"
+                : "Update Profile"}
+          </Button>
+        </DialogFooter>
       </form>
     </Form>
   );

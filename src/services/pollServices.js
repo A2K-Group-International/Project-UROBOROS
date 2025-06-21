@@ -15,23 +15,14 @@ const addPoll = async ({
   userIds,
   groupIds,
 }) => {
-  //date to isostring
-  let expiration_date;
-  try {
-    // If pollDateExpiry is a Date object or date string, this will handle it correctly
-    const dateObj = new Date(pollDateExpiry);
+  // Validate and construct expiration date
+  const dateObj = new Date(pollDateExpiry);
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+  const day = String(dateObj.getDate()).padStart(2, "0");
+  const datePart = `${year}-${month}-${day}`;
 
-    // Extract just the date part (YYYY-MM-DD)
-    const datePart = dateObj.toISOString().split("T")[0];
-
-    // Combine with time (and ensure seconds are included)
-    expiration_date = new Date(
-      `${datePart}T${pollTimeExpiry}:00`
-    ).toISOString();
-  } catch (error) {
-    console.error("Error formatting expiration date:", error);
-    throw new Error("Invalid date or time format for poll expiration");
-  }
+  const expirationDate = new Date(`${datePart}T${pollTimeExpiry}:00`);
 
   const { data: poll, error } = await supabase
     .from("polls")
@@ -40,7 +31,7 @@ const addPoll = async ({
       description: pollDescription,
       visibility: shareMode,
       creator_id,
-      expiration_date,
+      expiration_date: expirationDate.toISOString(),
     })
     .select("id")
     .single();
@@ -53,6 +44,20 @@ const addPoll = async ({
     const Ids = ministryIds.map((ministry) => ministry.value);
     const user_ids = await getMinistriesMembers(Ids);
 
+    const ministriesToInsert = Ids.map((ministry_id) => ({
+      ministry_id,
+      poll_id: poll.id,
+    }));
+
+    const { error: addPollMinistry } = await supabase
+      .from("poll_ministries")
+      .insert(ministriesToInsert);
+
+    if (addPollMinistry) {
+      throw new Error(
+        `Error adding ministries to poll: ${addPollMinistry.message}`
+      );
+    }
     await addPollMembers({ user_ids, poll_id: poll.id });
   }
 
@@ -61,49 +66,167 @@ const addPoll = async ({
     await addPollMembers({ user_ids: Ids, poll_id: poll.id });
   }
   if (shareMode === "group") {
-    const Ids = await fetchGroupsMembers(groupIds.map((group) => group.value));
-    await addPollMembers({ user_ids: Ids, poll_id: poll.id });
+    const Ids = groupIds.map((group) => group.value);
+
+    const user_ids = await fetchGroupsMembers(Ids);
+
+    const groupsToInsert = Ids.map((group_id) => ({
+      group_id,
+      poll_id: poll.id,
+    }));
+    const { error: addPollGroup } = await supabase
+      .from("poll_groups")
+      .insert(groupsToInsert);
+    if (addPollGroup) {
+      console.error(`Error adding groups to poll: ${addPollGroup.message}`);
+      throw new Error(`Error adding groups to poll: ${addPollGroup.message}`);
+    }
+    await addPollMembers({ user_ids, poll_id: poll.id });
   }
 
   return { message: "Poll created successfully" };
 };
 
 const editPolls = async ({
-  id,
-  name,
-  description,
-  dates,
-  times,
+  pollId,
+  pollName,
+  pollDescription,
   shareMode,
+  creator_id,
+  timeSlots,
+  pollDates,
+  pollDateExpiry,
+  pollTimeExpiry,
+  ministryIds,
+  userIds,
+  groupIds,
 }) => {
-  const { data: pollExist, existError } = await supabase
+  // Validate and construct expiration date
+  let dateObj;
+  if (pollDateExpiry instanceof Date) {
+    dateObj = pollDateExpiry;
+  } else {
+    dateObj = new Date(pollDateExpiry);
+  }
+  if (isNaN(dateObj.getTime()) || typeof pollTimeExpiry !== "string") {
+    throw new Error("Invalid date or time format for poll expiration");
+  }
+  const datePart = dateObj.toISOString().split("T")[0];
+  const expirationDate = new Date(`${datePart}T${pollTimeExpiry}:00`);
+  if (isNaN(expirationDate.getTime())) {
+    throw new Error("Invalid date or time format for poll expiration");
+  }
+
+  const { data: poll, existError } = await supabase
     .from("polls")
     .select("id")
-    .eq("id", id)
+    .eq("id", pollId)
     .maybeSingle();
 
   if (existError) {
     throw new Error(existError.message);
   }
 
-  if (!pollExist) {
+  if (!poll) {
     throw new Error("Poll does not exist");
   }
 
   const { error } = await supabase
     .from("polls")
     .update({
-      name,
-      description,
+      name: pollName,
+      description: pollDescription,
+      creator_id,
       visibility: shareMode,
+      expiration_date: expirationDate.toISOString(),
     })
-    .eq("id", id);
+    .eq("id", pollId);
+  if (error) {
+    throw new Error(`Error updating poll: ${error.message}`);
+  }
 
-  await editPollDates({ dates, poll_id: id });
+  await editPollDates({ dates: pollDates, poll_id: poll.id, times: timeSlots });
 
-  await editPollTimes({ times, poll_date_id: id });
+  const { error: deleteError } = await supabase
+    .from("user_polls")
+    .delete()
+    .eq("poll_id", poll.id);
 
-  if (error) throw error.message;
+  if (deleteError) {
+    throw new Error(
+      `Error deleting previous poll members: ${deleteError.message}`
+    );
+  }
+
+  if (shareMode === "ministry") {
+    const { error: deletePollMinistries } = await supabase
+      .from("poll_ministries")
+      .delete()
+      .eq("poll_id", poll.id);
+    if (deletePollMinistries) {
+      throw new Error(
+        `Error deleting previous poll ministries: ${deletePollMinistries.message}`
+      );
+    }
+
+    const Ids = ministryIds.map((ministry) => ministry.value);
+
+    const ministriesToInsert = Ids.map((ministries_id) => ({
+      ministry_id: ministries_id,
+      poll_id: poll.id,
+    }));
+
+    const { error: addPollMinistries } = await supabase
+      .from("poll_ministries")
+      .insert(ministriesToInsert);
+
+    if (addPollMinistries) {
+      throw new Error(
+        `Error adding ministries to poll: ${addPollMinistries.message}`
+      );
+    }
+
+    const user_ids = await getMinistriesMembers(Ids);
+
+    await addPollMembers({ user_ids, poll_id: poll.id });
+  }
+
+  if (shareMode === "specific") {
+    const Ids = userIds.map((user) => user.value);
+    await addPollMembers({ user_ids: Ids, poll_id: poll.id });
+  }
+  if (shareMode === "group") {
+    const { error: deletePollGroups } = await supabase
+      .from("poll_groups")
+      .delete()
+      .eq("poll_id", poll.id);
+
+    if (deletePollGroups) {
+      throw new Error(
+        `Error deleting previous poll groups: ${deletePollGroups.message}`
+      );
+    }
+
+    const Ids = groupIds.map((group) => group.value);
+    const user_ids = await fetchGroupsMembers(Ids);
+
+    const groupsToInsert = Ids.map((group_id) => ({
+      group_id,
+      poll_id: poll.id,
+    }));
+
+    const { error: addPollGroupError } = await supabase
+      .from("poll_groups")
+      .insert(groupsToInsert);
+
+    if (addPollGroupError) {
+      throw new Error(
+        `Error adding groups to poll: ${addPollGroupError.message}`
+      );
+    }
+
+    await addPollMembers({ user_ids, poll_id: poll.id });
+  }
 
   return { message: "Poll updated successfully" };
 };
@@ -157,72 +280,20 @@ const addPollDates = async ({ dates, times, poll_id }) => {
     })
   );
 };
-const editPollDates = async ({ dates, poll_id }) => {
-  const { data: pollExist, error: existError } = await supabase
-    .from("poll_dates")
-    .select("id")
-    .eq("poll_id", poll_id);
 
-  if (existError) {
-    throw new Error(existError.message);
-  }
-  if (!pollExist || pollExist.length === 0) {
-    throw new Error("Poll date does not exist");
-  }
-  // Delete existing dates for the poll
-  const { error } = await supabase
+const editPollDates = async ({ dates, times, poll_id }) => {
+  const { error: deleteError } = await supabase
     .from("poll_dates")
     .delete()
     .eq("poll_id", poll_id);
-  if (error) throw error.message;
 
-  // Insert new dates for the poll
-  const { error: insertError } = await supabase.from("poll_dates").insertMany(
-    dates.map((date) => ({
-      date,
-      poll_id,
-    }))
-  );
-  if (insertError) throw insertError.message;
-
-  return { message: "Poll date updated successfully" };
-};
-
-// const addPollTimes = async ({ times, poll_date_id }) => {
-//   const { error: insertError } = await supabase.from("poll_times").insertMany(
-//     times.map((time) => ({
-//       time,
-//       poll_date_id,
-//     }))
-//   );
-//   if (insertError) throw insertError.message;
-// };
-const editPollTimes = async (times, poll_date_id) => {
-  const { data: pollDateExist, error: existError } = await supabase
-    .from("poll_times")
-    .eq("poll_date_id", poll_date_id);
-
-  if (existError) {
-    throw new Error(existError.message);
+  if (deleteError) {
+    throw new Error(
+      `Error deleting previous poll dates: ${deleteError.message}`
+    );
   }
 
-  if (!pollDateExist || pollDateExist.length === 0) {
-    throw new Error("Poll time does not exist");
-  }
-  const { error } = await supabase
-    .from("poll_times")
-    .delete()
-    .eq("poll_date_id", poll_date_id);
-  if (error) throw error.message;
-  const { error: insertError } = await supabase.from("poll_times").insertMany(
-    times.map((time) => ({
-      time,
-      poll_date_id,
-    }))
-  );
-  if (insertError) throw insertError.message;
-
-  return { message: "Poll time updated successfully" };
+  await addPollDates({ dates, times, poll_id });
 };
 
 const addPollMembers = async ({ user_ids, poll_id }) => {
@@ -469,18 +540,18 @@ const fetchPollAnswers = async ({ poll_date_id, poll_time_id }) => {
 
   const available = pollUserAnswers.filter((pollUserAnswer) => {
     if (pollUserAnswer.answer === "available") {
-      return `${pollUserAnswer.users.first_name} ${pollUserAnswer.users.last_name}`;
+      return `${pollUserAnswer.users?.first_name} ${pollUserAnswer.users?.last_name}`;
     }
   });
 
   const ifneeded = pollUserAnswers.filter((pollUserAnswer) => {
     if (pollUserAnswer.answer === "ifneeded") {
-      return `${pollUserAnswer.users.first_name} ${pollUserAnswer.users.last_name}`;
+      return `${pollUserAnswer.users.first_name} ${pollUserAnswer.users?.last_name}`;
     }
   });
   const unavailable = pollUserAnswers.filter((pollUserAnswer) => {
     if (pollUserAnswer.answer === "unavailable") {
-      return `${pollUserAnswer.users.first_name} ${pollUserAnswer.users.last_name}`;
+      return `${pollUserAnswer.users?.first_name} ${pollUserAnswer.users.last_name}`;
     }
   });
   const mostAvailable =
@@ -548,7 +619,35 @@ const manualClosePoll = async (poll_id) => {
   }
 };
 
+const fetchPollMinistries = async (poll_id) => {
+  const { data: ministries, error } = await supabase
+    .from("poll_ministries")
+    .select("id, ministries(id, ministry_name)")
+    .eq("poll_id", poll_id);
+
+  if (error) {
+    throw new Error(`Error fetching poll ministries: ${error.message}`);
+  }
+
+  return ministries;
+};
+
+const fetchPollGroups = async (poll_id) => {
+  const { data: groups, error } = await supabase
+    .from("poll_groups")
+    .select("id, groups(id, name, ministries(ministry_name))")
+    .eq("poll_id", poll_id);
+
+  if (error) {
+    throw new Error(`Error fetching poll groups: ${error.message}`);
+  }
+
+  return groups;
+};
+
 export {
+  fetchPollMinistries,
+  fetchPollGroups,
   addPoll,
   editPolls,
   fetchPolls,

@@ -21,7 +21,7 @@ import Feedback from "./pages/Feedback";
 import Consultation from "./pages/Consultation";
 import Profile from "./pages/Profile";
 import Poll from "./pages/Poll";
-import PollList from "./components/Poll-List/PollList";
+import PollList from "./pages/PollList";
 
 const App = () => {
   return (

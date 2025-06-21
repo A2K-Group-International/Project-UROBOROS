@@ -12,11 +12,16 @@ const customStyles = {
     backgroundColor: "#F6F0ED",
     padding: "14px",
     boxShadow: "none",
+
     outline: "none",
     borderColor: "transparent",
     "&:hover": {
       borderColor: "transparent",
     },
+  }),
+  singleValue: (styles) => ({
+    ...styles,
+    color: "#663F30",
   }),
   placeholder: (styles) => ({
     ...styles,
@@ -100,12 +105,16 @@ const CustomReactSelect = React.forwardRef(
       disabled,
       isLoading = false,
       className = "",
+      defaultValue = null,
+      hideSelectedOptions = true,
+      ...rest
     },
     ref
   ) => {
     return (
       <ReactSelect
         ref={ref}
+        defaultValue={defaultValue}
         isMulti={isMulti}
         isLoading={isLoading}
         styles={styles}
@@ -116,6 +125,8 @@ const CustomReactSelect = React.forwardRef(
         placeholder={placeholder}
         isDisabled={disabled}
         className={className}
+        hideSelectedOptions={hideSelectedOptions}
+        {...rest}
       />
     );
   }
@@ -123,26 +134,16 @@ const CustomReactSelect = React.forwardRef(
 
 CustomReactSelect.propTypes = {
   isMulti: PropTypes.bool,
-  isLoading: PropTypes.bool,
   styles: PropTypes.object,
-  options: PropTypes.arrayOf(
-    PropTypes.shape({
-      value: PropTypes.string.isRequired,
-      label: PropTypes.string.isRequired,
-      image: PropTypes.string,
-    })
-  ),
-  value: PropTypes.arrayOf(
-    PropTypes.shape({
-      value: PropTypes.string.isRequired,
-      label: PropTypes.string.isRequired,
-      image: PropTypes.string,
-    })
-  ),
+  options: PropTypes.array.isRequired,
+  value: PropTypes.array,
   onChange: PropTypes.func.isRequired,
   placeholder: PropTypes.string,
   disabled: PropTypes.bool,
+  isLoading: PropTypes.bool,
   className: PropTypes.string,
+  defaultValue: PropTypes.any,
+  hideSelectedOptions: PropTypes.bool,
 };
 
 CustomMultiValue.propTypes = {

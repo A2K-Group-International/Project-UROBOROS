@@ -188,9 +188,9 @@ const SidebarProfile = ({ availableRoles, onSwitchRole }) => {
       <div className="flex items-center gap-1">
         {/* Avatar (Future Avatar Image) */}
         <Avatar className="h-8 w-8">
-          <AvatarFallback>{initials}</AvatarFallback>
+          <AvatarFallback className="text-accent">{initials}</AvatarFallback>
         </Avatar>
-        <p className="w-32 overflow-hidden text-ellipsis text-nowrap text-[16px] font-medium capitalize">
+        <p className="w-32 overflow-hidden text-ellipsis text-nowrap text-[16px] font-medium capitalize text-accent">
           {fullName}
         </p>
         {/* </Link> */}

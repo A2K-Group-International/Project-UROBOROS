@@ -50,7 +50,7 @@ const CategoryList = () => {
       <Table>
         <TableHeader className="bg-primary">
           <TableRow>
-            <TableHead className="text-center">Name</TableHead>
+            <TableHead className="rounded-l-lg text-center">Name</TableHead>
             <TableHead className="text-center">Created by</TableHead>
             <TableHead className="text-center">Created at</TableHead>
             <TableHead className="rounded-r-lg text-center">Action</TableHead>
@@ -62,7 +62,9 @@ const CategoryList = () => {
               <TableRow
                 key={category.id}
                 className={cn(
-                  index % 2 !== 0 ? "bg-primary bg-opacity-35" : "bg-white"
+                  index % 2 !== 0
+                    ? "rounded-l-lg bg-primary bg-opacity-35"
+                    : "bg-white"
                 )}
               >
                 <TableCell className="text-center">{category.name}</TableCell>
@@ -72,7 +74,7 @@ const CategoryList = () => {
                 <TableCell className="text-center">
                   {formatEventDate(category.created_at)}
                 </TableCell>
-                <TableCell className="text-center">
+                <TableCell className="rounded-r-lg text-center">
                   <CategoryActionMenu category={category} />
                 </TableCell>
               </TableRow>
