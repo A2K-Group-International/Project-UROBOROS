@@ -22,6 +22,9 @@ import Consultation from "./pages/Consultation";
 import Profile from "./pages/Profile";
 import Poll from "./pages/Poll";
 import PollList from "./pages/PollList";
+import LicenseVerificationError from "./pages/LicenseVerificationError";
+import LicenseVerificationSuccess from "./pages/LicenseVerificationSuccess";
+import LicenseVerification from "./pages/LicenseVerification";
 
 const App = () => {
   return (
@@ -35,6 +38,16 @@ const App = () => {
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/accept-invite" element={<AcceptInvite />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+
+        <Route path="/verify-license" element={<LicenseVerification />} />
+        <Route
+          path="/license-verification-success"
+          element={<LicenseVerificationSuccess />}
+        />
+        <Route
+          path="/license-verification-error"
+          element={<LicenseVerificationError />}
+        />
 
         {/* Protected Routes */}
         <Route element={<MainLayout />}>
