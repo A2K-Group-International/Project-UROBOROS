@@ -91,8 +91,8 @@ const assignNewLicense = async (data) => {
   const token = await getAuthToken();
   try {
     const { data: result } = await axios.post(
-      // `${import.meta.env.VITE_SPARKD_API_URL}/feedback/create`,
-      `http://localhost:3000/licenses/`,
+      `${import.meta.env.VITE_SPARKD_API_URL}/licenses/`,
+      // `http://localhost:3000/licenses/`,
       {
         user_id: data.userId,
         license_code: data.licenseCode,
@@ -120,8 +120,8 @@ const resendLicense = async (licenseId) => {
   const token = await getAuthToken();
   try {
     const { data: result } = await axios.post(
-      // `${import.meta.env.VITE_SPARKD_API_URL}/feedback/create`,
-      `http://localhost:3000/licenses/resend/`,
+      `${import.meta.env.VITE_SPARKD_API_URL}/licenses/resend/`,
+      // `http://localhost:3000/licenses/resend/`,
       { licenseId },
       {
         headers: {

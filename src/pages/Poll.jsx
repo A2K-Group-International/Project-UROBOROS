@@ -8,6 +8,8 @@ import { fetchPollsByUser } from "@/services/pollServices";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 
+import { useSearchParams } from "react-router-dom";
+
 const Poll = () => {
   // Access user data from context
   const { userData } = useUser();
@@ -15,6 +17,10 @@ const Poll = () => {
   const [selectedPollCard, setSelectedPollCard] = useState(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+
+  // GET URL SEACH PARAMS
+  const [searchParams, setSearchParams] = useSearchParams();
+  const pollIdFromUrl = searchParams.get("id");
 
   const {
     data: pollsData,
@@ -33,6 +39,9 @@ const Poll = () => {
       setSheetOpen(true);
     }
     setSelectedPollCard(poll);
+
+    // Update URL when a poll is selected
+    setSearchParams({ id: poll.id });
   };
 
   // Check if we're on mobile
@@ -58,6 +67,45 @@ const Poll = () => {
       setSelectedPollCard(null);
     }
   }, [pollsData, isMobile, selectedPollCard]);
+
+  // Add this effect to handle URL poll ID selection
+  useEffect(() => {
+    // Only run this when both pollIdFromUrl and pollsData are available
+    if (pollIdFromUrl && pollsData?.length > 0) {
+      // Find the poll that matches the ID from URL
+      const pollFromUrl = pollsData.find((poll) => poll.id === pollIdFromUrl);
+
+      if (pollFromUrl) {
+        setSelectedPollCard(pollFromUrl);
+        // If on mobile, open the sheet
+        if (isMobile) {
+          setSheetOpen(true);
+        }
+      }
+    }
+  }, [pollIdFromUrl, pollsData, isMobile]);
+
+  // Default selection behavior (when no URL parameter)
+  useEffect(() => {
+    // Only apply default selection if:
+    // 1. No poll ID in URL
+    // 2. We have poll data
+    // 3. No poll is currently selected
+    // 4. We're on desktop
+    if (
+      !pollIdFromUrl &&
+      !isMobile &&
+      pollsData?.length > 0 &&
+      !selectedPollCard
+    ) {
+      setSelectedPollCard(pollsData[0]);
+    }
+
+    // Clear selection if on desktop and no polls available
+    if (!isMobile && pollsData?.length === 0) {
+      setSelectedPollCard(null);
+    }
+  }, [pollsData, isMobile, selectedPollCard, pollIdFromUrl]);
 
   const renderPollCards = () => {
     if (isLoading) {

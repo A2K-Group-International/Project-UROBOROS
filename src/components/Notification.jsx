@@ -153,6 +153,7 @@ const Notification = ({ isMobile = true }) => {
         toggleNotificationView={toggleNotificationView}
         handleClearAll={handleClearAll}
         handleMarkAllAsRead={handleMarkAllAsRead}
+        userData={userData}
       />
     </div>
   );
@@ -239,6 +240,7 @@ const NotificationContent = ({
   toggleNotificationView,
   handleClearAll,
   handleMarkAllAsRead,
+  userData,
 }) => {
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -325,6 +327,44 @@ const NotificationContent = ({
           setNotificationId(notificationId);
         } else {
           navigate(`/ministries`);
+          markAsRead(notificationId);
+        }
+        break;
+      case "poll_expired":
+        // Check if we're already on the polls page
+        if (!location.pathname.startsWith("/polls")) {
+          // Get the user's available roles
+          const userRoles = userData?.role || [];
+
+          // Determine which role to switch to (prefer Admin if available)
+          let roleToUse;
+
+          if (userRoles.includes(ROLES[4])) {
+            // ROLES[0] is Admin
+            roleToUse = ROLES[4];
+          } else if (userRoles.includes(ROLES[0])) {
+            // ROLES[3] is Coordinator
+            roleToUse = ROLES[0];
+          } else {
+            // Handle case where user doesn't have either role
+            alert("You don't have permission to view polls.");
+            return;
+          }
+
+          // Only show dialog if we need to switch roles
+          if (temporaryRole !== roleToUse) {
+            setIsDialogOpen(true);
+            setRoleToSwitch(roleToUse);
+            setLink(`/poll?id=${entity_id}`);
+            setNotificationId(notificationId);
+          } else {
+            // Already in the right role, just navigate
+            navigate(`/poll?id=${entity_id}`);
+            markAsRead(notificationId);
+          }
+        } else {
+          // Already on polls page, just navigate to the specific poll
+          navigate(`/polls?id=${entity_id}`);
           markAsRead(notificationId);
         }
         break;
@@ -683,6 +723,10 @@ NotificationContent.propTypes = {
   toggleNotificationView: PropTypes.func.isRequired,
   handleClearAll: PropTypes.func.isRequired,
   handleMarkAllAsRead: PropTypes.func.isRequired,
+  userData: PropTypes.shape({
+    id: PropTypes.string,
+    role: PropTypes.string,
+  }),
 };
 
 const MarkAllAsRead = ({ handleMarkAllAsRead }) => {

@@ -22,7 +22,7 @@ const useAnnouncements = ({ group_id, subgroup_id }) => {
     queryFn: async ({ pageParam }) => {
       const response = await fetchAnnouncementsV2(
         pageParam,
-        10,
+        5,
         group_id,
         subgroup_id
       );
