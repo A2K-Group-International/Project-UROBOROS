@@ -17,7 +17,13 @@ import { Icon } from "@iconify/react";
 import { formatEventDate, formatEventTime } from "@/lib/utils";
 import FamilyData from "./FamilyData";
 
-const ManualAttendEvents = ({ eventId, eventName, eventTime, eventDate }) => {
+const ManualAttendEvents = ({
+  eventId,
+  eventName,
+  eventTime,
+  eventDate,
+  width,
+}) => {
   const [selectedEvent, setSelectedEvent] = useState(null); // set the selected event
 
   // Get the userId
@@ -34,14 +40,20 @@ const ManualAttendEvents = ({ eventId, eventName, eventTime, eventDate }) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button onClick={handleSelectEvent} className="w-full">
-          Manage Attendance
+        <Button
+          onClick={handleSelectEvent}
+          className={`flex-grow sm:w-full ${width === "full" ? "w-full" : "w-[calc(90vw-13rem)]"}`}
+        >
+          <span className={width === "full" ? "" : "hidden min-[500px]:block"}>
+            Manage{" "}
+          </span>
+          Attendance
         </Button>
       </DialogTrigger>
       <DialogContent className="no-scrollbar h-auto max-h-[37rem] overflow-scroll text-primary-text">
         <DialogHeader className="font-bold">
           <DialogTitle className="text-xl">{`${eventName}`}</DialogTitle>
-          <div className="flex items-center justify-center gap-x-1 sm:justify-start">
+          <div className="mt-2 flex items-center justify-center gap-x-1 text-[0.8rem] sm:justify-start">
             <Label className="font-semibold">
               {formatEventDate(eventDate)}
             </Label>
@@ -74,6 +86,7 @@ ManualAttendEvents.propTypes = {
   eventName: PropTypes.string,
   eventTime: PropTypes.string,
   eventDate: PropTypes.string,
+  width: PropTypes.string,
 };
 
 export default ManualAttendEvents;
