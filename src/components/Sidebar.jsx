@@ -24,6 +24,7 @@ import { ROLES } from "@/constants/roles";
 import Notification from "./Notification";
 import { Loader2 } from "lucide-react";
 import ConsultationButton from "./Consultation/ConsultationButton";
+import { useMemo } from "react";
 
 const Sidebar = () => {
   const url = useLocation();
@@ -42,7 +43,16 @@ const Sidebar = () => {
     }
   };
 
-  const initials = `${getInitial(userData?.first_name)}${getInitial(userData?.last_name)}`;
+  // Get the user's initials
+  const initials = useMemo(() => {
+    return `${getInitial(userData?.first_name)}${getInitial(userData?.last_name)}`;
+  }, [userData?.first_name, userData?.last_name]);
+
+  // Get the profile image URL
+  const profileImageUrl = useMemo(() => {
+    return userData?.profile_picture_url;
+  }, [userData?.profile_picture_url]);
+
   // Mobile Version
   return (
     <div className="flex lg:my-9 lg:w-64 lg:flex-col">
@@ -87,11 +97,8 @@ const Sidebar = () => {
             <DropdownMenu>
               <DropdownMenuTrigger className="lg:hidden lg:px-6">
                 <div className="flex items-center gap-2">
-                  <Avatar className="h-8 w-8 border-[3px] border-accent">
-                    <AvatarImage
-                      src={userData?.user_image ?? ""}
-                      alt="profile picture"
-                    />
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={profileImageUrl} alt="profile picture" />
                     <AvatarFallback>{initials}</AvatarFallback>
                   </Avatar>
                 </div>
@@ -140,6 +147,9 @@ const Sidebar = () => {
           <SidebarProfile
             availableRoles={availableRoles}
             onSwitchRole={onSwitchRole}
+            initials={initials}
+            profileImageUrl={profileImageUrl}
+            fullName={`${userData?.first_name ?? ""} ${userData?.last_name ?? ""}`}
           />
         </div>
       </div>
@@ -149,7 +159,13 @@ const Sidebar = () => {
 
 export default Sidebar;
 
-const SidebarProfile = ({ availableRoles, onSwitchRole }) => {
+const SidebarProfile = ({
+  availableRoles,
+  onSwitchRole,
+  initials,
+  profileImageUrl,
+  fullName,
+}) => {
   const { userData, logout } = useUser();
   const navigate = useNavigate();
 
@@ -178,17 +194,13 @@ const SidebarProfile = ({ availableRoles, onSwitchRole }) => {
     );
   }
 
-  const initials = `${getInitial(userData?.first_name ?? "U")}${getInitial(userData?.last_name ?? "")}`;
-  const fullName =
-    `${userData?.first_name ?? ""} ${userData?.last_name ?? ""}`.trim() ||
-    "Guest";
-
   return (
     <div className="hidden h-10 w-full items-center justify-between rounded-[20px] bg-white p-1 lg:flex">
       <div className="flex items-center gap-1">
         {/* Avatar (Future Avatar Image) */}
         <Avatar className="h-8 w-8">
-          <AvatarFallback className="text-accent">{initials}</AvatarFallback>
+          <AvatarImage src={profileImageUrl} alt="profile picture" />
+          <AvatarFallback>{initials}</AvatarFallback>
         </Avatar>
         <p className="w-32 overflow-hidden text-ellipsis text-nowrap text-[16px] font-medium capitalize text-accent">
           {fullName}
@@ -271,6 +283,9 @@ SidebarLink.propTypes = {
 SidebarProfile.propTypes = {
   availableRoles: PropTypes.array,
   onSwitchRole: PropTypes.func,
+  initials: PropTypes.string.isRequired,
+  profileImageUrl: PropTypes.string,
+  fullName: PropTypes.string.isRequired,
 };
 
 export { SidebarLink, SidebarProfile };

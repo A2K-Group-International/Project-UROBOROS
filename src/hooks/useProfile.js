@@ -8,7 +8,12 @@ import {
   updateName,
   updatePassword,
 } from "@/services/userService";
-import { fetchUserById, updateContact } from "@/services/authService";
+import {
+  fetchUserById,
+  removeProfilePicture,
+  updateContact,
+  updateProfilePicture,
+} from "@/services/authService";
 import { supabase } from "@/services/supabaseClient";
 
 const useProfile = ({ user_id }) => {
@@ -154,6 +159,55 @@ const useProfile = ({ user_id }) => {
     },
   });
 
+  // Add profile picture removal mutation
+  const removeProfilePictureMutation = useMutation({
+    mutationFn: async () => removeProfilePicture(user_id),
+    onSuccess: () => {
+      toast({
+        title: "Profile Picture Removed",
+        description: "Your profile picture has been successfully removed.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error Removing Profile Picture",
+        description:
+          error?.message ||
+          "Failed to remove profile picture. Please try again.",
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries(["fetchUser", user_id]);
+    },
+  });
+
+  // Add profile picture upload mutation
+  const updateProfilePictureMutation = useMutation({
+    mutationFn: async (imageFile) => updateProfilePicture(user_id, imageFile),
+    onSuccess: (publicUrl) => {
+      toast({
+        title: "Profile Picture Updated",
+        description: "Your profile picture has been successfully updated.",
+      });
+      return publicUrl;
+    },
+    onError: (error) => {
+      toast({
+        title: "Error Updating Profile Picture",
+        description:
+          error?.message ||
+          "Failed to update profile picture. Please try again.",
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries(["fetchUser", user_id]);
+    },
+  });
+
+  // Listen for auth state changes to handle email updates
+  // This effect listens for changes in the authentication state and updates the email if necessary.
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -186,6 +240,8 @@ const useProfile = ({ user_id }) => {
     updateContactMutation,
     updatePasswordMutation,
     toggleEmailNotificationMutation,
+    removeProfilePictureMutation,
+    updateProfilePictureMutation,
   };
 };
 

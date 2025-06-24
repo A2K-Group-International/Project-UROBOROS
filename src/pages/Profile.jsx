@@ -35,6 +35,7 @@ import { Loader2 } from "lucide-react";
 import useProfile from "@/hooks/useProfile";
 import { Icon } from "@iconify/react";
 import { Switch } from "@/components/ui/switch";
+import ChangeProfile from "@/components/ChangeProfile";
 
 const nameSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -94,9 +95,15 @@ const Profile = () => {
     user_id: userData?.id,
   });
 
+  // Get the user's initials
   const initials = useMemo(() => {
     return `${getInitial(data?.first_name)}${getInitial(data?.last_name)}`;
   }, [data?.first_name, data?.last_name]);
+
+  // Get the profile image URL
+  const profileImageUrl = useMemo(() => {
+    return userData?.profile_picture_url;
+  }, [userData?.profile_picture_url]);
 
   if (isLoading || !userData) {
     return (
@@ -119,8 +126,20 @@ const Profile = () => {
         >
           {/* Avatar */}
           <div className="absolute -bottom-14 left-3 flex items-center gap-x-2 md:-bottom-16 md:left-16 lg:-bottom-20 lg:left-24">
-            <div className="flex h-24 w-24 items-center justify-center rounded-full border-[7px] border-white bg-accent text-2xl text-white md:h-32 md:w-32 md:text-4xl lg:h-40 lg:w-40">
-              {`${initials}` || "?"}
+            <div className="relative flex h-24 w-24 cursor-auto items-center justify-center rounded-full border-[7px] border-white bg-accent text-2xl text-white md:h-32 md:w-32 md:text-4xl lg:h-40 lg:w-40">
+              {profileImageUrl ? (
+                <img
+                  src={profileImageUrl}
+                  alt="Profile Picture"
+                  className="h-full w-full overflow-hidden rounded-full object-cover"
+                />
+              ) : (
+                <span>{`${initials}` || "?"}</span>
+              )}
+              <ChangeProfile
+                userId={userData?.id}
+                profileImageUrl={profileImageUrl}
+              />
             </div>
             <div className="mt-10 flex flex-wrap items-center gap-x-4 md:mt-16 md:text-4xl lg:mt-20 lg:text-5xl">
               <p className="text-lg font-bold text-accent">{`${data?.first_name} ${data?.last_name}`}</p>
