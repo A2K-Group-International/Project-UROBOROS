@@ -97,7 +97,7 @@ const VoteResults = ({ dates, pollName }) => {
           <Icon icon="fluent:document-data-16-regular" width={24} height={24} />
         </Button>
       </DialogTrigger>
-      <DialogContent className="flex max-w-7xl flex-col text-accent">
+      <DialogContent className="flex !max-w-7xl flex-col text-accent">
         <DialogHeader>
           <DialogTitle className="text-start">{pollName} Entries</DialogTitle>
           <DialogDescription className="sr-only">

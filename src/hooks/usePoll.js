@@ -6,6 +6,7 @@ import {
   deletePoll,
   editPolls,
   fetchPollDates,
+  finalisePoll,
   manualClosePoll,
 } from "@/services/pollServices";
 
@@ -124,6 +125,25 @@ const usePoll = ({ poll_id, user_id } = { poll_id: null, user_id: null }) => {
     },
   });
 
+  const finalizePollMutation = useMutation({
+    mutationFn: ({ pollDate, pollTime }) =>
+      finalisePoll({ pollId: poll_id, pollDate, pollTime }),
+    onSuccess: (data) => {
+      toast({
+        title: "Poll finalised successfully",
+        description: data.message || "The poll has been finalized.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to finalize poll",
+        description:
+          error.message || "An error occurred while finalizing the poll.",
+        variant: "destructive",
+      });
+    },
+  });
+
   return {
     createPollMutation,
     addTimeSlotMutation,
@@ -131,6 +151,7 @@ const usePoll = ({ poll_id, user_id } = { poll_id: null, user_id: null }) => {
     DeletePollMutation,
     editPollMutation,
     manualClosePollMutation,
+    finalizePollMutation,
   };
 };
 

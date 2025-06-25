@@ -1,6 +1,8 @@
 import { getMinistriesMembers } from "./ministryService";
 import { supabase } from "./supabaseClient";
 import { fetchGroupsMembers } from "./groupServices";
+import { getAuthToken } from "./emailService";
+import axios from "axios";
 
 const addPoll = async ({
   pollName,
@@ -587,6 +589,105 @@ const fetchPollAnswers = async ({ poll_date_id, poll_time_id }) => {
   return pollAnswers;
 };
 
+/**
+ * Fetch only the most available date and time for a poll
+ * @param {string} poll_id - The ID of the poll
+ * @returns {Promise<Object>} Object containing only the most available date and time
+ */
+const fetchPollAvailabilitySummary = async (poll_id) => {
+  try {
+    // 1. Get all dates and times for this poll
+    const pollDates = await fetchPollDates({ poll_id });
+
+    // 2. Track best options only
+    let bestDate = null;
+    let bestTime = null;
+    let highestAvailabilityScore = -1;
+
+    // 3. Process each date and its times
+    for (const dateObj of pollDates) {
+      const date = new Date(dateObj.date);
+      const formattedDate = date.toLocaleDateString();
+
+      let totalAvailable = 0;
+      let totalIfNeeded = 0;
+      let totalUnavailable = 0;
+      let totalResponses = 0;
+      let bestTimeForThisDate = null;
+      let bestTimeScore = -1;
+
+      // Process each time slot for this date
+      for (const timeSlot of dateObj.poll_times) {
+        // Get answers for this specific time slot
+        const answers = await fetchPollAnswers({
+          poll_date_id: dateObj.id,
+          poll_time_id: timeSlot.id,
+        });
+
+        // Calculate time slot score
+        const responses =
+          answers.availableCount +
+          answers.ifneededCount +
+          answers.unavailableCount;
+        const timeScore =
+          responses > 0
+            ? (answers.availableCount + answers.ifneededCount * 0.5) / responses
+            : 0;
+
+        // Check if this is the best time for this date
+        if (timeScore > bestTimeScore) {
+          bestTimeScore = timeScore;
+          bestTimeForThisDate = {
+            time_id: timeSlot.id,
+            time: timeSlot.time,
+            availableCount: answers.availableCount,
+            ifneededCount: answers.ifneededCount,
+            unavailableCount: answers.unavailableCount,
+            score: timeScore,
+          };
+        }
+
+        // Add to the totals for this date
+        totalAvailable += answers.availableCount;
+        totalIfNeeded += answers.ifneededCount;
+        totalUnavailable += answers.unavailableCount;
+        totalResponses += responses;
+      }
+
+      // Calculate the date's availability score
+      const availabilityScore =
+        totalResponses > 0
+          ? (totalAvailable + totalIfNeeded * 0.5) / totalResponses
+          : 0;
+
+      // Check if this is the best date overall
+      if (availabilityScore > highestAvailabilityScore) {
+        highestAvailabilityScore = availabilityScore;
+        bestDate = {
+          date_id: dateObj.id,
+          date: formattedDate,
+          rawDate: dateObj.date,
+          availabilityScore,
+          totalAvailable,
+          totalIfNeeded,
+          totalUnavailable,
+          totalResponses,
+        };
+        bestTime = bestTimeForThisDate;
+      }
+    }
+
+    // Just return the best date and time
+    return {
+      bestDate,
+      bestTime,
+    };
+  } catch (error) {
+    console.error("Error fetching poll availability summary:", error);
+    throw new Error(`Error finding most available date: ${error.message}`);
+  }
+};
+
 const addTimeSlot = async ({ poll_date_id, time }) => {
   const { error } = await supabase.from("poll_times").insert({
     poll_date_id,
@@ -645,6 +746,36 @@ const fetchPollGroups = async (poll_id) => {
   return groups;
 };
 
+const finalisePoll = async ({ pollId, pollDate, pollTime }) => {
+  const token = await getAuthToken();
+  try {
+    const { data: result } = await axios.post(
+      // `${import.meta.env.VITE_SPARKD_API_URL}/poll/finalize-poll`,
+      `http://localhost:3000/poll/finalize-poll`,
+      {
+        pollId,
+        pollDate,
+        pollTime,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return {
+      success: true,
+      message: "Email successfully sent",
+      details: result,
+    };
+  } catch (error) {
+    console.error("Error in finalising poll:", error);
+    throw new Error(
+      error.response?.data?.message || "Failed to finalise poll request"
+    );
+  }
+};
+
 export {
   fetchPollMinistries,
   fetchPollGroups,
@@ -660,4 +791,6 @@ export {
   fetchPollDates,
   addTimeSlot,
   manualClosePoll,
+  fetchPollAvailabilitySummary,
+  finalisePoll,
 };
