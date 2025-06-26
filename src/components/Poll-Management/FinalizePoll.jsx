@@ -33,7 +33,7 @@ const FinalizePoll = ({ pollId, pollDate, pollTime }) => {
     }
   };
 
-  // Format the date/time once outside of the JSX
+  // Format the date/time
   const formattedDateTime =
     pollDate && pollTime ? formatDateTime(pollDate, pollTime) : "selected time";
 
