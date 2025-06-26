@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { useSearchParams } from "react-router-dom";
+import PollFooter from "@/components/Poll-Management/PollFooter";
 
 const Poll = () => {
   // Access user data from context
@@ -168,14 +169,19 @@ const Poll = () => {
 
       {/* RIGHT VIEW (Desktop) */}
       {!isMobile && (
-        <div className="no-scrollbar hidden overflow-y-scroll rounded-xl border border-accent/40 p-8 lg:block">
-          {selectedPollCard ? (
-            <PollInformation poll={selectedPollCard} isMobile={false} />
-          ) : (
-            <div className="flex h-full items-center justify-center">
-              <p className="text-gray-500">Select a poll to view details.</p>
-            </div>
-          )}
+        <div className="no-scrollbar hidden overflow-y-scroll rounded-xl border border-accent/40 lg:flex lg:flex-col lg:justify-between">
+          <div className="p-8">
+            {selectedPollCard ? (
+              <PollInformation poll={selectedPollCard} isMobile={false} />
+            ) : (
+              <div className="flex h-full items-center justify-center">
+                <p className="text-gray-500">Select a poll to view details.</p>
+              </div>
+            )}
+          </div>
+          <div className="bg-primary px-8 py-4">
+            <PollFooter pollId={selectedPollCard?.id} />
+          </div>
         </div>
       )}
 
