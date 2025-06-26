@@ -282,20 +282,123 @@ const addPollDates = async ({ dates, times, poll_id }) => {
 };
 
 const editPollDates = async ({ dates, times, poll_id }) => {
-  const { error: deleteError } = await supabase
+  // 1. Get existing dates and times from DB
+  const { data: existingDbDates, error: fetchError } = await supabase
     .from("poll_dates")
-    .delete()
+    .select("id, date, poll_times(id, time)")
     .eq("poll_id", poll_id);
 
-  if (deleteError) {
+  if (fetchError) {
     throw new Error(
-      `Error deleting previous poll dates: ${deleteError.message}`
+      `Error fetching existing poll dates: ${fetchError.message}`
     );
   }
 
-  await addPollDates({ dates, times, poll_id });
-};
+  // 2. Normalize incoming dates and times into a schedule for easier comparison.
+  const newSchedule = new Map();
+  dates.forEach((date, i) => {
+    const dateKey = new Date(date).toISOString().split("T")[0];
+    const relevantTimes = times
+      .filter((time) => time.dateIndex === i)
+      .map((t) => t.time);
+    newSchedule.set(dateKey, {
+      isoDate: new Date(date).toISOString(),
+      times: new Set(relevantTimes),
+    });
+  });
 
+  // 3. Normalize existing DB dates for easier comparison.
+  const existingSchedule = new Map();
+  existingDbDates.forEach((dbDate) => {
+    const dateKey = new Date(dbDate.date).toISOString().split("T")[0];
+    existingSchedule.set(dateKey, {
+      id: dbDate.id,
+      times: new Set(dbDate.poll_times.map((t) => t.time)),
+      timeIds: new Map(dbDate.poll_times.map((t) => [t.time, t.id])),
+    });
+  });
+
+  // 4. Identify what to delete
+  const dateIdsToDelete = [];
+  const timeIdsToDelete = [];
+
+  for (const [dateKey, dbData] of existingSchedule.entries()) {
+    if (!newSchedule.has(dateKey)) {
+      // This entire date is deleted
+      dateIdsToDelete.push(dbData.id);
+    } else {
+      // Date exists, check which times are deleted
+      const newTimes = newSchedule.get(dateKey).times;
+      for (const dbTime of dbData.times) {
+        if (!newTimes.has(dbTime)) {
+          timeIdsToDelete.push(dbData.timeIds.get(dbTime));
+        }
+      }
+    }
+  }
+
+  // 5. Perform deletions
+  if (timeIdsToDelete.length > 0) {
+    const { error } = await supabase
+      .from("poll_times")
+      .delete()
+      .in("id", timeIdsToDelete);
+    if (error)
+      throw new Error(`Error deleting old poll times: ${error.message}`);
+  }
+  if (dateIdsToDelete.length > 0) {
+    const { error } = await supabase
+      .from("poll_dates")
+      .delete()
+      .in("id", dateIdsToDelete);
+    if (error)
+      throw new Error(`Error deleting old poll dates: ${error.message}`);
+  }
+
+  // 6. Identify what to add
+  for (const [dateKey, newData] of newSchedule.entries()) {
+    if (!existingSchedule.has(dateKey)) {
+      // This is a completely new date, add it and all its times
+      const { data: newPollDate, error: newDateError } = await supabase
+        .from("poll_dates")
+        .insert({ date: newData.isoDate, poll_id })
+        .select("id")
+        .single();
+      if (newDateError)
+        throw new Error(`Error adding new poll date: ${newDateError.message}`);
+
+      if (newData.times.size > 0) {
+        const timesToInsert = Array.from(newData.times).map((time) => ({
+          time,
+          poll_date_id: newPollDate.id,
+        }));
+        const { error: timeError } = await supabase
+          .from("poll_times")
+          .insert(timesToInsert);
+        if (timeError)
+          throw new Error(
+            `Error adding times for new date: ${timeError.message}`
+          );
+      }
+    } else {
+      // Date exists, check for new times to add
+      const existingData = existingSchedule.get(dateKey);
+      const timesToInsert = [];
+      for (const newTime of newData.times) {
+        if (!existingData.times.has(newTime)) {
+          timesToInsert.push({ time: newTime, poll_date_id: existingData.id });
+        }
+      }
+      if (timesToInsert.length > 0) {
+        const { error: timeError } = await supabase
+          .from("poll_times")
+          .insert(timesToInsert);
+        if (timeError)
+          throw new Error(`Error adding new poll times: ${timeError.message}`);
+      }
+    }
+  }
+};
 const addPollMembers = async ({ user_ids, poll_id }) => {
   const { error } = await supabase.from("user_polls").insert(
     user_ids.map((user_id) => ({
@@ -355,21 +458,33 @@ const fetchPollsByUser = async ({ user_id }) => {
     throw new Error(fetchError.message);
   }
 
-  const { count: pollAnswerCount, error: pollAnswerCountError } = await supabase
-    .from("poll_answers")
-    .select("*", { count: "exact", head: true })
-    .in(
-      "poll_id",
-      userPolls.map((poll) => poll.id)
-    );
-  if (pollAnswerCountError) {
-    throw new Error(pollAnswerCountError.message);
-  }
-  const pollsWithAnswerCount = userPolls.map((poll) => {
-    return { ...poll, answer_count: pollAnswerCount ? pollAnswerCount : 0 };
-  });
+  const polls = await Promise.all(
+    userPolls.map(async (poll) => {
+      const { data: pollAnswers, error: AnswersError } = await supabase
+        .from("poll_answers")
+        .select("user_id")
+        .eq("poll_id", poll.id);
 
-  return pollsWithAnswerCount;
+      if (AnswersError) {
+        throw new Error(AnswersError.message);
+      }
+
+      // Filter out answers with the same user_id
+      const uniqueUserIds = new Set();
+      const filteredAnswers = pollAnswers.filter((answer) => {
+        if (!uniqueUserIds.has(answer.user_id)) {
+          uniqueUserIds.add(answer.user_id);
+          return true; // Keep this answer
+        }
+        return false; // Discard this answer
+      });
+
+      poll.answer_count = filteredAnswers.length;
+      return poll;
+    })
+  );
+
+  return polls;
 };
 
 const fetchPoll = async ({ poll_id, user_id }) => {

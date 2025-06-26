@@ -55,6 +55,7 @@
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.5.2",
+    "emoji-picker-react": "^4.12.2",
     "html2canvas": "^1.4.1",
     "input-otp": "^1.4.1",
     "jspdf": "^2.5.2",

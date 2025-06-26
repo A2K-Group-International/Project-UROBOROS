@@ -22,13 +22,13 @@ import { useEffect, useState } from "react";
 import TriggerLikeIcon from "./TriggerLikeIcon";
 import { useSearchParams } from "react-router-dom";
 import AutoLinkText from "@/lib/AutoLinkText";
+import ImageLoader from "@/lib/ImageLoader";
 
 const Replies = ({
   reply,
   showReply,
   commentId,
   announcement_id,
-  handleUpdateReply,
   handleDeleteReply,
   addReplyMutation,
   setShowReply,
@@ -69,10 +69,13 @@ const Replies = ({
 
         {isEditting ? (
           <EditReplyForm
+            announcement_id={announcement_id}
             comment_id={reply.id}
+            InputDefaultFile={reply.file_url}
+            file_name={reply.file_name}
+            file_type={reply.file_type}
             setEditting={setEditting}
             InputDefaultValue={reply.comment_content}
-            handleUpdateReply={handleUpdateReply}
           />
         ) : (
           <div
@@ -168,6 +171,23 @@ const Replies = ({
                 className="break-word text-md block whitespace-pre-wrap text-start text-sm leading-5 text-accent"
                 text={reply.comment_content}
               />
+              {reply?.file_url && reply?.file_type?.startsWith("image") && (
+                <div className="mt-2">
+                  <ImageLoader
+                    src={reply?.file_url}
+                    alt="Comment Attachment"
+                    className="max-h-96 w-fit rounded-md object-cover"
+                  />
+                </div>
+              )}
+              {reply?.file_url && reply?.file_type?.startsWith("video") && (
+                <video
+                  className="mt-2 max-h-96 w-fit rounded-md object-cover"
+                  src={reply?.file_url}
+                  controls
+                  alt="Comment Attachment"
+                />
+              )}
               <div className="flex items-center">
                 {/* <TriggerDislikeIcon
                   className="absolute -bottom-4 right-2 w-14 rounded-3xl bg-white p-1"
@@ -205,6 +225,9 @@ Replies.propTypes = {
     comment_content: PropTypes.string.isRequired,
     created_at: PropTypes.string.isRequired,
     edited: PropTypes.bool.isRequired,
+    file_url: PropTypes.string,
+    file_name: PropTypes.string,
+    file_type: PropTypes.string,
     users: PropTypes.shape({
       first_name: PropTypes.string.isRequired,
       last_name: PropTypes.string.isRequired,

@@ -1,9 +1,35 @@
 import { paginate } from "@/lib/utils";
 import { supabase } from "./supabaseClient";
 
-export const addComment = async ({ comment, user_id, announcement_id }) => {
+export const addComment = async ({
+  comment,
+  user_id,
+  announcement_id,
+  file,
+}) => {
   if (!user_id || !announcement_id) {
     throw new Error("User ID and Post ID are required!");
+  }
+
+  let file_url, file_type, file_name;
+
+  if (file) {
+    const fileName = `${file.name.split(".")[0]}-${Date.now()}`;
+    const fileExt = file.name.split(".")[1];
+
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("Uroboros")
+      .upload(`comments/${fileName}.${fileExt}`, file);
+
+    if (uploadError) {
+      throw new Error(
+        `Error uploading file: ${uploadError.message || "Unknown Error."}`
+      );
+    }
+
+    file_url = uploadData.path;
+    file_type = file.type;
+    file_name = file.name;
   }
 
   const { error } = await supabase.from("comment_data").insert([
@@ -11,6 +37,9 @@ export const addComment = async ({ comment, user_id, announcement_id }) => {
       comment_content: comment,
       user_id,
       entity_id: announcement_id,
+      file_url,
+      file_type,
+      file_name,
     },
   ]);
 
@@ -47,8 +76,17 @@ export const fetchComments = async (page, pageSize, announcement_id) => {
     select,
   });
 
+  data.items = data.items.map((item) => ({
+    ...item,
+    file_url: item.file_url
+      ? supabase.storage.from("Uroboros").getPublicUrl(item.file_url).data
+          .publicUrl
+      : null,
+  }));
+
   return data;
 };
+
 export const deleteComment = async (comment_id) => {
   if (!comment_id) {
     throw new Error("comment_id is required!");
@@ -65,15 +103,64 @@ export const deleteComment = async (comment_id) => {
   }
 };
 
-export const updateComment = async ({ comment, comment_id }) => {
+export const updateComment = async ({ file, comment, comment_id }) => {
   if (!comment_id) {
     throw new Error("comment_id is required!");
+  }
+  console.log("Updating comment with data:", {
+    file,
+    comment,
+    comment_id,
+  });
+
+  const { data: existingComment, error: fetchError } = await supabase
+    .from("comment_data")
+    .select("file_url, file_type, file_name")
+    .eq("id", comment_id)
+    .maybeSingle();
+
+  if (fetchError) {
+    throw new Error`Error fetching existing comment: ${fetchError.message || "Unknown Error."}`();
+  }
+
+  const { error: deleteFileError } = await supabase.storage
+    .from("Uroboros")
+    .remove([existingComment.file_url]);
+
+  if (deleteFileError) {
+    throw new Error`Error deleting existing file: ${deleteFileError.message || "Unknown Error."}`();
+  }
+
+  let file_url = null,
+    file_type = null,
+    file_name = null;
+
+  if (file) {
+    const fileName = `${file.name.split(".")[0]}-${Date.now()}`;
+    const fileExt = file.name.split(".")[1];
+
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("Uroboros")
+      .upload(`comments/${fileName}.${fileExt}`, file);
+
+    if (uploadError) {
+      throw new Error(
+        `Error uploading file: ${uploadError.message || "Unknown Error."}`
+      );
+    }
+
+    file_url = uploadData.path;
+    file_type = file.type;
+    file_name = file.name;
   }
 
   const { error } = await supabase
     .from("comment_data")
     .update({
       comment_content: comment,
+      file_url,
+      file_type,
+      file_name,
       edited: true,
     })
     .eq("id", comment_id);
@@ -88,9 +175,40 @@ export const addReply = async ({
   user_id,
   comment_id,
   announcement_id,
+  file,
 }) => {
+  console.log("Adding reply with data:", {
+    reply,
+    user_id,
+    comment_id,
+    announcement_id,
+    file,
+  });
   if (!user_id || !comment_id) {
     throw new Error("User ID and comment ID are required!");
+  }
+
+  let file_url = null,
+    file_type = null,
+    file_name = null;
+
+  if (file) {
+    const fileName = `${file.name.split(".")[0]}-${Date.now()}`;
+    const fileExt = file.name.split(".")[1];
+
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("Uroboros")
+      .upload(`replies/${fileName}.${fileExt}`, file);
+
+    if (uploadError) {
+      throw new Error(
+        `Error uploading file: ${uploadError.message || "Unknown Error."}`
+      );
+    }
+
+    file_url = uploadData.path;
+    file_type = file.type;
+    file_name = file.name;
   }
 
   const { error: insertError } = await supabase.from("comment_data").insert([
@@ -99,6 +217,9 @@ export const addReply = async ({
       comment_content: reply,
       user_id,
       parent_id: comment_id,
+      file_url,
+      file_type,
+      file_name,
     },
   ]);
 
@@ -152,6 +273,11 @@ export const fetchNestedReplies = async (comment_id) => {
       data.map(async (reply) => {
         const nestedReplies = await fetchReplies(reply.id);
         // Append current reply and nested replies
+        reply.file_url = reply.file_url
+          ? supabase.storage.from("Uroboros").getPublicUrl(reply.file_url).data
+              .publicUrl
+          : null;
+
         return [reply, ...nestedReplies];
       })
     );

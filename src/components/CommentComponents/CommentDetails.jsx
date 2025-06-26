@@ -2,6 +2,7 @@ import { Button } from "../ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import PropTypes from "prop-types";
 import { ReplyIcon, KebabIcon } from "@/assets/icons/icons";
+import ImageLoader from "@/lib/ImageLoader";
 
 import {
   Dialog,
@@ -42,7 +43,7 @@ const CommentDetails = ({
   const [isReplying, setIsReplying] = useState(false);
   const [showReply, setShowReply] = useState(false);
   const [isEditting, setEditting] = useState(false);
-  const { handleDeleteComment, handleUpdateComment } = useComment(
+  const { handleDeleteComment } = useComment(
     announcement_id,
     comment.id,
     columnName
@@ -89,19 +90,22 @@ const CommentDetails = ({
                 />
               </div>
               <div>
-                {userData?.id === comment.users?.id && (
+                {(userData?.id === comment.users?.id ||
+                  userData.role === "admin") && (
                   <Popover>
                     <PopoverTrigger>
                       <KebabIcon className="h-5 w-5 text-accent" />
                     </PopoverTrigger>
                     <PopoverContent className="flex w-28 flex-col overflow-hidden p-0">
-                      <Button
-                        onClick={() => setEditting(true)}
-                        className="w-full rounded-none"
-                        variant={"outline"}
-                      >
-                        Edit
-                      </Button>
+                      {userData?.id === comment.users?.id && (
+                        <Button
+                          onClick={() => setEditting(true)}
+                          className="w-full rounded-none"
+                          variant={"outline"}
+                        >
+                          Edit
+                        </Button>
+                      )}
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button
@@ -117,14 +121,14 @@ const CommentDetails = ({
                               Delete Comment
                             </DialogTitle>
                             <DialogDescription className="text-accent opacity-80">
-                              Delete Your Comment Permanently
+                              Delete this comment permanently
                             </DialogDescription>
                           </DialogHeader>
                           <DialogFooter>
-                            <DialogClose asChild>
+                            <DialogClose className="flex" asChild>
                               <Button
                                 // onClick={}
-                                className="rounded-xl text-accent hover:text-accent"
+                                className="flex-1 rounded-xl text-accent hover:text-accent"
                                 type="button"
                                 variant="outline"
                               >
@@ -133,7 +137,7 @@ const CommentDetails = ({
                             </DialogClose>
                             <DialogClose asChild>
                               <Button
-                                className="rounded-xl"
+                                className="flex-1 rounded-xl"
                                 onClick={() => handleDeleteComment(comment.id)}
                                 variant={"destructive"}
                                 type="submit"
@@ -159,6 +163,23 @@ const CommentDetails = ({
               className="break-word block whitespace-pre-wrap text-start text-sm leading-5 text-accent"
               text={comment.comment_content}
             />
+            {comment?.file_url && comment?.file_type?.startsWith("image") && (
+              <div className="mt-2">
+                <ImageLoader
+                  src={comment?.file_url}
+                  alt="Comment Attachment"
+                  className="max-h-96 w-fit rounded-md object-cover"
+                />
+              </div>
+            )}
+            {comment?.file_url && comment?.file_type?.startsWith("video") && (
+              <video
+                className="mt-2 max-h-96 w-fit rounded-md object-cover"
+                src={comment?.file_url}
+                controls
+                alt="Comment Attachment"
+              />
+            )}
 
             <div className="flex items-center">
               <TriggerLikeIcon
@@ -183,7 +204,11 @@ const CommentDetails = ({
             comment_id={comment.id}
             setEditting={setEditting}
             InputDefaultValue={comment.comment_content}
-            handleUpdateComment={handleUpdateComment}
+            announcement_id={announcement_id}
+            InputDefaultFile={comment.file_url}
+            file_type={comment.file_type}
+            file_name={comment.file_name}
+            // handleUpdateComment={handleUpdateComment}
           />
         )}
         <ReplyInput
@@ -236,6 +261,10 @@ CommentDetails.propTypes = {
     comment_content: PropTypes.string.isRequired,
     created_at: PropTypes.string.isRequired,
     edited: PropTypes.bool.isRequired,
+    file_url: PropTypes.string,
+    file_type: PropTypes.string,
+    file_name: PropTypes.string,
+
     users: PropTypes.shape({
       first_name: PropTypes.string.isRequired,
       last_name: PropTypes.string.isRequired,
