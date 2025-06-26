@@ -750,8 +750,8 @@ const finalisePoll = async ({ pollId, pollDate, pollTime }) => {
   const token = await getAuthToken();
   try {
     const { data: result } = await axios.post(
-      // `${import.meta.env.VITE_SPARKD_API_URL}/poll/finalize-poll`,
-      `http://localhost:3000/poll/finalize-poll`,
+      `${import.meta.env.VITE_SPARKD_API_URL}/poll/finalize-poll`,
+      // `http://localhost:3000/poll/finalize-poll`,
       {
         pollId,
         pollDate,
