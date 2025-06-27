@@ -13,9 +13,9 @@ import { parseISO, format, setHours, setMinutes } from "date-fns";
 import PropTypes from "prop-types";
 import usePoll from "@/hooks/usePoll";
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
+import { CheckCircle2, Loader2, Send } from "lucide-react";
 
-const FinalizePoll = ({ pollId, pollDate, pollTime }) => {
+const FinalizePoll = ({ pollId, pollDate, pollTime, isFinalised }) => {
   const [open, setOpen] = useState(false);
   const { finalizePollMutation } = usePoll({ poll_id: pollId });
 
@@ -49,11 +49,39 @@ const FinalizePoll = ({ pollId, pollDate, pollTime }) => {
     );
   };
 
+  // Get button text and style based on finalized status
+  const getButtonContent = () => {
+    if (finalizePollMutation.isPending) {
+      return (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Finalising...
+        </>
+      );
+    }
+
+    if (isFinalised) {
+      return (
+        <>
+          <CheckCircle2 className="mr-2 h-4 w-4" />
+          Already finalised (Resend)
+        </>
+      );
+    }
+
+    return (
+      <>
+        <Send className="mr-2 h-4 w-4" />
+        Finalise and send announcement
+      </>
+    );
+  };
+
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         <Button className="w-full bg-primary text-[14px] text-accent">
-          Finalise and send announcement
+          {getButtonContent()}
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
@@ -63,6 +91,12 @@ const FinalizePoll = ({ pollId, pollDate, pollTime }) => {
             This action will finalise the poll results for{" "}
             <strong>{formattedDateTime}</strong> and send an announcement to all
             participants. This cannot be undone.
+            {finalizePollMutation.isPending && (
+              <p className="mt-2 text-danger">
+                Please wait, it will take a few minutes to send an announcement
+                to all participants.
+              </p>
+            )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -92,6 +126,7 @@ FinalizePoll.propTypes = {
   pollDate: PropTypes.string.isRequired, // ISO date string
   pollTime: PropTypes.string.isRequired, // "HH:mm" format
   pollId: PropTypes.string.isRequired, // Poll ID for finalization
+  isFinalised: PropTypes.bool.isRequired, // Whether the poll is already finalised
 };
 
 export default FinalizePoll;

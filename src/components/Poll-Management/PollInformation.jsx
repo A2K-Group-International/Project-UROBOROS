@@ -110,14 +110,15 @@ const PollInformation = ({ poll, isMobile, isSheetOpen, setSheetOpen }) => {
           </div>
         </div>
         <PollEntries
-          poll_id={poll.id}
-          pollName={poll.name}
+          poll_id={poll?.id}
+          pollName={poll?.name}
           dates={dates}
           isLoading={datesLoading}
           isError={datesError}
           error={datesErrorMsg}
           addTimeSlotMutation={addTimeSlotMutation}
           isExpired={isExpired}
+          isFinalised={poll?.is_finalised}
         />
       </div>
     </div>
@@ -174,7 +175,7 @@ PollInformation.propTypes = {
     name: PropTypes.string,
     description: PropTypes.string,
     expiration_date: PropTypes.string,
-
+    is_finalised: PropTypes.bool,
     responses: PropTypes.number,
   }),
   isMobile: PropTypes.bool,
@@ -191,6 +192,7 @@ const PollEntries = ({
   addTimeSlotMutation,
   isExpired,
   poll_id,
+  isFinalised,
 }) => {
   const [activeTimePickerIndex, setActiveTimePickerIndex] = useState(null);
 
@@ -253,6 +255,7 @@ const PollEntries = ({
                               pollId={poll_id}
                               pollDate={date.date}
                               pollTime={time.time}
+                              isFinalised={isFinalised}
                             />
                           )}
                       </>
@@ -321,6 +324,7 @@ PollEntries.propTypes = {
   addTimeSlotMutation: PropTypes.object.isRequired,
   isExpired: PropTypes.bool.isRequired,
   poll_id: PropTypes.string.isRequired,
+  isFinalised: PropTypes.bool.isRequired,
 };
 
 const DeletePoll = ({ poll_id }) => {
