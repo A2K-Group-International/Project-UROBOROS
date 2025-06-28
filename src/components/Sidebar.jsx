@@ -97,7 +97,12 @@ const Sidebar = () => {
             <DropdownMenu>
               <DropdownMenuTrigger className="lg:hidden lg:px-6">
                 <div className="flex items-center gap-2">
-                  <Avatar className="h-8 w-8">
+                  <Avatar
+                    className={cn(
+                      "h-8 w-8",
+                      !profileImageUrl && "border-[3px] border-accent"
+                    )}
+                  >
                     <AvatarImage src={profileImageUrl} alt="profile picture" />
                     <AvatarFallback>{initials}</AvatarFallback>
                   </Avatar>
