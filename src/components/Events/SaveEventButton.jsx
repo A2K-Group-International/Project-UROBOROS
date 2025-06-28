@@ -241,7 +241,10 @@ END:VCALENDAR`;
     <Popover>
       <PopoverTrigger onClick={(e) => e.stopPropagation()} asChild>
         <Button variant="outline" className="font-bold hover:text-primary-text">
-          Add to Calendar
+          <span className="hidden sm:block">Add to Calendar</span>
+          <span className="sm:hidden">
+            <Icon icon="mingcute:calendar-add-line" width={24} className="" />
+          </span>
         </Button>
       </PopoverTrigger>
       <PopoverContent

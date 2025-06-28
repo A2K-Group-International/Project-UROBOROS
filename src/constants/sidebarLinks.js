@@ -26,8 +26,8 @@ const COMMON_LINKS = {
   ministries: {
     label: "Ministries",
     link: "/ministries",
-    icon: "mingcute:group-3-line",
-    selectedIcon: "mingcute:group-3-fill",
+    icon: "mingcute:church-line",
+    selectedIcon: "mingcute:church-fill",
   },
   dashboard: {
     label: "Dashboard",
@@ -38,15 +38,15 @@ const COMMON_LINKS = {
   poll: {
     label: "Poll Management",
     link: "/poll",
-    icon: "mingcute:chart-horizontal-fill",
-    selectedIcon: "mingcute:chart-horizontal-fill",
+    icon: "mingcute:chart-bar-line",
+    selectedIcon: "mingcute:chart-bar-fill",
     isBeta: true,
   },
   poll_list: {
     label: "Poll List",
     link: "/poll-list",
-    icon: "mingcute:chart-horizontal-fill",
-    selectedIcon: "mingcute:chart-horizontal-fill",
+    icon: "mingcute:chart-bar-line",
+    selectedIcon: "mingcute:chart-bar-fill",
     isBeta: true,
   },
   requests: {

@@ -120,7 +120,7 @@ const AnnouncementForm = ({
 
       fetchFiles();
     }
-  }, []);
+  }, [files, form]);
 
   const handleRemoveFile = (index) => {
     URL.revokeObjectURL(imagePreviews[index]);

@@ -52,7 +52,10 @@ const QrScannerEvents = ({ eventData }) => {
   return (
     <Dialog onOpenChange={showScanner}>
       <DialogTrigger asChild>
-        <Button>QR Scanner</Button>
+        <Button>
+          <Icon icon="mingcute:scan-line" className="mr-1" width={20} />
+          QR Scanner
+        </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

@@ -82,7 +82,6 @@ const useComment = (announcement_id, comment_id) => {
   });
   const updateCommentMutation = useMutation({
     mutationFn: updateComment,
-
     onError: (error) => {
       toast({
         title: "Something went wrong",
@@ -96,43 +95,26 @@ const useComment = (announcement_id, comment_id) => {
     },
   });
 
-  // const HandleAddComment = (
-  //   data,
-  //   user_id,
-  //   post_id,
-  //   columnName,
-  //   setIsCommenting,
-  //   reset
-  // ) => {
-  //   addCommentMutation.mutate({
-  //     comment: data[`comment${post_id}`],
-  //     user_id,
-  //     announcement_id,
-  //     columnName,
-  //     setIsCommenting,
-  //     reset,
-  //   });
-  // };
-
   const handleDeleteComment = (comment_id) => {
     deleteCommentMutation.mutate(comment_id);
   };
 
-  const handleUpdateComment = (inputs, comment_id, setEditting) => {
-    updateCommentMutation.mutate(
-      { comment: inputs.comment, comment_id },
-      {
-        onSuccess: () => {
-          setEditting(false);
-        },
-      }
-    );
-  };
+  // const handleUpdateComment = (inputs, comment_id, setEditting) => {
+  //   updateCommentMutation.mutate(
+  //     { comment: inputs.comment, comment_id },
+  //     {
+  //       onSuccess: () => {
+  //         setEditting(false);
+  //       },
+  //     }
+  //   );
+  // };
 
   return {
     handleDeleteComment,
-    handleUpdateComment,
+    // handleUpdateComment,
     // HandleAddComment,
+    updateCommentMutation,
     isError,
     isLoading,
     commentData,

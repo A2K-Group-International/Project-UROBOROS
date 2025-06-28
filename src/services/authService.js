@@ -172,7 +172,7 @@ const resendEmailConfirmation = async (email) => {
     type: "signup",
     email,
     options: {
-      emailRedirectTo: "https://gems.a2kgroup.org/dashboard",
+      emailRedirectTo: "https://portal.saintlaurence.org.uk",
     },
   });
   if (error) {
@@ -182,10 +182,165 @@ const resendEmailConfirmation = async (email) => {
   return { success: true };
 };
 
+/**
+ * Upload a profile picture for the user
+ * @param {string} userId - The user's ID
+ * @param {File} imageFile - The image file to upload
+ * @returns {Promise<string>} - The URL of the uploaded image
+ */
+const uploadProfilePicture = async (userId, imageFile) => {
+  try {
+    if (!userId) throw new Error("User ID is required");
+    if (!imageFile) throw new Error("Image file is required");
+
+    // Define file path in storage
+    const fileName = `${imageFile.name.split(".")[0]}-${Date.now()}`;
+    const fileExt = imageFile.name.split(".").pop();
+    const filePath = `profile_picture/${userId}/${fileName}.${fileExt}`;
+
+    // Upload the file to Supabase Storage
+    const { error: uploadError } = await supabase.storage
+      .from("Uroboros")
+      .upload(filePath, imageFile);
+
+    if (uploadError) {
+      throw new Error(`Error uploading file: ${uploadError.message}`);
+    }
+
+    // Get the public URL of the uploaded file
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("Uroboros").getPublicUrl(filePath);
+
+    // Update the user's profile in the database
+    const { error: updateError } = await supabase
+      .from("users")
+      .update({
+        profile_picture_url: publicUrl,
+      })
+      .eq("id", userId);
+
+    if (updateError) throw updateError;
+
+    return publicUrl;
+  } catch (error) {
+    console.error("Error uploading profile picture:", error);
+    throw error;
+  }
+};
+
+/**
+ * Remove a user's profile picture
+ * @param {string} userId - The user's ID
+ * @returns {Promise<boolean>} - True if successful
+ */
+const removeProfilePicture = async (userId) => {
+  try {
+    if (!userId) throw new Error("User ID is required");
+
+    // List files in the user's folder
+    const { data: files, error: listError } = await supabase.storage
+      .from("Uroboros")
+      .list(`profile_picture/${userId}`);
+
+    if (listError) throw listError;
+
+    // Delete files if they exist
+    if (files && files.length > 0) {
+      const filesToRemove = files.map(
+        (file) => `profile_picture/${userId}/${file.name}`
+      );
+      const { error: removeError } = await supabase.storage
+        .from("Uroboros")
+        .remove(filesToRemove);
+
+      if (removeError) throw removeError;
+    }
+
+    // Update user profile in database to remove avatar_url
+    const { error: updateError } = await supabase
+      .from("users")
+      .update({
+        profile_picture_url: null,
+      })
+      .eq("id", userId);
+
+    if (updateError) throw updateError;
+
+    return true;
+  } catch (error) {
+    console.error("Error removing profile picture:", error);
+    throw error;
+  }
+};
+
+/**
+ * Update a user's profile picture (replaces existing picture if present)
+ * @param {string} userId - The user's ID
+ * @param {File} imageFile - The image file to upload
+ * @returns {Promise<string>} - The URL of the uploaded image
+ */
+
+const updateProfilePicture = async (userId, imageFile) => {
+  try {
+    if (!userId) throw new Error("User ID is required");
+    if (!imageFile) throw new Error("Image file is required");
+
+    // 1. First, check if user already has a profile picture to remove old files
+    const { data: userData, error: userError } = await supabase
+      .from("users")
+      .select("profile_picture_url")
+      .eq("id", userId)
+      .single();
+
+    if (userError) throw userError;
+
+    // 2. If user has existing picture, remove old files from storage
+    if (userData?.profile_picture_url) {
+      try {
+        // List all files in the user's folder
+        const { data: files, error: listError } = await supabase.storage
+          .from("Uroboros")
+          .list(`profile_picture/${userId}`);
+
+        if (listError) throw listError;
+
+        // Delete existing files
+        if (files && files.length > 0) {
+          const filesToRemove = files.map(
+            (file) => `profile_picture/${userId}/${file.name}`
+          );
+
+          const { error: removeError } = await supabase.storage
+            .from("Uroboros")
+            .remove(filesToRemove);
+
+          if (removeError) {
+            console.warn("Failed to remove old profile picture:", removeError);
+            // Continue with upload even if cleanup fails
+          }
+        }
+      } catch (cleanupError) {
+        // Log but don't fail if cleanup has issues
+        console.warn("Error cleaning up old profile pictures:", cleanupError);
+      }
+    }
+
+    // 3. Upload the new file to storage
+    uploadProfilePicture(userId, imageFile);
+  } catch (error) {
+    console.error("Error updating profile picture:", error);
+    throw error;
+  }
+};
+
 export {
   registerUser,
   updateContact,
   fetchUserById,
   registerCoParent,
   resendEmailConfirmation,
+  uploadProfilePicture,
+  removeProfilePicture,
+  updateProfilePicture,
 };

@@ -1,6 +1,8 @@
 import { getMinistriesMembers } from "./ministryService";
 import { supabase } from "./supabaseClient";
 import { fetchGroupsMembers } from "./groupServices";
+import { getAuthToken } from "./emailService";
+import axios from "axios";
 
 const addPoll = async ({
   pollName,
@@ -282,20 +284,123 @@ const addPollDates = async ({ dates, times, poll_id }) => {
 };
 
 const editPollDates = async ({ dates, times, poll_id }) => {
-  const { error: deleteError } = await supabase
+  // 1. Get existing dates and times from DB
+  const { data: existingDbDates, error: fetchError } = await supabase
     .from("poll_dates")
-    .delete()
+    .select("id, date, poll_times(id, time)")
     .eq("poll_id", poll_id);
 
-  if (deleteError) {
+  if (fetchError) {
     throw new Error(
-      `Error deleting previous poll dates: ${deleteError.message}`
+      `Error fetching existing poll dates: ${fetchError.message}`
     );
   }
 
-  await addPollDates({ dates, times, poll_id });
-};
+  // 2. Normalize incoming dates and times into a schedule for easier comparison.
+  const newSchedule = new Map();
+  dates.forEach((date, i) => {
+    const dateKey = new Date(date).toISOString().split("T")[0];
+    const relevantTimes = times
+      .filter((time) => time.dateIndex === i)
+      .map((t) => t.time);
+    newSchedule.set(dateKey, {
+      isoDate: new Date(date).toISOString(),
+      times: new Set(relevantTimes),
+    });
+  });
 
+  // 3. Normalize existing DB dates for easier comparison.
+  const existingSchedule = new Map();
+  existingDbDates.forEach((dbDate) => {
+    const dateKey = new Date(dbDate.date).toISOString().split("T")[0];
+    existingSchedule.set(dateKey, {
+      id: dbDate.id,
+      times: new Set(dbDate.poll_times.map((t) => t.time)),
+      timeIds: new Map(dbDate.poll_times.map((t) => [t.time, t.id])),
+    });
+  });
+
+  // 4. Identify what to delete
+  const dateIdsToDelete = [];
+  const timeIdsToDelete = [];
+
+  for (const [dateKey, dbData] of existingSchedule.entries()) {
+    if (!newSchedule.has(dateKey)) {
+      // This entire date is deleted
+      dateIdsToDelete.push(dbData.id);
+    } else {
+      // Date exists, check which times are deleted
+      const newTimes = newSchedule.get(dateKey).times;
+      for (const dbTime of dbData.times) {
+        if (!newTimes.has(dbTime)) {
+          timeIdsToDelete.push(dbData.timeIds.get(dbTime));
+        }
+      }
+    }
+  }
+
+  // 5. Perform deletions
+  if (timeIdsToDelete.length > 0) {
+    const { error } = await supabase
+      .from("poll_times")
+      .delete()
+      .in("id", timeIdsToDelete);
+    if (error)
+      throw new Error(`Error deleting old poll times: ${error.message}`);
+  }
+  if (dateIdsToDelete.length > 0) {
+    const { error } = await supabase
+      .from("poll_dates")
+      .delete()
+      .in("id", dateIdsToDelete);
+    if (error)
+      throw new Error(`Error deleting old poll dates: ${error.message}`);
+  }
+
+  // 6. Identify what to add
+  for (const [dateKey, newData] of newSchedule.entries()) {
+    if (!existingSchedule.has(dateKey)) {
+      // This is a completely new date, add it and all its times
+      const { data: newPollDate, error: newDateError } = await supabase
+        .from("poll_dates")
+        .insert({ date: newData.isoDate, poll_id })
+        .select("id")
+        .single();
+      if (newDateError)
+        throw new Error(`Error adding new poll date: ${newDateError.message}`);
+
+      if (newData.times.size > 0) {
+        const timesToInsert = Array.from(newData.times).map((time) => ({
+          time,
+          poll_date_id: newPollDate.id,
+        }));
+        const { error: timeError } = await supabase
+          .from("poll_times")
+          .insert(timesToInsert);
+        if (timeError)
+          throw new Error(
+            `Error adding times for new date: ${timeError.message}`
+          );
+      }
+    } else {
+      // Date exists, check for new times to add
+      const existingData = existingSchedule.get(dateKey);
+      const timesToInsert = [];
+      for (const newTime of newData.times) {
+        if (!existingData.times.has(newTime)) {
+          timesToInsert.push({ time: newTime, poll_date_id: existingData.id });
+        }
+      }
+      if (timesToInsert.length > 0) {
+        const { error: timeError } = await supabase
+          .from("poll_times")
+          .insert(timesToInsert);
+        if (timeError)
+          throw new Error(`Error adding new poll times: ${timeError.message}`);
+      }
+    }
+  }
+};
 const addPollMembers = async ({ user_ids, poll_id }) => {
   const { error } = await supabase.from("user_polls").insert(
     user_ids.map((user_id) => ({
@@ -355,21 +460,33 @@ const fetchPollsByUser = async ({ user_id }) => {
     throw new Error(fetchError.message);
   }
 
-  const { count: pollAnswerCount, error: pollAnswerCountError } = await supabase
-    .from("poll_answers")
-    .select("*", { count: "exact", head: true })
-    .in(
-      "poll_id",
-      userPolls.map((poll) => poll.id)
-    );
-  if (pollAnswerCountError) {
-    throw new Error(pollAnswerCountError.message);
-  }
-  const pollsWithAnswerCount = userPolls.map((poll) => {
-    return { ...poll, answer_count: pollAnswerCount ? pollAnswerCount : 0 };
-  });
+  const polls = await Promise.all(
+    userPolls.map(async (poll) => {
+      const { data: pollAnswers, error: AnswersError } = await supabase
+        .from("poll_answers")
+        .select("user_id")
+        .eq("poll_id", poll.id);
 
-  return pollsWithAnswerCount;
+      if (AnswersError) {
+        throw new Error(AnswersError.message);
+      }
+
+      // Filter out answers with the same user_id
+      const uniqueUserIds = new Set();
+      const filteredAnswers = pollAnswers.filter((answer) => {
+        if (!uniqueUserIds.has(answer.user_id)) {
+          uniqueUserIds.add(answer.user_id);
+          return true; // Keep this answer
+        }
+        return false; // Discard this answer
+      });
+
+      poll.answer_count = filteredAnswers.length;
+      return poll;
+    })
+  );
+
+  return polls;
 };
 
 const fetchPoll = async ({ poll_id, user_id }) => {
@@ -587,6 +704,105 @@ const fetchPollAnswers = async ({ poll_date_id, poll_time_id }) => {
   return pollAnswers;
 };
 
+/**
+ * Fetch only the most available date and time for a poll
+ * @param {string} poll_id - The ID of the poll
+ * @returns {Promise<Object>} Object containing only the most available date and time
+ */
+const fetchPollAvailabilitySummary = async (poll_id) => {
+  try {
+    // 1. Get all dates and times for this poll
+    const pollDates = await fetchPollDates({ poll_id });
+
+    // 2. Track best options only
+    let bestDate = null;
+    let bestTime = null;
+    let highestAvailabilityScore = -1;
+
+    // 3. Process each date and its times
+    for (const dateObj of pollDates) {
+      const date = new Date(dateObj.date);
+      const formattedDate = date.toLocaleDateString();
+
+      let totalAvailable = 0;
+      let totalIfNeeded = 0;
+      let totalUnavailable = 0;
+      let totalResponses = 0;
+      let bestTimeForThisDate = null;
+      let bestTimeScore = -1;
+
+      // Process each time slot for this date
+      for (const timeSlot of dateObj.poll_times) {
+        // Get answers for this specific time slot
+        const answers = await fetchPollAnswers({
+          poll_date_id: dateObj.id,
+          poll_time_id: timeSlot.id,
+        });
+
+        // Calculate time slot score
+        const responses =
+          answers.availableCount +
+          answers.ifneededCount +
+          answers.unavailableCount;
+        const timeScore =
+          responses > 0
+            ? (answers.availableCount + answers.ifneededCount * 0.5) / responses
+            : 0;
+
+        // Check if this is the best time for this date
+        if (timeScore > bestTimeScore) {
+          bestTimeScore = timeScore;
+          bestTimeForThisDate = {
+            time_id: timeSlot.id,
+            time: timeSlot.time,
+            availableCount: answers.availableCount,
+            ifneededCount: answers.ifneededCount,
+            unavailableCount: answers.unavailableCount,
+            score: timeScore,
+          };
+        }
+
+        // Add to the totals for this date
+        totalAvailable += answers.availableCount;
+        totalIfNeeded += answers.ifneededCount;
+        totalUnavailable += answers.unavailableCount;
+        totalResponses += responses;
+      }
+
+      // Calculate the date's availability score
+      const availabilityScore =
+        totalResponses > 0
+          ? (totalAvailable + totalIfNeeded * 0.5) / totalResponses
+          : 0;
+
+      // Check if this is the best date overall
+      if (availabilityScore > highestAvailabilityScore) {
+        highestAvailabilityScore = availabilityScore;
+        bestDate = {
+          date_id: dateObj.id,
+          date: formattedDate,
+          rawDate: dateObj.date,
+          availabilityScore,
+          totalAvailable,
+          totalIfNeeded,
+          totalUnavailable,
+          totalResponses,
+        };
+        bestTime = bestTimeForThisDate;
+      }
+    }
+
+    // Just return the best date and time
+    return {
+      bestDate,
+      bestTime,
+    };
+  } catch (error) {
+    console.error("Error fetching poll availability summary:", error);
+    throw new Error(`Error finding most available date: ${error.message}`);
+  }
+};
+
 const addTimeSlot = async ({ poll_date_id, time }) => {
   const { error } = await supabase.from("poll_times").insert({
     poll_date_id,
@@ -645,6 +861,36 @@ const fetchPollGroups = async (poll_id) => {
   return groups;
 };
 
+const finalisePoll = async ({ pollId, pollDate, pollTime }) => {
+  const token = await getAuthToken();
+  try {
+    const { data: result } = await axios.post(
+      `${import.meta.env.VITE_SPARKD_API_URL}/poll/finalize-poll`,
+      // `http://localhost:3000/poll/finalize-poll`,
+      {
+        pollId,
+        pollDate,
+        pollTime,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return {
+      success: true,
+      message: "Email successfully sent",
+      details: result,
+    };
+  } catch (error) {
+    console.error("Error in finalising poll:", error);
+    throw new Error(
+      error.response?.data?.message || "Failed to finalise poll request"
+    );
+  }
+};
+
 export {
   fetchPollMinistries,
   fetchPollGroups,
@@ -660,4 +906,6 @@ export {
   fetchPollDates,
   addTimeSlot,
   manualClosePoll,
+  fetchPollAvailabilitySummary,
+  finalisePoll,
 };

@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
@@ -13,7 +14,7 @@ const LicenseVerificationError = () => {
   }, [searchParams]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-4">
+    <div className="flex min-h-screen flex-col items-center justify-center p-4 text-accent">
       <div className="w-full max-w-md rounded-lg bg-white p-8 text-center shadow-md">
         <div className="mb-4 text-red-500">
           {/* Error icon */}
@@ -35,12 +36,7 @@ const LicenseVerificationError = () => {
         <h1 className="mb-2 text-2xl font-bold">Verification Failed</h1>
         <p className="text-gray-600 mb-4">{errorMessage}</p>
         <div className="space-y-2">
-          <button
-            onClick={() => navigate("/")}
-            className="bg-gray-200 text-gray-800 hover:bg-gray-300 w-full rounded px-4 py-2 transition-colors"
-          >
-            Return to Home
-          </button>
+          <Button onClick={() => navigate("/")}>Return to Home</Button>
         </div>
       </div>
     </div>

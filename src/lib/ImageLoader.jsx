@@ -8,7 +8,7 @@ const ImageLoader = ({ src, alt, className }) => {
   return (
     <div className="relative h-full">
       {!loaded && (
-        <div className="bg-gray-400 absolute inset-0 h-full animate-pulse rounded-md" />
+        <div className="absolute inset-0 h-full animate-pulse rounded-md bg-gray" />
       )}
       <img
         src={src}

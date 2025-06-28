@@ -51,7 +51,7 @@ const Comments = ({ announcement_id, isModal }) => {
       staleTime: 1000 * 60 * 5, // 5 minutes - longer stale time to reduce refetches
     });
 
-  // Query for the parent comment if needed
+  // Query for the parent comment
   const { data: parentCommentData, isSuccess: isParentCommentSuccess } =
     useQuery({
       queryKey: ["comment", targetCommentData?.parent_id],
@@ -168,7 +168,7 @@ const Comments = ({ announcement_id, isModal }) => {
       // Mark initial fetch as done
       initialFetchDone.current = true;
     }
-  }, [featuredCommentId, commentData, isLoading]);
+  }, [featuredCommentId, commentData, isLoading, queryClient]);
 
   // When data is refetched (isFetching becomes true then false)
   // we need to ensure our featured comment stays at the top

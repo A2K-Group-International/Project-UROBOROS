@@ -26,7 +26,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { fetchPollAnswers } from "@/services/pollServices";
+import {
+  fetchPollAnswers,
+  fetchPollAvailabilitySummary,
+} from "@/services/pollServices";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "../ui/skeleton";
 import { convertTimeStringToDate } from "@/lib/utils";
@@ -34,6 +37,8 @@ import usePoll from "@/hooks/usePoll";
 import { useUser } from "@/context/useUser";
 import VoteResults from "./VoteResults";
 import ManualClosePoll from "./ManualClosePoll";
+import PollFooter from "./PollFooter";
+import FinalizePoll from "./FinalizePoll";
 
 const PollInformation = ({ poll, isMobile, isSheetOpen, setSheetOpen }) => {
   const { addTimeSlotMutation, PollDates } = usePoll({ poll_id: poll?.id }); // Fetch poll dates and add time slot mutation
@@ -99,22 +104,23 @@ const PollInformation = ({ poll, isMobile, isSheetOpen, setSheetOpen }) => {
             {/* Edit Poll */}
             <Addpoll isEditing={true} poll={poll} dates={dates} />
             {/* Close the Poll */}
-            <ManualClosePoll poll_id={poll?.id} />
+            {!isExpired && <ManualClosePoll poll_id={poll?.id} />}
             {/* Delete poll */}
             <DeletePoll poll_id={poll.id} />
           </div>
         </div>
         <PollEntries
-          poll_id={poll.id}
-          pollName={poll.name}
+          poll_id={poll?.id}
+          pollName={poll?.name}
           dates={dates}
           isLoading={datesLoading}
           isError={datesError}
           error={datesErrorMsg}
           addTimeSlotMutation={addTimeSlotMutation}
+          isExpired={isExpired}
+          isFinalised={poll?.is_finalised}
         />
       </div>
-      {/* <div>Footer</div> */}
     </div>
   ) : (
     <div className="flex h-full flex-col items-center justify-center py-8">
@@ -136,7 +142,7 @@ const PollInformation = ({ poll, isMobile, isSheetOpen, setSheetOpen }) => {
     return (
       <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent
-          className="no-scrollbar w-full overflow-y-scroll border-none px-2 py-6"
+          className="no-scrollbar w-full overflow-y-scroll border-none p-0"
           side="right"
         >
           <SheetHeader className="mb-4">
@@ -148,7 +154,12 @@ const PollInformation = ({ poll, isMobile, isSheetOpen, setSheetOpen }) => {
               here.
             </SheetDescription>
           </SheetHeader>
-          <div className="px-1">{pollContent}</div>
+          <div className="flex h-dvh flex-col justify-between">
+            <div className="px-2 py-6">{pollContent}</div>
+            <div className="bg-primary px-2 py-4">
+              <PollFooter pollId={poll?.id} />
+            </div>
+          </div>
         </SheetContent>
       </Sheet>
     );
@@ -164,7 +175,7 @@ PollInformation.propTypes = {
     name: PropTypes.string,
     description: PropTypes.string,
     expiration_date: PropTypes.string,
-
+    is_finalised: PropTypes.bool,
     responses: PropTypes.number,
   }),
   isMobile: PropTypes.bool,
@@ -179,6 +190,9 @@ const PollEntries = ({
   isError,
   error,
   addTimeSlotMutation,
+  isExpired,
+  poll_id,
+  isFinalised,
 }) => {
   const [activeTimePickerIndex, setActiveTimePickerIndex] = useState(null);
 
@@ -188,6 +202,12 @@ const PollEntries = ({
       time,
     });
   };
+
+  const { data: pollAvailabilityData } = useQuery({
+    queryKey: ["pollAvailability", poll_id],
+    queryFn: () => fetchPollAvailabilitySummary(poll_id),
+    enabled: !!poll_id,
+  });
 
   return (
     <div className="space-y-4">
@@ -221,41 +241,56 @@ const PollEntries = ({
                   {date.poll_times &&
                     date.poll_times.length > 0 &&
                     date.poll_times.map((time, timeIndex) => (
-                      <PollTime
-                        poll_date_id={date.id}
-                        poll_time_id={time.id}
-                        key={timeIndex}
-                        time={time.time}
-                      />
+                      <>
+                        <PollTime
+                          poll_date_id={date.id}
+                          poll_time_id={time.id}
+                          key={timeIndex}
+                          time={time.time}
+                        />
+                        {isExpired &&
+                          time.id ===
+                            pollAvailabilityData?.bestTime?.time_id && (
+                            <FinalizePoll
+                              pollId={poll_id}
+                              pollDate={date.date}
+                              pollTime={time.time}
+                              isFinalised={isFinalised}
+                            />
+                          )}
+                      </>
                     ))}
+
                   <div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setActiveTimePickerIndex(true)}
-                      className="w-full rounded-xl border-none bg-primary font-semibold text-primary-text hover:bg-primary hover:font-semibold hover:text-primary-text"
-                    >
-                      {addTimeSlotMutation.isPending ? (
-                        <span className="flex items-center justify-center">
-                          <Icon
-                            icon="mingcute:loading-2-fill"
-                            className="animate-spin"
-                            width={20}
-                            height={20}
-                          />
-                          <span className="ml-2">Adding...</span>
-                        </span>
-                      ) : (
-                        <span className="flex items-center justify-center">
-                          <Icon
-                            icon="mingcute:add-line"
-                            width={20}
-                            height={20}
-                          />
-                          <span className="ml-2">Add Time Slot </span>
-                        </span>
-                      )}
-                    </Button>
+                    {!isExpired && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setActiveTimePickerIndex(true)}
+                        className="w-full rounded-xl border-none bg-primary font-semibold text-primary-text hover:bg-primary hover:font-semibold hover:text-primary-text"
+                      >
+                        {addTimeSlotMutation.isPending ? (
+                          <span className="flex items-center justify-center">
+                            <Icon
+                              icon="mingcute:loading-2-fill"
+                              className="animate-spin"
+                              width={20}
+                              height={20}
+                            />
+                            <span className="ml-2">Adding...</span>
+                          </span>
+                        ) : (
+                          <span className="flex items-center justify-center">
+                            <Icon
+                              icon="mingcute:add-line"
+                              width={20}
+                              height={20}
+                            />
+                            <span className="ml-2">Add Time Slot </span>
+                          </span>
+                        )}
+                      </Button>
+                    )}
                     {/* Render TimePicker when this is the active date */}
                     {activeTimePickerIndex && (
                       <TimePickerv2
@@ -287,6 +322,9 @@ PollEntries.propTypes = {
   isError: PropTypes.bool,
   error: PropTypes.object,
   addTimeSlotMutation: PropTypes.object.isRequired,
+  isExpired: PropTypes.bool.isRequired,
+  poll_id: PropTypes.string.isRequired,
+  isFinalised: PropTypes.bool.isRequired,
 };
 
 const DeletePoll = ({ poll_id }) => {
@@ -375,6 +413,7 @@ const PollTime = ({ poll_date_id, poll_time_id, time }) => {
       </div>
     );
   }
+
   return (
     <div
       key={poll_time_id}
