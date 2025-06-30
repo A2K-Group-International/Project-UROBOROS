@@ -167,8 +167,8 @@ const Feedback = () => {
                           width={12}
                         />
                       )}
-                      {feedback.status.charAt(0).toUpperCase() +
-                        feedback.status.slice(1)}
+                      {feedback.status?.charAt(0).toUpperCase() +
+                        feedback.status?.slice(1)}
                     </div>
                   </TableCell>
                   <TableCell>

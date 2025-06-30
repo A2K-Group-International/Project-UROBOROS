@@ -16,7 +16,7 @@ const Calendar = ({ events }) => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const { userData } = useUser();
 
-  const temporaryRole = localStorage.getItem("temporaryRole");
+  const role = userData?.role;
 
   const { data: meetings } = useQuery({
     queryKey: ["meetings", userData?.id],
@@ -63,7 +63,7 @@ const Calendar = ({ events }) => {
 
   return (
     <div className="h-full w-full">
-      {temporaryRole === "admin" && (
+      {role === "admin" && (
         <div className="flex gap-2">
           <Button
             onClick={() => setSelectedShowCalendar("Events")}
@@ -98,7 +98,6 @@ const Calendar = ({ events }) => {
         event={selectedEvent}
         eventData={events}
         onClose={() => setDialogOpen(false)}
-        temporaryRole={temporaryRole?.temporaryRole}
       />
     </div>
   );

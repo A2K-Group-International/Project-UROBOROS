@@ -10,6 +10,13 @@ import ScheduleDetails from "@/components/Schedule/ScheduleDetails";
 import { getEvents } from "@/services/eventService";
 import { getMeetings } from "@/services/meetingService";
 import { useUser } from "@/context/useUser";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import { Search } from "@/assets/icons/icons";
 import { ROLES } from "@/constants/roles";
@@ -28,7 +35,6 @@ const Schedule = () => {
     useState(false);
   const [editDialogOpenIndex, setEditDialogOpenIndex] = useState(null);
   const [urlPrms, setUrlPrms] = useSearchParams();
-  const temporaryRole = localStorage.getItem("temporaryRole");
   const [filter, setFilter] = useState(
     urlPrms.get("filter")?.toString() || "events"
   );
@@ -41,7 +47,7 @@ const Schedule = () => {
       filter,
       urlPrms.get("query")?.toString() || "",
       userData,
-      temporaryRole,
+      userData?.role,
       urlPrms.get("year")?.toString(),
       urlPrms.get("month")?.toString(),
     ],
@@ -52,7 +58,7 @@ const Schedule = () => {
           page: pageParam,
           query: urlPrms.get("query")?.toString() || "",
           pageSize: 10,
-          role: temporaryRole,
+          role: userData?.role,
           userId: userData.id,
           selectedYear: Number(urlPrms.get("year")),
           selectedMonth: Number(urlPrms.get("month")?.toString()),
@@ -142,7 +148,7 @@ const Schedule = () => {
           {/* {userData?.role === ROLES[1] && <VolunteerDialogCalendar />} */}
         </div>
         <div className="flex flex-col gap-3">
-          {(temporaryRole === ROLES[0] || temporaryRole === ROLES[4]) && (
+          {(userData?.role === ROLES[0] || userData?.role === ROLES[4]) && (
             <div className="flex gap-1">
               <NewCreateEventForm />
               <CreateMeeting />
@@ -189,39 +195,49 @@ const Schedule = () => {
             </p>
             <div className="flex gap-2">
               {/* Month Selector */}
-              <select
+              <Select
                 value={urlPrms.get("month")}
-                onChange={(e) => {
-                  urlPrms.set("month", e.target.value), setUrlPrms(urlPrms);
+                onValueChange={(value) => {
+                  urlPrms.set("month", value);
+                  setUrlPrms(urlPrms);
                 }}
-                className="border-gray-300 max-h-48 overflow-y-auto rounded-md border font-montserrat text-lg shadow-sm"
               >
-                {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
-                  <option key={month} value={month}>
-                    {new Date(0, month - 1).toLocaleString("default", {
-                      month: "long",
-                    })}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="font-montserrat text-lg">
+                  <SelectValue placeholder="Select a month" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+                    <SelectItem key={month} value={month.toString()}>
+                      {new Date(0, month - 1).toLocaleString("default", {
+                        month: "long",
+                      })}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
               {/* Year Selector */}
-              <select
+              <Select
                 value={urlPrms.get("year")}
-                onChange={(e) => {
-                  urlPrms.set("year", e.target.value), setUrlPrms(urlPrms);
+                onValueChange={(value) => {
+                  urlPrms.set("year", value);
+                  setUrlPrms(urlPrms);
                 }}
-                className="border-gray-300 max-h-48 overflow-y-auto rounded-md border py-2 font-montserrat text-lg shadow-sm"
               >
-                {[...Array(5).keys()].map((offset) => {
-                  const year = new Date().getFullYear() - 2 + offset;
-                  return (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  );
-                })}
-              </select>
+                <SelectTrigger className="font-montserrat text-lg">
+                  <SelectValue placeholder="Select a year" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[...Array(5).keys()].map((offset) => {
+                    const year = new Date().getFullYear() - 2 + offset;
+                    return (
+                      <SelectItem key={year} value={year.toString()}>
+                        {year}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

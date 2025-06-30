@@ -81,7 +81,6 @@ EventInfoDialog.propTypes = {
   }),
   eventData: PropTypes.array,
   onClose: PropTypes.func.isRequired,
-  temporaryRole: PropTypes.string,
 };
 
 // Main DashboardCalendar component
@@ -91,8 +90,6 @@ const DashboardCalendar = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { userData } = useUser();
   const { creatorEventId } = useEvent(userData?.id);
-
-  const temporaryRole = localStorage.getItem("temporaryRole");
 
   const { data: meetings } = useQuery({
     queryKey: ["meetings", userData?.id],
@@ -175,7 +172,6 @@ const DashboardCalendar = () => {
             selectedShowCalendar === "Events" ? safeEvents : safeMeetings
           }
           onClose={handleDialogClose}
-          temporaryRole={temporaryRole}
         />
       )}
     </div>

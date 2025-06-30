@@ -100,7 +100,7 @@ const NewCreateEventForm = () => {
 
   const { userData } = useUser();
   const userId = userData?.id;
-  const temporaryRole = localStorage.getItem("temporaryRole");
+  const role = userData?.role;
 
   // Fetch users by role
   const { data: coordinators } = useUsersByRole("coordinator");
@@ -212,12 +212,12 @@ const NewCreateEventForm = () => {
     if (
       allMinistryVolunteersLoading &&
       watchVisibility === "public" &&
-      temporaryRole === ROLES[0]
+      role === ROLES[0]
     ) {
       return [{ value: "", label: "Loading volunteers...", isDisabled: true }];
     }
     // If event is public and role is coordinator
-    if (watchVisibility === "public" && temporaryRole === ROLES[0]) {
+    if (watchVisibility === "public" && role === ROLES[0]) {
       //For public visibility, return all volunteers
       return allMinistryVolunteers?.map((volunteer) => ({
         value: volunteer.id,
@@ -294,8 +294,8 @@ const NewCreateEventForm = () => {
   return (
     <AlertDialog open={openDialog} onOpenChange={handleOpenDialog}>
       <AlertDialogTrigger asChild>
-        <Button>
-          <div className="flex gap-2">
+        <Button size="primary" className="px-3.5 py-2">
+          <div className="flex items-center gap-2">
             <EventIcon className="text-primary" />
             <p>Create Event</p>
           </div>
@@ -431,7 +431,7 @@ const NewCreateEventForm = () => {
                               <SelectContent>
                                 {assignedMinistriesLoading ? (
                                   <Loader2 className="animate-spin" />
-                                ) : temporaryRole === ROLES[0] ? (
+                                ) : role === ROLES[0] ? (
                                   // If user is coordinator
                                   assignedMinistries?.length > 0 ? (
                                     assignedMinistries?.map((ministry) => (

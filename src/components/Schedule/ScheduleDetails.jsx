@@ -115,7 +115,7 @@ const ScheduleDetails = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const temporaryRole = localStorage.getItem("temporaryRole");
+  const role = userData?.role;
   // Fetch volunteers and admins for assigning volunteers
   const { data: volunteers } = useUsersByRole("volunteer");
   const { data: admins } = useUsersByRole("admin");
@@ -161,7 +161,7 @@ const ScheduleDetails = () => {
         "schedules",
         "events",
         userData,
-        temporaryRole,
+        role,
         urlPrms.get("month")?.toString(),
         urlPrms.get("year")?.toString(),
         urlPrms.get("query")?.toString() || "",
@@ -295,7 +295,7 @@ const ScheduleDetails = () => {
   //If public event show all volunteers, coordinators and admins role
   //If private event show only the coordinator and member in volunteer group to the ministry
   const getVolunteerOptionsForRole = () => {
-    if (temporaryRole === ROLES[4]) {
+    if (role === ROLES[4]) {
       return event?.event_visibility === "public"
         ? allVolunteersRole
         : ministryVolunteerOptions;
@@ -304,7 +304,7 @@ const ScheduleDetails = () => {
     //Coordinator role
     //If public event show all members in volunteer group and their coordinator in their ministry
     //If private event show only volunteers in their volunteer group
-    if (temporaryRole === ROLES[0] || temporaryRole === ROLES[1]) {
+    if (role === ROLES[0] || role === ROLES[1]) {
       return event?.event_visibility === "public"
         ? ministriesVolunteers
         : ministryVolunteerOptions;
@@ -403,7 +403,7 @@ const ScheduleDetails = () => {
   };
 
   useEffect(() => {
-    if (!event || !temporaryRole) {
+    if (!event || !role) {
       return;
     }
 
@@ -414,10 +414,10 @@ const ScheduleDetails = () => {
     const currentDateTime = new Date();
 
     let offset = 0;
-    if (temporaryRole === "volunteer") {
+    if (role === "volunteer") {
       // 24 hours ahead for volunteer
       offset = 24 * 60 * 60 * 1000;
-    } else if (temporaryRole === "admin" || temporaryRole === "coordinator") {
+    } else if (role === "admin" || role === "coordinator") {
       // 7 days ahead for admin
       offset = 7 * 24 * 60 * 60 * 1000;
     }
@@ -429,7 +429,7 @@ const ScheduleDetails = () => {
     } else {
       setDisableSchedule(false);
     }
-  }, [event, temporaryRole]);
+  }, [event, role]);
 
   const removeAssignedVolunteerMutation = useMutation({
     mutationFn: async (volunteerId) =>
@@ -574,8 +574,8 @@ const ScheduleDetails = () => {
                     setDeleteDialogOpen(isOpen);
                   }}
                 >
-                  {((!disableSchedule && temporaryRole === ROLES[4]) ||
-                    (!disableSchedule && temporaryRole === ROLES[0])) && (
+                  {((!disableSchedule && role === ROLES[4]) ||
+                    (!disableSchedule && role === ROLES[0])) && (
                     <DialogTrigger asChild>
                       <Button className="rounded-xl px-3 py-3">
                         <Icon icon={"mingcute:delete-3-line"} />

@@ -36,14 +36,14 @@ const COMMON_LINKS = {
     selectedIcon: "mingcute:classify-2-fill",
   },
   poll: {
-    label: "Poll Management",
+    label: "Poll",
     link: "/poll",
     icon: "mingcute:chart-bar-line",
     selectedIcon: "mingcute:chart-bar-fill",
     isBeta: true,
   },
   poll_list: {
-    label: "Poll List",
+    label: "Poll",
     link: "/poll-list",
     icon: "mingcute:chart-bar-line",
     selectedIcon: "mingcute:chart-bar-fill",
@@ -62,11 +62,13 @@ export const SIDEBAR_LINKS = Object.freeze({
     COMMON_LINKS.dashboard,
     COMMON_LINKS.announcements,
     COMMON_LINKS.ministries,
+    COMMON_LINKS.events,
     COMMON_LINKS.schedule,
     COMMON_LINKS.poll,
   ],
   volunteer: [
     COMMON_LINKS.announcements,
+    COMMON_LINKS.events,
     COMMON_LINKS.schedule,
     COMMON_LINKS.ministries,
     COMMON_LINKS.poll_list,
@@ -74,7 +76,7 @@ export const SIDEBAR_LINKS = Object.freeze({
   parishioner: [
     COMMON_LINKS.announcements,
     COMMON_LINKS.events,
-    COMMON_LINKS.family,
+    // COMMON_LINKS.family,
     COMMON_LINKS.ministries,
     COMMON_LINKS.poll_list,
   ],
@@ -87,6 +89,7 @@ export const SIDEBAR_LINKS = Object.freeze({
   ],
   admin: [
     COMMON_LINKS.dashboard,
+    COMMON_LINKS.events,
     COMMON_LINKS.announcements,
     COMMON_LINKS.ministries,
     COMMON_LINKS.schedule,

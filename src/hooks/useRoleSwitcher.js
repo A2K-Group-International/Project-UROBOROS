@@ -6,15 +6,6 @@ const useRoleSwitcher = () => {
   const { userData } = useUser();
   const navigate = useNavigate();
 
-  // const [temporaryRole, setTemporaryRole] = useState(
-  //   localStorage.getItem("temporaryRole")
-  // );
-
-  // useEffect(() => {
-  //   if (userData?.role) {
-  //     localStorage.setItem("temporaryRole", userData.role);
-  //   }
-  // }, [userData?.role]);
 
   const onSwitchRole = (role) => {
     if (!userData) return;

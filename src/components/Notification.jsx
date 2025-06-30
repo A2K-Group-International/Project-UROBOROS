@@ -172,7 +172,7 @@ const NotificationButton = ({
 }) => {
   if (isMobile) {
     return (
-      <div className="mt-2 h-full lg:hidden">
+      <div className="h-full lg:mt-2 lg:hidden">
         <div className="flex h-full flex-col items-center justify-end">
           <Button
             variant="ghost"
@@ -192,13 +192,12 @@ const NotificationButton = ({
             )}
             <Icon
               icon="mingcute:notification-line"
-              className="text-primary-text"
-              fontSize={22}
+              className="h-6 w-6 text-primary-text"
             />
           </Button>
-          <p className="mt-2 text-center text-[8px] font-bold text-accent">
+          {/* <p className="mt-2 hidden text-center text-[8px] font-bold text-accent">
             Notifications
-          </p>
+          </p> */}
         </div>
       </div>
     );
@@ -244,12 +243,13 @@ const NotificationContent = ({
 }) => {
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const temporaryRole = localStorage.getItem("temporaryRole");
   const location = useLocation();
   const { onSwitchRole } = useRoleSwitcher();
   const [roleToSwitch, setRoleToSwitch] = useState(null);
   const [link, setLink] = useState(null);
   const [notificationId, setNotificationId] = useState(null);
+
+  const role = userData?.role;
 
   // Get mark as read mutation
   const { mutate: markAsRead, isPending: isMarkingAsRead } =
@@ -281,10 +281,7 @@ const NotificationContent = ({
         markAsRead(notificationId);
         break;
       case "event_created":
-        if (
-          !location.pathname.startsWith("/events") &&
-          temporaryRole != ROLES[2]
-        ) {
+        if (!location.pathname.startsWith("/events") && role != ROLES[2]) {
           setIsDialogOpen(true);
           setRoleToSwitch(ROLES[2]);
           setLink(`/events?id=${entity_id}`);
@@ -298,10 +295,7 @@ const NotificationContent = ({
       case "event_assigned":
       case "event_volunteer_replaced":
       case "event_volunteer_removed":
-        if (
-          !location.pathname.startsWith("/schedule") &&
-          temporaryRole != ROLES[1]
-        ) {
+        if (!location.pathname.startsWith("/schedule") && role != ROLES[1]) {
           setIsDialogOpen(true);
           setRoleToSwitch(ROLES[1]);
           setLink(`/schedule?event=${entity_id}`);
@@ -317,10 +311,7 @@ const NotificationContent = ({
         break;
       case "ministry_assigned":
       case "ministry_coordinator_removed":
-        if (
-          !location.pathname.startsWith("/ministries") &&
-          temporaryRole != ROLES[0]
-        ) {
+        if (!location.pathname.startsWith("/ministries") && role != ROLES[0]) {
           setIsDialogOpen(true);
           setRoleToSwitch(ROLES[0]);
           setLink(`/ministries`);
@@ -352,7 +343,7 @@ const NotificationContent = ({
           }
 
           // Only show dialog if we need to switch roles
-          if (temporaryRole !== roleToUse) {
+          if (role !== roleToUse) {
             setIsDialogOpen(true);
             setRoleToSwitch(roleToUse);
             setLink(`/poll?id=${entity_id}`);
@@ -419,7 +410,7 @@ const NotificationContent = ({
   if (isMobile) {
     return (
       <div
-        className={`fixed left-1/2 top-0 z-50 h-[calc(100%-6rem)] w-[calc(100%-1rem)] -translate-x-1/2 transform rounded-2xl border border-accent/20 bg-white transition-all duration-150 lg:hidden ${isOpen ? "opacity-100" : "pointer-events-none -translate-x-5 opacity-0"}`}
+        className={`fixed bottom-10 left-1/2 z-50 h-[calc(100%-6rem)] w-[calc(100%-1rem)] -translate-x-1/2 transform rounded-2xl border border-accent/20 bg-white transition-all duration-150 lg:hidden ${isOpen ? "opacity-100" : "pointer-events-none -translate-x-5 opacity-0"}`}
       >
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="w-full max-w-xl">

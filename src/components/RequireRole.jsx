@@ -51,9 +51,9 @@ const RequireRole = ({ roles }) => {
     checkAuth();
 
     if (isSuccess && data) {
-      if (!localStorage.getItem("temporaryRole")) {
-        localStorage.setItem("temporaryRole", data.role);
-      }
+      // if (!localStorage.getItem("temporaryRole")) {
+      //   localStorage.setItem("temporaryRole", data.role);
+      // }
       setUserData(data);
 
       if (!roles.includes(data.role)) {

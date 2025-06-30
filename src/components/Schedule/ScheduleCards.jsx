@@ -6,9 +6,11 @@ import ScheduleDetails from "./ScheduleDetails";
 import { memo, useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import NewEditEvent from "./NewEditEvent";
+import { useUser } from "@/context/useUser";
 
 const ScheduleCards = ({ event, onEventClick, urlPrms, filter }) => {
-  const temporaryRole = localStorage.getItem("temporaryRole");
+  const { userData } = useUser();
+  const role = userData?.role;
   const [disableEdit, setDisabledEdit] = useState(false);
 
   useEffect(() => {
@@ -47,7 +49,7 @@ const ScheduleCards = ({ event, onEventClick, urlPrms, filter }) => {
             <p className="text-sm leading-tight text-primary-text">
               {event.event_category} - {event.event_visibility}
             </p>
-            {(temporaryRole === ROLES[4] || temporaryRole === ROLES[0]) && (
+            {(role === ROLES[4] || role === ROLES[0]) && (
               <p className="text-sm text-primary-text">
                 {`Created by: ${event.creator_id.first_name} ${event.creator_id.last_name}`}
               </p>
@@ -58,65 +60,64 @@ const ScheduleCards = ({ event, onEventClick, urlPrms, filter }) => {
             </p>
           </div>
         </div>
-        {!disableEdit &&
-          (temporaryRole === ROLES[0] || temporaryRole === ROLES[4]) && (
-            <NewEditEvent
-              initialEventData={{ ...event }}
-              queryKey={[
-                "schedules",
-                filter,
-                urlPrms.get("query")?.toString() || "",
-              ]}
-            />
-            // <Dialog
-            //   open={editDialogOpenIndex === `${i}-${j}`}
-            //   onOpenChange={(isOpen) =>
-            //     setEditDialogOpenIndex(isOpen ? `${i}-${j}` : null)
-            //   }
-            // >
-            //   <DialogTrigger asChild>
-            //     <Button
-            //       variant="ghost"
-            //       className="-mt-3 p-0 font-semibold text-accent hover:underline"
-            //     >
-            //       Edit
-            //     </Button>
-            //   </DialogTrigger>
+        {!disableEdit && (role === ROLES[0] || role === ROLES[4]) && (
+          <NewEditEvent
+            initialEventData={{ ...event }}
+            queryKey={[
+              "schedules",
+              filter,
+              urlPrms.get("query")?.toString() || "",
+            ]}
+          />
+          // <Dialog
+          //   open={editDialogOpenIndex === `${i}-${j}`}
+          //   onOpenChange={(isOpen) =>
+          //     setEditDialogOpenIndex(isOpen ? `${i}-${j}` : null)
+          //   }
+          // >
+          //   <DialogTrigger asChild>
+          //     <Button
+          //       variant="ghost"
+          //       className="-mt-3 p-0 font-semibold text-accent hover:underline"
+          //     >
+          //       Edit
+          //     </Button>
+          //   </DialogTrigger>
 
-            //   <DialogContent>
-            //     <DialogHeader>
-            //       <DialogTitle>Edit Events</DialogTitle>
-            //       <DialogDescription>
-            //         Schedule an upcoming events.
-            //       </DialogDescription>
-            //     </DialogHeader>
-            //     <CreateEvent
-            //       id="update-event"
-            //       eventData={{ ...event }}
-            //       setDialogOpen={(isOpen) => {
-            //         setEditDialogOpenIndex(isOpen ? `${i}-${j}` : null);
-            //       }}
-            //       queryKey={[
-            //         "schedules",
-            //         filter,
-            //         urlPrms.get("query")?.toString() || "",
-            //       ]}
-            //     />
-            //     {/* Dialog Footer */}
-            //     <DialogFooter>
-            //       <div className="flex justify-end gap-2">
-            //         <DialogClose asChild>
-            //           <Button variant="outline">Cancel</Button>
-            //         </DialogClose>
+          //   <DialogContent>
+          //     <DialogHeader>
+          //       <DialogTitle>Edit Events</DialogTitle>
+          //       <DialogDescription>
+          //         Schedule an upcoming events.
+          //       </DialogDescription>
+          //     </DialogHeader>
+          //     <CreateEvent
+          //       id="update-event"
+          //       eventData={{ ...event }}
+          //       setDialogOpen={(isOpen) => {
+          //         setEditDialogOpenIndex(isOpen ? `${i}-${j}` : null);
+          //       }}
+          //       queryKey={[
+          //         "schedules",
+          //         filter,
+          //         urlPrms.get("query")?.toString() || "",
+          //       ]}
+          //     />
+          //     {/* Dialog Footer */}
+          //     <DialogFooter>
+          //       <div className="flex justify-end gap-2">
+          //         <DialogClose asChild>
+          //           <Button variant="outline">Cancel</Button>
+          //         </DialogClose>
 
-            //         <Button type="submit" form="update-event">
-            //           Update
-            //         </Button>
-            //       </div>
-            //     </DialogFooter>
-            //   </DialogContent>
-            // </Dialog>
-          )}
+          //         <Button type="submit" form="update-event">
+          //           Update
+          //         </Button>
+          //       </div>
+          //     </DialogFooter>
+          //   </DialogContent>
+          // </Dialog>
+        )}
       </div>
 
       <div
@@ -140,7 +141,7 @@ const ScheduleCards = ({ event, onEventClick, urlPrms, filter }) => {
                 <p className="text-sm leading-tight text-primary-text">
                   {event.event_category} - {event.event_visibility}
                 </p>
-                {temporaryRole === ROLES[4] && (
+                {role === ROLES[4] && (
                   <p className="text-sm text-primary-text">{`Created by: ${event.creator_id.first_name} ${event.creator_id.last_name}`}</p>
                 )}
                 <p className="text-md font-bold leading-none text-primary-text">
@@ -177,7 +178,7 @@ const ScheduleCards = ({ event, onEventClick, urlPrms, filter }) => {
           }
         >
           {!disableEdit &&
-            (temporaryRole === ROLES[0] || temporaryRole === ROLES[4]) && (
+            (role === ROLES[0] || role === ROLES[4]) && (
               <DialogTrigger asChild>
                 <Button
                   variant="ghost"
