@@ -69,54 +69,6 @@ const ScheduleCards = ({ event, onEventClick, urlPrms, filter }) => {
               urlPrms.get("query")?.toString() || "",
             ]}
           />
-          // <Dialog
-          //   open={editDialogOpenIndex === `${i}-${j}`}
-          //   onOpenChange={(isOpen) =>
-          //     setEditDialogOpenIndex(isOpen ? `${i}-${j}` : null)
-          //   }
-          // >
-          //   <DialogTrigger asChild>
-          //     <Button
-          //       variant="ghost"
-          //       className="-mt-3 p-0 font-semibold text-accent hover:underline"
-          //     >
-          //       Edit
-          //     </Button>
-          //   </DialogTrigger>
-
-          //   <DialogContent>
-          //     <DialogHeader>
-          //       <DialogTitle>Edit Events</DialogTitle>
-          //       <DialogDescription>
-          //         Schedule an upcoming events.
-          //       </DialogDescription>
-          //     </DialogHeader>
-          //     <CreateEvent
-          //       id="update-event"
-          //       eventData={{ ...event }}
-          //       setDialogOpen={(isOpen) => {
-          //         setEditDialogOpenIndex(isOpen ? `${i}-${j}` : null);
-          //       }}
-          //       queryKey={[
-          //         "schedules",
-          //         filter,
-          //         urlPrms.get("query")?.toString() || "",
-          //       ]}
-          //     />
-          //     {/* Dialog Footer */}
-          //     <DialogFooter>
-          //       <div className="flex justify-end gap-2">
-          //         <DialogClose asChild>
-          //           <Button variant="outline">Cancel</Button>
-          //         </DialogClose>
-
-          //         <Button type="submit" form="update-event">
-          //           Update
-          //         </Button>
-          //       </div>
-          //     </DialogFooter>
-          //   </DialogContent>
-          // </Dialog>
         )}
       </div>
 
@@ -171,54 +123,6 @@ const ScheduleCards = ({ event, onEventClick, urlPrms, filter }) => {
             urlPrms.get("query")?.toString() || "",
           ]}
         />
-        {/* <Dialog
-          open={sheetEditDialogOpenIndex === `${i}-${j}`}
-          onOpenChange={(isOpen) =>
-            setSheetEditDialogOpenIndex(isOpen ? `${i}-${j}` : null)
-          }
-        >
-          {!disableEdit &&
-            (role === ROLES[0] || role === ROLES[4]) && (
-              <DialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="-mt-3 p-0 font-semibold text-accent hover:underline"
-                >
-                  Edit
-                </Button>
-              </DialogTrigger>
-            )}
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit Events</DialogTitle>
-              <DialogDescription>Schedule an upcoming event.</DialogDescription>
-            </DialogHeader>
-            <CreateEvent
-              id="update-event"
-              eventData={{ ...event }}
-              setDialogOpen={(isOpen) => {
-                setSheetEditDialogOpenIndex(isOpen ? `${i}-${j}` : null);
-              }}
-              queryKey={[
-                "schedules",
-                filter,
-                urlPrms.get("query")?.toString() || "",
-              ]}
-            />
-
-            <DialogFooter>
-              <div className="flex justify-end gap-2">
-                <DialogClose asChild>
-                  <Button variant="outline">Cancel</Button>
-                </DialogClose>
-
-                <Button type="submit" form="update-event">
-                  Edit
-                </Button>
-              </div>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog> */}
       </div>
     </div>
   );

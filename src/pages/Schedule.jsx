@@ -38,18 +38,21 @@ const Schedule = () => {
   const [filter, setFilter] = useState(
     urlPrms.get("filter")?.toString() || "events"
   );
+  // const [eventFilter, setEventFilter] = useState(
+  //   urlPrms.get("event")?.toString() || "all"
+  // );
 
   const { userData } = useUser();
-
   const { data, isLoading, hasNextPage, fetchNextPage } = useInfiniteQuery({
     queryKey: [
       "schedules",
       filter,
       urlPrms.get("query")?.toString() || "",
-      userData,
+      userData?.id,
       userData?.role,
       urlPrms.get("year")?.toString(),
       urlPrms.get("month")?.toString(),
+      urlPrms.get("eventFilter")?.toString() || "all",
     ],
     queryFn: async ({ pageParam }) => {
       let response;
@@ -60,6 +63,7 @@ const Schedule = () => {
           pageSize: 10,
           role: userData?.role,
           userId: userData.id,
+          eventFilter: urlPrms.get("eventFilter")?.toString() || "all",
           selectedYear: Number(urlPrms.get("year")),
           selectedMonth: Number(urlPrms.get("month")?.toString()),
         });
@@ -81,13 +85,12 @@ const Schedule = () => {
       lastPage?.nextPage ? lastPage.currentPage + 1 : undefined,
   });
   const { ref } = useInterObserver(fetchNextPage);
-
   const [query, setQuery] = useState(urlPrms.get("query")?.toString() || "");
   const debouncedSearch = useDebounce(query, 600);
-  const onQuery = useCallback((e) => {
-    setQuery(e.target.value);
-  }, []);
 
+  const onQuery = (e) => {
+    setQuery(e.target.value);
+  };
   useEffect(() => {
     if (!urlPrms.get("filter")) {
       urlPrms.set("filter", "events");
@@ -105,15 +108,14 @@ const Schedule = () => {
     }
 
     setUrlPrms(urlPrms);
-  }, [debouncedSearch, urlPrms]);
-
+  }, [debouncedSearch, query, urlPrms, setUrlPrms]);
   const onEventClick = useCallback(
     (eventId) => {
       urlPrms.set("event", eventId);
       urlPrms.delete("meeting");
       setUrlPrms(urlPrms);
     },
-    [urlPrms]
+    [urlPrms, setUrlPrms]
   );
 
   const onMeetingClick = useCallback(
@@ -122,13 +124,19 @@ const Schedule = () => {
       urlPrms.delete("event");
       setUrlPrms(urlPrms);
     },
-    [urlPrms]
+    [urlPrms, setUrlPrms]
   );
 
   const onFilterChange = (value) => {
     urlPrms.set("filter", value);
     setUrlPrms(urlPrms);
     setFilter(value);
+  };
+
+  const onEventFilter = (value) => {
+    urlPrms.set("eventFilter", value);
+    urlPrms.delete("meeting");
+    setUrlPrms(urlPrms);
   };
 
   return (
@@ -236,16 +244,45 @@ const Schedule = () => {
                       </SelectItem>
                     );
                   })}
-                </SelectContent>
+                </SelectContent>{" "}
               </Select>
             </div>
           </div>
 
+          {filter === "events" &&
+            (userData?.role === ROLES[0] || userData?.role === ROLES[4]) && (
+              <div>
+                <p className="mb-3 font-montserrat font-semibold text-accent">
+                  Schedules
+                </p>{" "}
+                <Select
+                  value={
+                    urlPrms.get("eventFilter")?.toString() ||
+                    (userData?.role === "admin" ? "all" : "ministry")
+                  }
+                  onValueChange={onEventFilter}
+                >
+                  <SelectTrigger className="w-[50%]">
+                    <SelectValue placeholder="Filter events " />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {userData?.role === "admin" && (
+                      <>
+                        <SelectItem value="all">All Events</SelectItem>
+                        <SelectItem value="public">Public Events</SelectItem>
+                        <SelectItem value="private">Private Events</SelectItem>
+                      </>
+                    )}
+                    <SelectItem value="assigned">My Assignments</SelectItem>
+                    <SelectItem value="ministry">My Ministry</SelectItem>
+                    <SelectItem value="owned">Created by Me</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
           <div>
-            <p className="mb-3 font-montserrat font-semibold text-accent">
-              Schedules
-            </p>
-            <div className="flex flex-col gap-2 font-montserrat">
+            <div className="flex h-full flex-col gap-2">
               {isLoading ? (
                 <Skeleton className="flex h-[85px] w-full rounded-xl bg-primary" />
               ) : data?.pages?.flatMap((page, i) =>
