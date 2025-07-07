@@ -2,7 +2,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useRef, useState } from "react";
-
 import PropTypes from "prop-types";
 import {
   AlertDialog,
@@ -36,6 +35,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { getInitial } from "@/lib/utils";
 import useMinistry from "@/hooks/useMinistry";
 import { useQueryClient } from "@tanstack/react-query";
+import { Separator } from "../ui/separator";
+import AddCoordinators from "./AddCoordinators";
+import RemoveCoordinator from "./RemoveCoordinator";
+import { useUser } from "@/context/useUser";
+import Loading from "../Loading";
 
 const allowedMimeTypes = ["image/jpeg", "image/png"];
 
@@ -96,6 +100,22 @@ const ConfigureGroup = ({
   ministryImage,
 }) => {
   const { groups } = useGroups({ ministryId });
+
+  const { userData } = useUser();
+
+  const { coordinators } = useMinistry({ ministryId });
+  const { data, isLoading, isError, error } = coordinators;
+
+  if (isError) {
+    console.error("Error fetching ministry data:", error);
+  }
+
+  const { deleteMutation } = useMinistry({
+    ministryId,
+  });
+  const handleDeleteMinistry = () => {
+    deleteMutation.mutate(ministryId);
+  };
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
@@ -103,7 +123,7 @@ const ConfigureGroup = ({
           <Icon icon="mingcute:more-2-line" className="h-5 w-5" />
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent className="no-scrollbar max-h-[35rem] overflow-y-scroll rounded-2xl py-6 text-primary-text">
+      <AlertDialogContent className="no-scrollbar max-h-[35rem] w-fit max-w-none overflow-y-scroll rounded-2xl py-6 text-primary-text">
         <AlertDialogHeader className="flex-row items-center justify-between space-y-0 px-6 text-start leading-none">
           <div>
             <div className="flex items-center gap-x-2">
@@ -135,50 +155,119 @@ const ConfigureGroup = ({
             <CreateGroup ministryId={ministryId} />
           </div>
         </AlertDialogHeader>
-        <AlertDialogBody>
-          {groups?.data?.length < 1 ? (
-            <p>No groups created yet.</p>
-          ) : (
-            <Label>Groups</Label>
-          )}
-          {groups?.data?.map((group) => (
-            <div
-              key={group.id}
-              className="group mt-2 flex items-center justify-between rounded-lg bg-primary-outline/20 px-4 py-2 hover:bg-primary"
-            >
-              <div>
-                <div className="flex items-center justify-center gap-x-2">
-                  <Avatar>
-                    <AvatarImage
-                      className="h-10 w-10 rounded-[4px] object-cover"
-                      src={group.image_url}
-                      alt="profile picture"
-                    />
-                    <AvatarFallback>
-                      {group.name?.substring(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <Label className="font-semibold">{group.name}</Label>
-                </div>
-
-                <p className="text-xs text-primary-text">{group.description}</p>
-              </div>
-              <div className="flex items-center gap-x-2 border-primary-text/30 pl-2 transition-opacity duration-150 group-hover:opacity-100 lg:opacity-0">
-                <EditGroup
-                  groupId={group.id}
-                  groupName={group.name}
-                  groupDescription={group.description}
-                  groupImage={group.image_url}
+        <AlertDialogBody className="flex max-h-80 w-fit min-w-[35rem] gap-4 overflow-y-scroll">
+          {userData?.role === "admin" && (
+            <div className="flex-1 space-y-2">
+              <div className="flex items-start justify-between text-[#663F30]/70">
+                <Label className="font-bold text-accent">Coordinators</Label>
+                <AddCoordinators
+                  ministryId={ministryId}
+                  userId={userData?.id}
                 />
-                <DeleteGroup groupId={group.id} />
+              </div>
+              <div className="max-h-[calc(100%-40px)] space-y-2 overflow-y-auto">
+                {isLoading && <Loading />}
+                {data?.map((coordinator) => (
+                  <div
+                    key={coordinator.id}
+                    className="flex items-center justify-between rounded-xl bg-primary-outline/15 p-4"
+                  >
+                    <Label className="font-semibold">
+                      {coordinator.users?.first_name}{" "}
+                      {coordinator.users?.last_name}
+                    </Label>
+                    <RemoveCoordinator
+                      ministryId={ministryId}
+                      coordinator_id={coordinator.id}
+                    />
+                  </div>
+                ))}
               </div>
             </div>
-          ))}
+          )}
+          <div className="mb-3 flex-1">
+            {" "}
+            {groups?.data?.length < 1 ? (
+              <p>No groups created yet.</p>
+            ) : (
+              <Label className="font-bold">Groups</Label>
+            )}
+            {groups?.data?.map((group) => (
+              <div
+                key={group.id}
+                className="group mt-2 flex items-center justify-between rounded-lg bg-primary-outline/20 px-4 py-2 hover:bg-primary"
+              >
+                <div>
+                  <div className="flex items-center justify-center gap-x-2">
+                    <Avatar>
+                      <AvatarImage
+                        className="h-10 w-10 rounded-[4px] object-cover"
+                        src={group.image_url}
+                        alt="profile picture"
+                      />
+                      <AvatarFallback>
+                        {group.name?.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <Label className="font-semibold">{group.name}</Label>
+                  </div>
+
+                  <p className="text-xs text-primary-text">
+                    {group.description}
+                  </p>
+                </div>
+                <div className="flex items-center gap-x-2 border-primary-text/30 pl-2 transition-opacity duration-150 group-hover:opacity-100 lg:opacity-0">
+                  <EditGroup
+                    groupId={group.id}
+                    groupName={group.name}
+                    groupDescription={group.description}
+                    groupImage={group.image_url}
+                  />
+                  <DeleteGroup groupId={group.id} />
+                </div>
+              </div>
+            ))}
+          </div>
         </AlertDialogBody>
         <AlertDialogFooter>
-          <AlertDialogAction className="border border-primary-outline/50 bg-white font-medium text-primary-text hover:bg-primary">
-            Close
-          </AlertDialogAction>
+          <AlertDialogCancel>Close</AlertDialogCancel>
+          {userData?.role === "admin" && (
+            <AlertDialog>
+              <AlertDialogTrigger className="flex-1" asChild>
+                <Button variant="destructive">Delete Ministry</Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="no-scrollbar border-none">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="text-2xl font-bold text-accent">
+                    Delete Ministry
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete this ministry? This action
+                    cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <Separator />
+                <AlertDialogFooter className="flex-shrink-0">
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <Button
+                    onClick={handleDeleteMinistry}
+                    variant="destructive"
+                    className="flex-1"
+                    disabled={deleteMutation.isPending}
+                  >
+                    {deleteMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      "Delete Ministry"
+                    )}
+                  </Button>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

@@ -409,7 +409,7 @@ export const getAnnouncementMinistryId = async (announcement_id) => {
     .select("ministry_id")
     .eq("announcement_id", announcement_id);
 
-  const ministryIds = data.map((ministry) => ministry.ministry_id);
+  const ministryIds = data?.map((ministry) => ministry.ministry_id) || [];
   if (error) {
     throw new Error(error.message);
   }

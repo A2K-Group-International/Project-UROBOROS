@@ -36,6 +36,7 @@ import useProfile from "@/hooks/useProfile";
 import { Icon } from "@iconify/react";
 import { Switch } from "@/components/ui/switch";
 import ChangeProfile from "@/components/ChangeProfile";
+import { Link } from "react-router-dom";
 
 const nameSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -584,107 +585,112 @@ const ChangePasswordButton = ({ userId }) => {
   };
 
   return (
-    <AlertDialog
-      open={changePasswordDialogOpen}
-      onOpenChange={(open) => {
-        setChangePasswordDialogOpen(open);
+    <div className="flex w-full justify-between">
+      <Link to="/family">
+        <Button>View Family Details</Button>
+      </Link>
+      <AlertDialog
+        open={changePasswordDialogOpen}
+        onOpenChange={(open) => {
+          setChangePasswordDialogOpen(open);
 
-        if (!open) {
-          form.reset();
-        }
-      }}
-    >
-      <AlertDialogTrigger asChild>
-        <Button>Update Password</Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Update your password</AlertDialogTitle>
-          <AlertDialogDescription>
-            Update your password to keep your account secure. Make sure to
-            choose a strong password that you haven&apos;t used before.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogBody>
-          <Form {...form}>
-            <form
-              id="password-form"
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-4"
+          if (!open) {
+            form.reset();
+          }
+        }}
+      >
+        <AlertDialogTrigger asChild>
+          <Button>Update Password</Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Update your password</AlertDialogTitle>
+            <AlertDialogDescription>
+              Update your password to keep your account secure. Make sure to
+              choose a strong password that you haven&apos;t used before.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogBody>
+            <Form {...form}>
+              <form
+                id="password-form"
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
+                <FormField
+                  control={form.control}
+                  name="currentPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Current Password</FormLabel>
+                      <FormControl>
+                        <PasswordInput
+                          {...field}
+                          disabled={updatePasswordMutation.isPending}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>New Password</FormLabel>
+                      <FormControl>
+                        <PasswordInput
+                          {...field}
+                          disabled={updatePasswordMutation.isPending}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirm New Password</FormLabel>
+                      <FormControl>
+                        <PasswordInput
+                          {...field}
+                          disabled={updatePasswordMutation.isPending}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </form>
+            </Form>
+          </AlertDialogBody>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <Button
+              type="submit"
+              form="password-form"
+              disabled={updatePasswordMutation.isPending}
+              className="flex-1"
             >
-              <FormField
-                control={form.control}
-                name="currentPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Current Password</FormLabel>
-                    <FormControl>
-                      <PasswordInput
-                        {...field}
-                        disabled={updatePasswordMutation.isPending}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>New Password</FormLabel>
-                    <FormControl>
-                      <PasswordInput
-                        {...field}
-                        disabled={updatePasswordMutation.isPending}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="confirmPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Confirm New Password</FormLabel>
-                    <FormControl>
-                      <PasswordInput
-                        {...field}
-                        disabled={updatePasswordMutation.isPending}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </form>
-          </Form>
-        </AlertDialogBody>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <Button
-            type="submit"
-            form="password-form"
-            disabled={updatePasswordMutation.isPending}
-            className="flex-1"
-          >
-            {updatePasswordMutation.isPending ? (
-              <>
-                <Loader2 className="animate-spin" />
-                Updating...
-              </>
-            ) : (
-              "Update Password"
-            )}
-          </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+              {updatePasswordMutation.isPending ? (
+                <>
+                  <Loader2 className="animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                "Update Password"
+              )}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 };
 

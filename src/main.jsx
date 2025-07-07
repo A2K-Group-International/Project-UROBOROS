@@ -21,12 +21,14 @@ const root = createRoot(rootElement);
 root.render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
+      {/* <SidebarProvider> */}
       <TooltipProvider>
         <UserProvider>
           <App />
           <Toaster />
         </UserProvider>
       </TooltipProvider>
+      {/* </SidebarProvider> */}
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   </StrictMode>

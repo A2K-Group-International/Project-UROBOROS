@@ -496,6 +496,7 @@ describe("fetchPolls", () => {
 
     const pollAnswerCountChain = {
       select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
       in: vi.fn().mockResolvedValue({ count: 5, error: null }),
     };
 
@@ -555,7 +556,14 @@ describe("fetchPollsByUser", () => {
 
     const pollAnswerCountChain = {
       select: vi.fn().mockReturnThis(),
-      in: vi.fn().mockResolvedValue({ count: 3, error: null }),
+      eq: vi.fn().mockResolvedValue({
+        data: [
+          { user_id: "user-1" },
+          { user_id: "user-2" },
+          { user_id: "user-3" },
+        ],
+        error: null,
+      }),
     };
 
     supabaseMock.from.mockImplementation((table) => {

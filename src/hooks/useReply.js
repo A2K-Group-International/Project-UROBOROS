@@ -7,7 +7,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "./use-toast";
 
-const useReply = (commentId, showReply, announcement_id) => {
+const useReply = (commentId, showReply=false, announcement_id) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 

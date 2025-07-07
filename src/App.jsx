@@ -45,7 +45,7 @@ const App = () => {
           element={<LicenseVerificationSuccess />}
         />
         <Route
-          path="/license-verification-error"
+        path="/license-verification-error"
           element={<LicenseVerificationError />}
         />
 

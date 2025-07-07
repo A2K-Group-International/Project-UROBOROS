@@ -9,7 +9,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
+  // DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -18,7 +18,7 @@ import { cn, getInitial } from "@/lib/utils";
 import { SIDEBAR_LINKS } from "@/constants/sidebarLinks";
 
 import { ChevronUp } from "@/assets/icons/icons";
-import useRoleSwitcher from "@/hooks/useRoleSwitcher";
+// import useRoleSwitcher from "@/hooks/useRoleSwitcher";
 import { ROLES } from "@/constants/roles";
 
 import Notification from "./Notification";
@@ -29,7 +29,7 @@ import { useMemo } from "react";
 const Sidebar = () => {
   const url = useLocation();
   const navigate = useNavigate();
-  const { availableRoles, onSwitchRole } = useRoleSwitcher();
+  // const { availableRoles, onSwitchRole } = useRoleSwitcher();
 
   const { userData, logout } = useUser();
 
@@ -37,7 +37,7 @@ const Sidebar = () => {
     try {
       await logout();
       navigate("/", { replace: true });
-      localStorage.removeItem("temporaryRole");
+      // localStorage.removeItem("temporaryRole");
     } catch (error) {
       console.error("Logout failed:", error.message);
     }
@@ -55,43 +55,37 @@ const Sidebar = () => {
 
   // Mobile Version
   return (
-    <div className="flex lg:my-9 lg:w-64 lg:flex-col">
-      <Title className="mb-12 ml-9 hidden max-w-[201px] lg:block">
-        {localStorage.getItem("temporaryRole") === ROLES[0] &&
-          "Coordinator Management Centre"}
-        {localStorage.getItem("temporaryRole") === ROLES[1] &&
-          "Volunteer Management Centre"}
-        {(localStorage.getItem("temporaryRole") === ROLES[2] ||
-          localStorage.getItem("temporaryRole") === ROLES[3]) &&
+    <div className="hidden lg:my-9 lg:flex lg:w-64 lg:flex-col">
+      <Title className="mb-12 ml-9 max-w-[201px] lg:block">
+        {userData?.role === ROLES[0] && "Coordinator Management Centre"}
+        {userData?.role === ROLES[1] && "Volunteer Management Centre"}
+        {(userData?.role === ROLES[2] || userData?.role === ROLES[3]) &&
           `Welcome, ${userData?.first_name ?? ""} ${userData?.last_name ?? ""}`}
-        {localStorage.getItem("temporaryRole") === ROLES[4] &&
-          `Parish Management Centre`}
+        {userData?.role === ROLES[4] && `Parish Management Centre`}
       </Title>
       <div className="no-scrollbar mb-2 flex flex-1 justify-between overflow-x-scroll md:overflow-x-visible lg:mb-0 lg:flex-col">
         <ul className="flex w-full min-w-96 items-center justify-evenly gap-0 pt-1 sm:gap-2 lg:ml-4 lg:mr-8 lg:flex-col lg:items-start">
           {userData &&
-            SIDEBAR_LINKS[localStorage.getItem("temporaryRole")]?.map(
-              (link, index) => {
-                // Hide "Ministries" if temporaryRole is not equal to userData.role
-                if (
-                  link.label === "Ministries" &&
-                  localStorage.getItem("temporaryRole") !== userData?.role
-                ) {
-                  return null;
-                }
-                return (
-                  <SidebarLink
-                    key={index}
-                    label={link.label}
-                    link={link.link}
-                    icon={link.icon}
-                    selectedIcon={link.selectedIcon}
-                    isActive={url.pathname === link.link}
-                    isBeta={link.isBeta}
-                  />
-                );
-              }
-            )}
+            SIDEBAR_LINKS[userData?.role]?.map((link, index) => {
+              // Hide "Ministries" if temporaryRole is not equal to userData.role
+              // if (
+              //   link.label === "Ministries" &&
+              //   localStorage.getItem("temporaryRole") !== userData?.role
+              // ) {
+              //   return null;
+              // }
+              return (
+                <SidebarLink
+                  key={index}
+                  label={link.label}
+                  link={link.link}
+                  icon={link.icon}
+                  selectedIcon={link.selectedIcon}
+                  isActive={url.pathname === link.link}
+                  isBeta={link.isBeta}
+                />
+              );
+            })}
           <Notification isMobile={true} />
           <div className="flex flex-col items-center justify-center">
             <DropdownMenu>
@@ -110,7 +104,7 @@ const Sidebar = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 {/* Fetch Switch Account Base on Role */}
-                {availableRoles.map((role) => (
+                {/* {availableRoles.map((role) => (
                   <DropdownMenuItem
                     key={role.value}
                     onClick={() => onSwitchRole(role.value)}
@@ -118,7 +112,7 @@ const Sidebar = () => {
                     {role.label}
                   </DropdownMenuItem>
                 ))}
-                {availableRoles.length > 0 && <DropdownMenuSeparator />}
+                {availableRoles.length > 0 && <DropdownMenuSeparator />} */}
                 {/* Profile Settings, Feedback Page, Logout */}
                 <Link
                   to="/feedback"
@@ -150,8 +144,8 @@ const Sidebar = () => {
           <ConsultationButton isMobile={false} />
           <Notification isMobile={false} />
           <SidebarProfile
-            availableRoles={availableRoles}
-            onSwitchRole={onSwitchRole}
+            // availableRoles={availableRoles}
+            // onSwitchRole={onSwitchRole}
             initials={initials}
             profileImageUrl={profileImageUrl}
             fullName={`${userData?.first_name ?? ""} ${userData?.last_name ?? ""}`}
@@ -165,8 +159,8 @@ const Sidebar = () => {
 export default Sidebar;
 
 const SidebarProfile = ({
-  availableRoles,
-  onSwitchRole,
+  // availableRoles,
+  // onSwitchRole,
   initials,
   profileImageUrl,
   fullName,
@@ -178,7 +172,7 @@ const SidebarProfile = ({
     try {
       await logout();
       navigate("/", { replace: true });
-      localStorage.removeItem("temporaryRole");
+      // localStorage.removeItem("temporaryRole");
     } catch (error) {
       console.error("Logout failed:", error.message);
     }
@@ -217,7 +211,7 @@ const SidebarProfile = ({
           <ChevronUp className="h-5 w-5 text-white" />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-          {availableRoles.map((role) => (
+          {/* {availableRoles.map((role) => (
             <DropdownMenuItem
               key={role.value}
               onClick={() => onSwitchRole(role.value)}
@@ -225,7 +219,7 @@ const SidebarProfile = ({
               {role.label}
             </DropdownMenuItem>
           ))}
-          {userData?.role !== ROLES[2] && <DropdownMenuSeparator />}
+          {userData?.role !== ROLES[2] && <DropdownMenuSeparator />} */}
           <Link
             to="/send-feedback"
             className="flex w-full items-center gap-2 hover:cursor-pointer"

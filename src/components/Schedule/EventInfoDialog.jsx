@@ -12,9 +12,10 @@ import ManualAttendEvents from "../Events/ManualAttendEvents";
 import { ROLES } from "@/constants/roles";
 import { useMemo } from "react";
 import { formatEventDate, formatEventTime } from "@/lib/utils";
+import { useUser } from "@/context/useUser";
 
 const EventInfoDialog = ({ open, event, eventData, onClose }) => {
-  const temporaryRole = localStorage.getItem("temporaryRole");
+  const { userData } = useUser();
   // Find the matching event in eventData that corresponds to the current event.id
   const currentEventDetails = useMemo(() => {
     if (!eventData || !Array.isArray(eventData) || !event?.id) return null;
@@ -42,7 +43,7 @@ const EventInfoDialog = ({ open, event, eventData, onClose }) => {
           <Button variant="outline" onClick={onClose}>
             Close
           </Button>
-          {temporaryRole === ROLES[2] &&
+          {userData?.role === ROLES[2] &&
             currentEventDetails?.requires_attendance && (
               <ManualAttendEvents
                 eventId={currentEventDetails?.id}

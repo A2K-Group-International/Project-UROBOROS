@@ -41,7 +41,7 @@ const Announcements = () => {
 
       <div className="no-scrollbar flex h-fit w-full flex-col-reverse gap-4 overflow-y-scroll lg:h-full lg:flex-row">
         {/* Announcements List */}
-        <div className="no-scrollbar flex w-full flex-col items-center overflow-y-scroll rounded-none border-t border-primary-outline p-1 pt-3 md:rounded-xl md:border md:bg-primary md:px-9 md:py-6">
+        <div className="no-scrollbar flex w-full flex-col items-center overflow-y-scroll rounded-none border-primary-outline p-1 pt-3 md:rounded-xl md:border md:bg-primary md:px-9 md:py-6">
           <div className="w-full lg:w-2/3">
             {(userData?.role === "admin" ||
               userData?.role === "coordinator") && (

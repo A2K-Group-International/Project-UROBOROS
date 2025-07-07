@@ -107,11 +107,6 @@ export const updateComment = async ({ file, comment, comment_id }) => {
   if (!comment_id) {
     throw new Error("comment_id is required!");
   }
-  console.log("Updating comment with data:", {
-    file,
-    comment,
-    comment_id,
-  });
 
   const { data: existingComment, error: fetchError } = await supabase
     .from("comment_data")
@@ -177,13 +172,6 @@ export const addReply = async ({
   announcement_id,
   file,
 }) => {
-  console.log("Adding reply with data:", {
-    reply,
-    user_id,
-    comment_id,
-    announcement_id,
-    file,
-  });
   if (!user_id || !comment_id) {
     throw new Error("User ID and comment ID are required!");
   }

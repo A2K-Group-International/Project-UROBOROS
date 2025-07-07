@@ -84,7 +84,7 @@ const NewEditEvent = ({
 
   const { userData } = useUser();
   const userId = userData?.id;
-  const temporaryRole = localStorage.getItem("temporaryRole");
+  const role = userData?.role;
 
   const queryClient = useQueryClient();
 
@@ -374,7 +374,7 @@ const NewEditEvent = ({
                               <SelectContent>
                                 {assignedMinistriesLoading ? (
                                   <Loader2 className="animate-spin" />
-                                ) : temporaryRole === ROLES[0] ? (
+                                ) : role === ROLES[0] ? (
                                   // If user is coordinator
                                   assignedMinistries?.length > 0 ? (
                                     assignedMinistries?.map((ministry) => (
