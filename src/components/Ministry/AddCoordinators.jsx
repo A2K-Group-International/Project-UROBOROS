@@ -34,6 +34,7 @@ import { ROLES } from "@/constants/roles";
 import { getUsersByRole } from "@/services/userService";
 import PropTypes from "prop-types";
 import { useMemo } from "react";
+import { Icon } from "@iconify/react";
 
 const AddCoordinators = ({ ministryId, userId }) => {
   const queryClient = useQueryClient();
@@ -136,7 +137,7 @@ const AddCoordinators = ({ ministryId, userId }) => {
           variant="outline"
           className="rounded-lg border-none bg-primary-outline/35 text-accent hover:bg-primary"
         >
-          Add Coordinators
+          <Icon className="h-5 w-5" icon="mingcute:user-add-line"></Icon>
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="text-primary-text">
