@@ -155,10 +155,10 @@ const ConfigureGroup = ({
             <CreateGroup ministryId={ministryId} />
           </div>
         </AlertDialogHeader>
-        <AlertDialogBody className="flex max-h-80 w-fit min-w-[35rem] gap-4 overflow-y-scroll">
+        <AlertDialogBody className="flex max-h-80 w-fit min-w-[45rem] gap-4 overflow-y-scroll">
           {userData?.role === "admin" && (
-            <div className="flex-1 space-y-2">
-              <div className="flex items-start justify-between text-[#663F30]/70">
+            <div className="w-full flex-1 space-y-2">
+              <div className="flex items-center justify-between text-[#663F30]/70">
                 <Label className="font-bold text-accent">Coordinators</Label>
                 <AddCoordinators
                   ministryId={ministryId}
@@ -185,12 +185,14 @@ const ConfigureGroup = ({
               </div>
             </div>
           )}
-          <div className="mb-3 flex-1">
+          <div className="flex-1">
             {" "}
             {groups?.data?.length < 1 ? (
               <p>No groups created yet.</p>
             ) : (
-              <Label className="font-bold">Groups</Label>
+              <div className="mt-2">
+                <Label className="font-bold">Groups</Label>
+              </div>
             )}
             {groups?.data?.map((group) => (
               <div
