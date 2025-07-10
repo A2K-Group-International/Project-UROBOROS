@@ -927,7 +927,7 @@ const Ministries = () => {
                   </div>
                 ) : (
                   memberGroups.map((ministry) => (
-                    <MinistryItem
+                    <MemberMinistryItem
                       key={ministry.ministry_id}
                       ministry={ministry}
                       isExpanded={expandedMemberMinistries.has(

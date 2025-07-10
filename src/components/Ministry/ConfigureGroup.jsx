@@ -123,7 +123,7 @@ const ConfigureGroup = ({
           <Icon icon="mingcute:more-2-line" className="h-5 w-5" />
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent className="no-scrollbar max-h-[35rem] w-fit max-w-none overflow-y-scroll rounded-2xl py-6 text-primary-text">
+      <AlertDialogContent className="no-scrollbar max-h-[35rem] overflow-y-scroll rounded-2xl py-6 text-primary-text">
         <AlertDialogHeader className="flex-row items-center justify-between space-y-0 px-6 text-start leading-none">
           <div>
             <div className="flex items-center gap-x-2">
@@ -155,7 +155,7 @@ const ConfigureGroup = ({
             <CreateGroup ministryId={ministryId} />
           </div>
         </AlertDialogHeader>
-        <AlertDialogBody className="flex max-h-80 w-fit min-w-[45rem] gap-4 overflow-y-scroll">
+        <AlertDialogBody className="no-scrollbar flex max-h-80 flex-col gap-4 overflow-y-scroll">
           {userData?.role === "admin" && (
             <div className="w-full flex-1 space-y-2">
               <div className="flex items-center justify-between text-[#663F30]/70">
@@ -186,7 +186,6 @@ const ConfigureGroup = ({
             </div>
           )}
           <div className="flex-1">
-            {" "}
             {groups?.data?.length < 1 ? (
               <p>No groups created yet.</p>
             ) : (
