@@ -93,7 +93,6 @@ const fetchGroups = async (ministryId) => {
 
     return processedGroup;
   });
-
   return arrangedData;
 };
 

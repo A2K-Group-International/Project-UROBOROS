@@ -13,7 +13,7 @@ import {
 } from "@/services/ministryService";
 // import { ROLES } from "@/constants/roles";
 
-const useMinistry = ({ ministryId }) => {
+const useMinistry = ({ ministryId, role }) => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -33,6 +33,7 @@ const useMinistry = ({ ministryId }) => {
     queryFn: async () => {
       return getAllMinistries();
     },
+    enabled: role === "admin",
   });
 
   const coordinators = useQuery({

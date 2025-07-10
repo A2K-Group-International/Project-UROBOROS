@@ -339,12 +339,13 @@ export const getEvents = async ({
   role,
   userId,
   selectedYear,
+  eventFilter,
   selectedMonth,
 } = {}) => {
   try {
     const filters = {};
 
-    // Apply filters for the selected year and month
+    // Date filters
     if (selectedYear && selectedMonth) {
       const formattedMonth = String(selectedMonth).padStart(2, "0");
       const selectedDate = `${selectedYear}-${formattedMonth}`;
@@ -354,113 +355,102 @@ export const getEvents = async ({
       const lastDayOfMonth = new Date(year, month, 0).getDate();
       const endOfMonth = `${year}-${month}-${lastDayOfMonth}`;
 
-      filters.gte = {
-        event_date: startOfMonth,
-      };
-      filters.lte = {
-        event_date: endOfMonth,
-      };
+      filters.gte = { event_date: startOfMonth };
+      filters.lte = { event_date: endOfMonth };
     }
 
+    // Search filter
     if (query) {
       filters.ilike = { event_name: query };
     }
 
-    // Handle role-based access
-    if (role === "admin") {
-      // Admins can see all events - no additional filters needed
+    // Role-based access
+    if (role === "admin" || role === "coordinator") {
+      if (eventFilter === "public") {
+        filters.eq = [{ column: "event_visibility", value: "public" }];
+      } else if (eventFilter === "private") {
+        filters.eq = [{ column: "event_visibility", value: "private" }];
+      } else if (eventFilter === "owned") {
+        filters.eq = [{ column: "creator_id", value: userId }];
+      } else if (eventFilter === "ministry") {
+        const { data: userCoordinator, error: coordinatorError } =
+          // Fetch coordinator ministries
+          await supabase
+            .from("ministry_coordinators")
+            .select("ministry_id")
+            .eq("coordinator_id", userId);
+        if (coordinatorError) {
+          throw new Error(
+            `Error fetching coordinator data: ${coordinatorError.message}`
+          );
+        }
+        // Fetch group memberships to get ministry IDs
+        const { data: groupMemberships, error: memberError } = await supabase
+          .from("group_members")
+          .select("groups(ministry_id)")
+          .eq("user_id", userId);
+        if (memberError) {
+          throw new Error(
+            `Error fetching group memberships: ${memberError.message}`
+          );
+        }
+
+        const coordinatorMinistryIds =
+          userCoordinator?.map((i) => i.ministry_id) || [];
+        const memberMinistryIds =
+          groupMemberships
+            ?.filter((i) => i.groups?.ministry_id)
+            .map((i) => i.groups.ministry_id) || [];
+
+        const allMinistryIds = [
+          ...new Set([...coordinatorMinistryIds, ...memberMinistryIds]),
+        ];
+
+        if (allMinistryIds.length > 0) {
+          filters.in = { column: "ministry_id", value: allMinistryIds };
+        } else {
+          filters.id = []; // no connected ministries
+        }
+      } else if (eventFilter === "assigned") {
+        const { data: volunteerEvents } = await supabase
+          .from("event_volunteers")
+          .select("event_id")
+          .eq("volunteer_id", userId)
+          .eq("replaced", false);
+        const volunteerEventIds = volunteerEvents?.map((e) => e.event_id) || [];
+
+        const { data: replacementEvents } = await supabase
+          .from("event_volunteers")
+          .select("event_id")
+          .eq("replacedby_id", userId);
+        const replacementEventIds =
+          replacementEvents?.map((e) => e.event_id) || [];
+
+        const allEventIds = [
+          ...new Set([...volunteerEventIds, ...replacementEventIds]),
+        ];
+        filters.id = allEventIds.length > 0 ? allEventIds : [];
+      }
     } else if (role === "volunteer") {
-      // Volunteers see events they're assigned to and haven't been replaced
       const { data: volunteerEvents } = await supabase
         .from("event_volunteers")
         .select("event_id")
         .eq("volunteer_id", userId)
-        .eq("replaced", false); // Only include assignments where the volunteer hasn't been replaced
+        .eq("replaced", false);
+      const volunteerEventIds = volunteerEvents?.map((e) => e.event_id) || [];
 
-      const volunteerEventIds =
-        volunteerEvents?.map((event) => event.event_id) || [];
-
-      // Also get events where this volunteer is a replacement
       const { data: replacementEvents } = await supabase
         .from("event_volunteers")
         .select("event_id")
         .eq("replacedby_id", userId);
-
       const replacementEventIds =
-        replacementEvents?.map((event) => event.event_id) || [];
+        replacementEvents?.map((e) => e.event_id) || [];
 
-      // Combine both sets of event IDs
       const allEventIds = [
         ...new Set([...volunteerEventIds, ...replacementEventIds]),
       ];
-
-      if (allEventIds.length > 0) {
-        filters.id = allEventIds;
-      } else {
-        filters.id = [];
-      }
-    } else if (role === "coordinator") {
-      //Find the current user where they are a coordinator
-      const { data: userCoordinator, error: coordinatorError } = await supabase
-        .from("ministry_coordinators")
-        .select("ministry_id")
-        .eq("coordinator_id", userId);
-
-      if (coordinatorError) {
-        throw new Error(
-          `Error fetching coordinator data: ${coordinatorError.message}`
-        );
-      }
-
-      //If user is not a coordinator for any ministry, only show their events
-      if (!userCoordinator || userCoordinator.length === 0) {
-        const { data: userEvents } = await supabase
-          .from("events")
-          .select("id")
-          .eq("creator_id", userId);
-
-        if (userEvents?.length > 0) {
-          filters.id = userEvents.map((event) => event.id);
-        } else {
-          filters.id = [];
-        }
-      } else {
-        // If user is a coordinator, show all events for their ministries
-        const ministryIds = userCoordinator.map((item) => item.ministry_id);
-
-        const { data: coCoordinators, error: coCoordinatorError } =
-          await supabase
-            .from("ministry_coordinators")
-            .select("coordinator_id")
-            .in("ministry_id", ministryIds)
-            .neq("coordinator_id", userId);
-
-        if (coCoordinatorError) {
-          throw new Error(
-            `Error fetching co-coordinator data: ${coCoordinatorError.message}`
-          );
-        }
-
-        //Get coordinator IDs
-        const allCoordinatorIds = [
-          userId, // Include the current user
-          ...(coCoordinators?.map(
-            (coordinator) => coordinator.coordinator_id
-          ) || []),
-        ];
-
-        // Get events created by the user or by any co-coordinators
-        const { data: sharedEvents } = await supabase
-          .from("events")
-          .select("id")
-          .in("creator_id", allCoordinatorIds);
-
-        filters.id = sharedEvents?.map((event) => event.id) || [];
-      }
+      filters.id = allEventIds.length > 0 ? allEventIds : [];
     } else if (role === "parishioner" || role === "coparent") {
-      // Parishioners/coparents see:
-      // 1. Public events
-      // 2. Private events from ministries they belong to via groups
       const { data: groupMemberships } = await supabase
         .from("group_members")
         .select("groups(ministry_id)")
@@ -468,54 +458,43 @@ export const getEvents = async ({
 
       const ministryIds =
         groupMemberships
-          ?.filter((item) => item.groups?.ministry_id)
-          .map((item) => item.groups.ministry_id) || [];
+          ?.filter((i) => i.groups?.ministry_id)
+          .map((i) => i.groups.ministry_id) || [];
 
       if (ministryIds.length > 0) {
-        // For parishioners with ministry connections, get their ministry's events + public events
-        const ministryFilter = `ministry_id.in.(${ministryIds.join(",")})`;
-        const visibilityFilter = "event_visibility.eq.public";
-
-        // Get all events that match either condition
-        const { data: accessibleEvents } = await supabase
-          .from("events")
-          .select("id")
-          .or(`${ministryFilter},${visibilityFilter}`);
-
-        if (accessibleEvents?.length > 0) {
-          filters.id = accessibleEvents.map((event) => event.id);
-        } else {
-          filters.event_visibility = "public"; // Fallback to just public events
-        }
+        // OR filter (public OR ministry_id in X)
+        filters.or = [
+          {
+            column: "ministry_id",
+            operator: "in",
+            value: `(${ministryIds.join(",")})`,
+          },
+          { column: "event_visibility", operator: "eq", value: "public" },
+        ];
       } else {
-        filters.event_visibility = "public"; // If no ministries, only show public events
+        filters.eq = [{ column: "event_visibility", value: "public" }];
       }
     }
 
     const order = [{ column: "event_date", ascending: true }];
 
-    // Fetch data using pagination
+    // Paginated fetch
     const paginatedData = await paginate({
       key: "events",
-      select: `*,creator_id(first_name, last_name), event_volunteers (volunteer_id)`,
+      select: `*, creator_id(first_name, last_name), event_volunteers (volunteer_id)`,
       page,
       pageSize,
       filters,
       order,
     });
 
-    // Transform image URLs to public URLs
     if (paginatedData && paginatedData.items) {
-      paginatedData.items = paginatedData.items.map((event) => {
-        if (event.image_url) {
-          return {
-            ...event,
-            image_url: getPublicImageUrl(event.image_url),
-          };
+      paginatedData.items = paginatedData.items.map((evt) => {
+        if (evt.image_url) {
+          return { ...evt, image_url: getPublicImageUrl(evt.image_url) };
         }
-        return event;
+        return evt;
       });
-
       return paginatedData;
     }
   } catch (error) {

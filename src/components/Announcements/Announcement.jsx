@@ -275,7 +275,7 @@ const Announcement = ({
               {`${announcement.announcement_files[0]?.name}.${announcement.announcement_files[0].type.split("/")[1]}`}
             </a>
           )}
-        <DialogContent className="flex h-full w-dvw max-w-none items-center justify-center border-0 bg-transparent p-0">
+        <DialogContent className="flex h-full min-w-full items-center justify-center border-0 bg-transparent p-0">
           <DialogHeader className="sr-only">
             <DialogTitle className="sr-only"></DialogTitle>
             <DialogDescription className="sr-only"></DialogDescription>

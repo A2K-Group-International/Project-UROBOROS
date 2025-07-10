@@ -21,7 +21,7 @@ const cn = (...inputs) => {
 const paginate = async ({
   key,
   page = 1,
-  pageSize = 2,
+  pageSize = 10,
   query = {}, // For .match()
   filters = {}, // For .eq, .gte, .lte, .ilike, .in, .not, .or
   order = [],
