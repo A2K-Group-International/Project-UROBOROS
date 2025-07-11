@@ -53,7 +53,7 @@ const MobileNavigation = () => {
       <button
         onClick={toggleNav}
         className={cn(
-          "absolute bottom-2 left-1/2 z-50 flex h-[78px] w-[96px] -translate-x-1/2 transform flex-col items-center justify-center gap-1 rounded-full bg-primary p-2 text-2xs font-bold text-accent shadow-lg transition-all duration-300 active:scale-95"
+          "absolute bottom-2 left-1/2 z-50 flex h-[70px] w-[88px] -translate-x-1/2 transform flex-col items-center justify-center gap-1 rounded-full border border-accent/50 bg-primary p-2 text-2xs font-bold text-accent shadow-lg transition-all duration-300 active:scale-95"
           // { "bg-primary": !navOpen, "bg-primary": navOpen }
         )}
       >
