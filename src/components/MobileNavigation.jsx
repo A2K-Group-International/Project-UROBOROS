@@ -17,15 +17,14 @@ const MobileNavigation = () => {
   return (
     <div
       className={cn(
-        `fixed bottom-10 left-1/2 z-50 flex h-0 w-full -translate-x-1/2 transform items-center justify-center lg:hidden`,
-        { "h-auto": navOpen }
+        `fixed bottom-10 left-1/2 z-50 flex h-fit w-full -translate-x-1/2 transform items-center justify-center lg:hidden`
       )}
     >
       <div
         className={cn(
           "z-40 flex h-[400px] w-11/12 max-w-[612px] flex-wrap content-start justify-evenly gap-4 rounded-[50px] border border-accent/20 bg-white/90 p-5 px-11 pb-20 pt-8 shadow-lg backdrop-blur-md transition-all duration-300 ease-in-out sm:h-[300px]",
           {
-            "pointer-events-none scale-95 opacity-0": !navOpen,
+            "pointer-events-none h-0 w-0 scale-95 opacity-0": !navOpen,
             "scale-100 opacity-100": navOpen,
           }
         )}
@@ -54,7 +53,7 @@ const MobileNavigation = () => {
       <button
         onClick={toggleNav}
         className={cn(
-          "absolute bottom-2 left-1/2 z-50 flex h-[78px] w-[96px] -translate-x-1/2 transform flex-col items-center justify-center gap-1 rounded-full bg-primary p-2 text-2xs font-bold text-accent shadow-lg transition-all duration-300 active:scale-95"
+          "absolute bottom-2 left-1/2 z-50 flex h-[70px] w-[88px] -translate-x-1/2 transform flex-col items-center justify-center gap-1 rounded-full border border-accent/50 bg-primary p-2 text-2xs font-bold text-accent shadow-lg transition-all duration-300 active:scale-95"
           // { "bg-primary": !navOpen, "bg-primary": navOpen }
         )}
       >
