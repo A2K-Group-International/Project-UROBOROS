@@ -17,15 +17,14 @@ const MobileNavigation = () => {
   return (
     <div
       className={cn(
-        `fixed bottom-10 left-1/2 z-50 flex h-0 w-full -translate-x-1/2 transform items-center justify-center lg:hidden`,
-        { "h-auto": navOpen }
+        `fixed bottom-10 left-1/2 z-50 flex h-fit w-full -translate-x-1/2 transform items-center justify-center lg:hidden`
       )}
     >
       <div
         className={cn(
           "z-40 flex h-[400px] w-11/12 max-w-[612px] flex-wrap content-start justify-evenly gap-4 rounded-[50px] border border-accent/20 bg-white/90 p-5 px-11 pb-20 pt-8 shadow-lg backdrop-blur-md transition-all duration-300 ease-in-out sm:h-[300px]",
           {
-            "pointer-events-none scale-95 opacity-0": !navOpen,
+            "pointer-events-none h-0 w-0 scale-95 opacity-0": !navOpen,
             "scale-100 opacity-100": navOpen,
           }
         )}
