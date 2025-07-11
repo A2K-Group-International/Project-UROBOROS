@@ -17,7 +17,7 @@ const MobileNavigation = () => {
   return (
     <div
       className={cn(
-        `fixed bottom-10 left-1/2 z-50 flex h-0 w-full -translate-x-1/2 transform items-center justify-center lg:hidden`,
+        `fixed bottom-10 left-1/2 z-50 flex h-fit w-full -translate-x-1/2 transform items-center justify-center lg:hidden`,
         { "w-fit": !navOpen }
       )}
     >
