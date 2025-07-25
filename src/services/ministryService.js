@@ -794,40 +794,56 @@ export const fetchUserMinistryIds = async (userId) => {
     return [];
   }
 
-  // Query to get all groups the user is a member of and their associated ministries
-  const { data: groupMembers, error } = await supabase
-    .from("group_members")
-    .select("groups(ministry_id)")
-    .eq("user_id", userId);
+  try {
+    // Run both queries in parallel for better performance
+    const [groupMembersResult, ministryCoordinatorResult] = await Promise.all([
+      supabase
+        .from("group_members")
+        .select("groups(ministry_id)")
+        .eq("user_id", userId),
+      supabase
+        .from("ministry_coordinators")
+        .select("ministry_id")
+        .eq("coordinator_id", userId),
+    ]);
 
-  if (error) {
-    console.error("Error fetching user's ministries:", error.message);
-    throw new Error(error.message);
+    // Check for errors in group members query
+    if (groupMembersResult.error) {
+      console.error(
+        "Error fetching user's ministries:",
+        groupMembersResult.error.message
+      );
+      throw new Error(groupMembersResult.error.message);
+    }
+
+    // Check for errors in ministry coordinator query
+    if (ministryCoordinatorResult.error) {
+      console.error(
+        "Error fetching coordinator:",
+        ministryCoordinatorResult.error.message
+      );
+      throw new Error(ministryCoordinatorResult.error.message);
+    }
+
+    // Extract unique ministry IDs from the results
+    const groupMemberIds = (groupMembersResult.data || [])
+      .map((item) => item.groups?.ministry_id)
+      .filter(Boolean); // Remove null/undefined values
+
+    const coordinatorIds = (ministryCoordinatorResult.data || [])
+      .map((item) => item.ministry_id)
+      .filter(Boolean); // Remove null/undefined values
+
+    // Combine and remove duplicates using Set
+    const uniqueMinistryIds = [
+      ...new Set([...groupMemberIds, ...coordinatorIds]),
+    ];
+
+    return uniqueMinistryIds;
+  } catch (error) {
+    console.error("Error in fetchUserMinistryIds:", error);
+    throw error;
   }
-  const { data: ministryCoordinator, error: ministryCoordinatorError } =
-    await supabase
-      .from("ministry_coordinators")
-      .select("ministry_id")
-      .eq("coordinator_id", userId);
-
-  if (ministryCoordinatorError) {
-    console.error(
-      "Error fetching coordinator",
-      ministryCoordinatorError.message
-    );
-    throw new Error(error.message);
-  }
-
-  // Extract unique ministry IDs from the results
-  const groupMemberIds = groupMembers.map((item) => item.groups?.ministry_id);
-  const coordinatorIds = ministryCoordinator.map((item) => item.ministry_id);
-
-  const allUserIds = [...groupMemberIds, ...coordinatorIds];
-
-  // Remove duplicates using Set
-  const uniqueMinistryIds = [...new Set(allUserIds)];
-
-  return uniqueMinistryIds;
 };
 
 export const getMinistriesMembers = async (ministryIds) => {
