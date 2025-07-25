@@ -327,7 +327,7 @@ const updateProfilePicture = async (userId, imageFile) => {
     }
 
     // 3. Upload the new file to storage
-    uploadProfilePicture(userId, imageFile);
+    return await uploadProfilePicture(userId, imageFile);
   } catch (error) {
     console.error("Error updating profile picture:", error);
     throw error;
