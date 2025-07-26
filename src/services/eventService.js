@@ -618,17 +618,16 @@ const getPublicImageUrl = (path) => {
   }
 };
 
-// Updated getEventsCalendar to accept year and month as arguments
-export const getEventsCalendar = async (ministry = []) => {
+// Get all events for calendar display (includes past events)
+export const getAllEventsForCalendar = async (ministry = []) => {
   try {
-    // Fetch all public events (no filtering by ministry)
+    // Build base queries without date restrictions for calendar
     const publicEventsQuery = supabase
       .from("events")
       .select("*")
       .eq("event_visibility", "public")
-      .gte("event_date", new Date().toISOString());
+      .order("event_date", { ascending: false });
 
-    // Fetch private events filtered by ministry IDs (only if provided)
     const privateEventsQuery =
       ministry.length > 0
         ? supabase
@@ -636,22 +635,16 @@ export const getEventsCalendar = async (ministry = []) => {
             .select("*")
             .eq("event_visibility", "private")
             .in("ministry_id", ministry)
-            .gte("event_date", new Date().toISOString()) // Apply ministry filter
+            .order("event_date", { ascending: false })
         : null;
 
-    // Execute both queries
-    const publicEventsPromise = publicEventsQuery;
-    const privateEventsPromise = privateEventsQuery
-      ? privateEventsQuery
-      : Promise.resolve({ data: [] });
-
-    // Wait for both queries to resolve
+    // Execute both queries in parallel
     const [publicEventsResult, privateEventsResult] = await Promise.all([
-      publicEventsPromise,
-      privateEventsPromise,
+      publicEventsQuery,
+      privateEventsQuery || Promise.resolve({ data: [] }),
     ]);
 
-    // Check for errors in the queries
+    // Check for errors
     if (publicEventsResult.error) {
       throw new Error(publicEventsResult.error.message);
     }
@@ -659,25 +652,149 @@ export const getEventsCalendar = async (ministry = []) => {
       throw new Error(privateEventsResult.error.message);
     }
 
-    // Combine public and private events
-    const allEvents = [...publicEventsResult.data, ...privateEventsResult.data];
+    // Combine and deduplicate events
+    const allEvents = [
+      ...(publicEventsResult.data || []),
+      ...(privateEventsResult.data || []),
+    ];
 
-    allEvents.sort((a, b) => {
-      const dateA = new Date(`${a.event_date}T${a.event_time}`);
-      const dateB = new Date(`${b.event_date}T${b.event_time}`);
-      return dateA - dateB; // Sort in ascending order (earliest date first)
+    // Remove duplicates based on event ID
+    const uniqueEvents = allEvents.filter(
+      (event, index, self) => index === self.findIndex((e) => e.id === event.id)
+    );
+
+    // Sort by date (newest first for calendar)
+    uniqueEvents.sort((a, b) => {
+      const dateA = new Date(`${a.event_date}T${a.event_time || "00:00:00"}`);
+      const dateB = new Date(`${b.event_date}T${b.event_time || "00:00:00"}`);
+      return dateB - dateA;
     });
 
-    allEvents.forEach((event) => {
+    // Transform image URLs
+    uniqueEvents.forEach((event) => {
       if (event.image_url) {
         event.image_url = getPublicImageUrl(event.image_url);
       }
     });
 
-    return { success: true, data: allEvents };
+    return { success: true, data: uniqueEvents };
+  } catch (error) {
+    console.error("Error fetching all events for calendar:", error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Updated getEventsCalendar for infinite scroll (upcoming events only)
+export const getEventsCalendar = async (ministry = [], options = {}) => {
+  const {
+    page = 1,
+    limit = 12,
+    cursor = null, // For cursor-based pagination
+  } = options;
+
+  try {
+    const today = new Date().toISOString().split("T")[0];
+
+    // Build base queries for upcoming events only
+    let publicEventsQuery = supabase
+      .from("events")
+      .select("*", { count: "exact" })
+      .eq("event_visibility", "public")
+      .gte("event_date", today);
+
+    let privateEventsQuery =
+      ministry.length > 0
+        ? supabase
+            .from("events")
+            .select("*", { count: "exact" })
+            .eq("event_visibility", "private")
+            .in("ministry_id", ministry)
+            .gte("event_date", today)
+        : null;
+
+    // Apply cursor-based pagination if cursor is provided
+    if (cursor) {
+      publicEventsQuery = publicEventsQuery.gt("id", cursor);
+      if (privateEventsQuery) {
+        privateEventsQuery = privateEventsQuery.gt("id", cursor);
+      }
+    }
+
+    // Apply sorting and pagination (ascending for upcoming events)
+    publicEventsQuery = publicEventsQuery
+      .order("event_date", { ascending: true })
+      .order("event_time", { ascending: true })
+      .limit(limit);
+
+    if (privateEventsQuery) {
+      privateEventsQuery = privateEventsQuery
+        .order("event_date", { ascending: true })
+        .order("event_time", { ascending: true })
+        .limit(limit);
+    }
+
+    // Execute both queries in parallel
+    const [publicEventsResult, privateEventsResult] = await Promise.all([
+      publicEventsQuery,
+      privateEventsQuery || Promise.resolve({ data: [], count: 0 }),
+    ]);
+
+    // Check for errors
+    if (publicEventsResult.error) {
+      throw new Error(publicEventsResult.error.message);
+    }
+    if (privateEventsResult.error) {
+      throw new Error(privateEventsResult.error.message);
+    }
+
+    // Combine and deduplicate events
+    const allEvents = [
+      ...(publicEventsResult.data || []),
+      ...(privateEventsResult.data || []),
+    ];
+
+    // Remove duplicates based on event ID
+    const uniqueEvents = allEvents.filter(
+      (event, index, self) => index === self.findIndex((e) => e.id === event.id)
+    );
+
+    // Sort combined results (upcoming events in chronological order)
+    uniqueEvents.sort((a, b) => {
+      const dateA = new Date(`${a.event_date}T${a.event_time || "00:00:00"}`);
+      const dateB = new Date(`${b.event_date}T${b.event_time || "00:00:00"}`);
+      return dateA - dateB;
+    });
+
+    // Take only the requested number of events
+    const paginatedEvents = uniqueEvents.slice(0, limit);
+
+    // Transform image URLs
+    paginatedEvents.forEach((event) => {
+      if (event.image_url) {
+        event.image_url = getPublicImageUrl(event.image_url);
+      }
+    });
+
+    // Determine if there are more events
+    const hasMore = paginatedEvents.length === limit;
+    const nextCursor =
+      paginatedEvents.length > 0
+        ? paginatedEvents[paginatedEvents.length - 1].id
+        : null;
+
+    return {
+      success: true,
+      data: paginatedEvents,
+      pagination: {
+        hasMore,
+        nextCursor,
+        page,
+        limit,
+      },
+    };
   } catch (error) {
     console.error("Error fetching events:", error);
-    return { success: false, error: error.message }; // Return error structure
+    return { success: false, error: error.message };
   }
 };
 
