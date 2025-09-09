@@ -1550,6 +1550,10 @@ const parentsWithEmail = async (familyId) => {
   }
 };
 
+const fetchPreviousAttendees = async (familyId) => {
+  console.log(familyId);
+};
+
 export {
   fetchChildrenAttendanceHistory,
   fetchParentAttendanceHistory,
@@ -1574,4 +1578,5 @@ export {
   updateWalkInAttendee,
   getAttendanceFromExistingRecord,
   parentsWithEmail,
+  fetchPreviousAttendees,
 };
