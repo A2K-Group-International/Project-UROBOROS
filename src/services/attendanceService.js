@@ -783,11 +783,12 @@ const fetchAlreadyRegistered = async (eventId, attendeeIds) => {
   return data;
 };
 
-const removeAttendee = async (attendeeId) => {
+const removeAttendee = async (attendeeId, eventId) => {
   const { data, error } = await supabase
     .from("attendance")
     .delete()
-    .eq("attendee_id", attendeeId);
+    .eq("attendee_id", attendeeId)
+    .eq("event_id", eventId);
 
   if (error) {
     throw new Error(error.message);
@@ -1550,8 +1551,53 @@ const parentsWithEmail = async (familyId) => {
   }
 };
 
-const fetchPreviousAttendees = async (familyId) => {
-  console.log(familyId);
+const fetchPreviousAttendees = async (familyId, eventName) => {
+  // Step 1: Get the last 3 latest event IDs by eventName
+  const { data: events, error: eventError } = await supabase
+    .from("events")
+    .select("id, created_at")
+    .eq("event_name", eventName)
+    .order("created_at", { ascending: false })
+    .limit(3);
+
+  if (eventError) {
+    console.error("Error fetching events:", eventError);
+    return [];
+  }
+  if (!events || events.length === 0) return [];
+
+  const eventIds = events.map((e) => e.id);
+
+  // Step 2: Fetch attendance for those event IDs and familyId
+  const { data: attendance, error: attendanceError } = await supabase
+    .from("attendance")
+    .select("attendee_id, first_name, last_name, attendee_type, created_at")
+    .in("event_id", eventIds)
+    .eq("family_id", familyId)
+    .order("created_at", { ascending: false }); // newest records first
+
+  if (attendanceError) {
+    console.error("Error fetching attendance:", attendanceError);
+    return [];
+  }
+
+  // Step 3: Deduplicate by attendee_id (keep latest record per attendee)
+  const uniqueAttendance = Object.values(
+    attendance.reduce((acc, curr) => {
+      if (!acc[curr.attendee_id]) {
+        acc[curr.attendee_id] = curr; // first occurrence is latest
+      }
+      return acc;
+    }, {})
+  );
+
+  // Step 4: Return only the requested fields
+  return uniqueAttendance.map((att) => ({
+    attendee_id: att.attendee_id,
+    first_name: att.first_name,
+    last_name: att.last_name,
+    attendee_type: att.attendee_type, // "parent" or "children"
+  }));
 };
 
 export {

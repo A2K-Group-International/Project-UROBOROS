@@ -10,8 +10,10 @@ import {
   useFetchAlreadyRegistered,
   useGuardianManualAttendEvent,
   useRemoveAttendee,
+  useGetPreviousAttendees,
 } from "@/hooks/useManualAttendEvent";
 import Loading from "../Loading";
+import PreviousAttendeesDialog from "./PreviousAttendeesDialog";
 
 const AttendeeButton = ({ onClick, children, isPending }) => (
   <Button
@@ -110,18 +112,25 @@ RegisteredAttendees.propTypes = {
   isPending: PropTypes.bool,
 };
 
-const FamilyData = ({ userId, selectedEvent }) => {
+const FamilyData = ({ userId, selectedEvent, eventName }) => {
   const [availableParents, setAvailableParents] = useState([]); // Available parents
   const [availableChildren, setAvailableChildren] = useState([]); // Available children
   const [selectedParentId, setSelectedParentId] = useState(null); // Selected parent
   const [selectedChildId, setSelectedChildId] = useState(null); // Selected child
+  const [isQuickSubmitting, setIsQuickSubmitting] = useState(false);
 
   const {
+    familyId,
     parentData,
     childData,
     isLoading: familyLoading,
     error,
   } = useFamilyData(); // Fetch family
+
+  const { data: previousAttendees } = useGetPreviousAttendees(
+    eventName,
+    familyId
+  );
 
   const { mutate: removeAttendee, isPending: isRemovingAttendee } =
     useRemoveAttendee(); // Remove attendee
@@ -167,6 +176,40 @@ const FamilyData = ({ userId, selectedEvent }) => {
   const isLoading = familyLoading || registerLoading;
   if (isLoading) return <Loading />;
   if (error) return <div>Error: {error.message}</div>;
+
+  // Instead of using all previousAttendees, accept the notRegistered list
+  const handleQuickAttendAll = (attendeesToAdd) => {
+    if (!attendeesToAdd || attendeesToAdd.length === 0) return;
+
+    setIsQuickSubmitting(true);
+
+    attendeesToAdd.forEach((attendee) => {
+      const attendeeData = {
+        id: attendee.attendee_id,
+        event_id: selectedEvent,
+        attendee_type: attendee.attendee_type,
+        attended: false,
+        main_applicant:
+          attendee.attendee_type === "parents" &&
+          attendee.attendee_id === userId,
+        family_id: familyId,
+        first_name: attendee.first_name,
+        last_name: attendee.last_name,
+        contact_number: attendee.contact_number || null,
+        registered_by: userId,
+      };
+
+      if (attendee.attendee_type === "parents") {
+        guardianManualAttend(attendeeData, {
+          onSettled: () => setIsQuickSubmitting(false),
+        });
+      } else if (attendee.attendee_type === "children") {
+        childManualAttend(attendeeData, {
+          onSettled: () => setIsQuickSubmitting(false),
+        });
+      }
+    });
+  };
 
   // Function parent attend event
   const handleParentAttend = (parentId) => {
@@ -245,11 +288,24 @@ const FamilyData = ({ userId, selectedEvent }) => {
 
   // Function to cancel attendance
   const handleCancelAttendance = (attendeeId) => {
-    removeAttendee(attendeeId);
+    removeAttendee({ attendeeId, eventId: selectedEvent });
   };
 
   return (
     <div>
+      {/* ✅ Place at top */}
+      <div className="mb-4 flex items-center justify-between">
+        <Label className="text-lg font-bold">Previous Attendees</Label>
+        <PreviousAttendeesDialog
+          eventName={eventName}
+          attendees={previousAttendees}
+          registeredAttendees={registeredAttendees}
+          onQuickAttend={handleQuickAttendAll}
+          isSubmitting={isQuickSubmitting}
+        />
+      </div>
+
+      {/* Parents */}
       <section>
         {availableParents.length > 0 && (
           <>
@@ -268,6 +324,8 @@ const FamilyData = ({ userId, selectedEvent }) => {
           </>
         )}
       </section>
+
+      {/* Children */}
       <section className="mt-6">
         {availableChildren.length > 0 && (
           <Label className="font-bold">Available Children</Label>
@@ -282,9 +340,11 @@ const FamilyData = ({ userId, selectedEvent }) => {
           />
         ))}
       </section>
+
+      {/* Registered */}
       {registeredAttendees.length > 0 && (
         <section className="mt-6">
-          <Label>Attendees from your Family</Label>
+          <Label className="font-bold">Attendees from your Family</Label>
           <RegisteredAttendees
             attendees={registeredAttendees}
             onCancelAttendance={handleCancelAttendance}
@@ -299,5 +359,6 @@ const FamilyData = ({ userId, selectedEvent }) => {
 FamilyData.propTypes = {
   userId: PropTypes.string.isRequired,
   selectedEvent: PropTypes.string,
+  eventName: PropTypes.string,
 };
 export default FamilyData;

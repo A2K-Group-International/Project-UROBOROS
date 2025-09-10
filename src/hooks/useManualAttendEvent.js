@@ -4,6 +4,7 @@ import {
   insertGuardians,
   fetchAlreadyRegistered,
   removeAttendee,
+  fetchPreviousAttendees,
   // insertMainApplicant,
 } from "@/services/attendanceService";
 
@@ -90,13 +91,15 @@ const useFetchAlreadyRegistered = (eventId, attendeeIds) => {
 const useRemoveAttendee = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
   return useMutation({
-    mutationFn: removeAttendee,
+    mutationFn: ({ attendeeId, eventId }) =>
+      removeAttendee(attendeeId, eventId), // ✅ pass both
     onSuccess: () => {
       toast({
         title: "Attendee Removed",
       });
-      queryClient.invalidateQueries("attendance"); // Invalidate the query to refetch the data
+      queryClient.invalidateQueries("attendance"); // ✅ refresh attendance
     },
     onError: (error) => {
       toast({
@@ -108,10 +111,19 @@ const useRemoveAttendee = () => {
   });
 };
 
+const useGetPreviousAttendees = (eventName, familyId) => {
+  return useQuery({
+    queryKey: ["previousAttendees", eventName, familyId],
+    queryFn: () => fetchPreviousAttendees(familyId, eventName), // ✅ fixed order
+    enabled: !!eventName && !!familyId, // also good to require familyId
+  });
+};
+
 export {
   useGuardianManualAttendEvent,
   // useMainApplicantAttendEvent,
   useChildrenManualAttendance,
   useFetchAlreadyRegistered,
   useRemoveAttendee,
+  useGetPreviousAttendees,
 };
