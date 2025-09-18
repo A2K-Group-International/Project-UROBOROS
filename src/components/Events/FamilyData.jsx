@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-
 import PropTypes from "prop-types";
 import { Icon } from "@iconify/react";
 import { Button } from "@/components/ui/button";
@@ -10,8 +9,10 @@ import {
   useFetchAlreadyRegistered,
   useGuardianManualAttendEvent,
   useRemoveAttendee,
+  useGetPreviousAttendees,
 } from "@/hooks/useManualAttendEvent";
 import Loading from "../Loading";
+import PreviousAttendeesPanel from "./PreviousAttendeesPanel"; // ✅ replaced dialog
 
 const AttendeeButton = ({ onClick, children, isPending }) => (
   <Button
@@ -110,147 +111,170 @@ RegisteredAttendees.propTypes = {
   isPending: PropTypes.bool,
 };
 
-const FamilyData = ({ userId, selectedEvent }) => {
-  const [availableParents, setAvailableParents] = useState([]); // Available parents
-  const [availableChildren, setAvailableChildren] = useState([]); // Available children
-  const [selectedParentId, setSelectedParentId] = useState(null); // Selected parent
-  const [selectedChildId, setSelectedChildId] = useState(null); // Selected child
+const FamilyData = ({ userId, selectedEvent, eventName }) => {
+  const [availableParents, setAvailableParents] = useState([]);
+  const [availableChildren, setAvailableChildren] = useState([]);
+  const [selectedParentId, setSelectedParentId] = useState(null);
+  const [selectedChildId, setSelectedChildId] = useState(null);
+  const [isQuickSubmitting, setIsQuickSubmitting] = useState(false);
 
   const {
+    familyId,
     parentData,
     childData,
     isLoading: familyLoading,
     error,
-  } = useFamilyData(); // Fetch family
+  } = useFamilyData();
+
+  const { data: previousAttendees } = useGetPreviousAttendees(
+    eventName,
+    familyId
+  );
 
   const { mutate: removeAttendee, isPending: isRemovingAttendee } =
-    useRemoveAttendee(); // Remove attendee
+    useRemoveAttendee();
   const { mutate: guardianManualAttend, isPending: isParentSubmitting } =
-    useGuardianManualAttendEvent(); // Parent attend event
+    useGuardianManualAttendEvent();
   const { mutate: childManualAttend, isPending: isChildSubmitting } =
-    useChildrenManualAttendance(); // Child attend event
-  // Get the parent ids from the parent data
+    useChildrenManualAttendance();
+
   const parentIds = parentData?.map((parent) => parent.id) || [];
-  // Get the parent ids from the parent data
   const childIds = childData?.map((child) => child.id) || [];
-  // Combine parent and child ids
   const attendeeIds = [...parentIds, ...childIds];
-  // Fetch already registered attendees
+
   const { data: registeredAttendees, isLoading: registerLoading } =
     useFetchAlreadyRegistered(selectedEvent, attendeeIds);
 
-  // Update availableParents when parentData or registeredAttendees changes
   useEffect(() => {
     if (!parentData || !registeredAttendees) return;
-
-    const filteredParents = parentData.filter(
-      (parent) =>
-        !registeredAttendees.some(
-          (registered) => registered.attendee_id === parent.id
-        )
+    setAvailableParents(
+      parentData.filter(
+        (parent) =>
+          !registeredAttendees.some(
+            (registered) => registered.attendee_id === parent.id
+          )
+      )
     );
-    setAvailableParents(filteredParents);
   }, [parentData, registeredAttendees]);
 
   useEffect(() => {
     if (!childData || !registeredAttendees) return;
-
-    const filteredChildren = childData.filter(
-      (child) =>
-        !registeredAttendees.some(
-          (registered) => registered.attendee_id === child.id
-        )
+    setAvailableChildren(
+      childData.filter(
+        (child) =>
+          !registeredAttendees.some(
+            (registered) => registered.attendee_id === child.id
+          )
+      )
     );
-    setAvailableChildren(filteredChildren);
   }, [childData, registeredAttendees]);
 
   const isLoading = familyLoading || registerLoading;
   if (isLoading) return <Loading />;
   if (error) return <div>Error: {error.message}</div>;
 
-  // Function parent attend event
+  const handleQuickAttendAll = (attendeesToAdd) => {
+    if (!attendeesToAdd || attendeesToAdd.length === 0) return;
+
+    setIsQuickSubmitting(true);
+
+    attendeesToAdd.forEach((attendee) => {
+      const attendeeData = {
+        id: attendee.attendee_id,
+        event_id: selectedEvent,
+        attendee_type: attendee.attendee_type,
+        attended: false,
+        main_applicant:
+          attendee.attendee_type === "parents" &&
+          attendee.attendee_id === userId,
+        family_id: familyId,
+        first_name: attendee.first_name,
+        last_name: attendee.last_name,
+        contact_number: attendee.contact_number || null,
+        registered_by: userId,
+      };
+
+      if (attendee.attendee_type === "parents") {
+        guardianManualAttend(attendeeData, {
+          onSettled: () => setIsQuickSubmitting(false),
+        });
+      } else if (attendee.attendee_type === "children") {
+        childManualAttend(attendeeData, {
+          onSettled: () => setIsQuickSubmitting(false),
+        });
+      }
+    });
+  };
+
   const handleParentAttend = (parentId) => {
-    try {
-      // Prevent double submission
-      if (selectedParentId) return;
+    if (selectedParentId) return;
+    setSelectedParentId(parentId);
 
-      setSelectedParentId(parentId);
-      const parent = parentData.find((p) => p.id === parentId);
+    const parent = parentData.find((p) => p.id === parentId);
+    if (!parent) return;
 
-      if (!parent) {
-        console.error("Parent not found");
-        return;
-      }
+    const attendeeData = {
+      id: parent.id,
+      event_id: selectedEvent,
+      attendee_type: "parents",
+      attended: false,
+      main_applicant: parent.id === userId,
+      family_id: parent.family_id,
+      first_name: parent.first_name,
+      last_name: parent.last_name,
+      contact_number: parent.contact_number,
+      registered_by: userId,
+    };
 
-      const attendeeData = {
-        id: parent.id,
-        event_id: selectedEvent,
-        attendee_type: "parents",
-        attended: false,
-        main_applicant: parent.id === userId,
-        family_id: parent.family_id,
-        first_name: parent.first_name,
-        last_name: parent.last_name,
-        contact_number: parent.contact_number,
-        registered_by: userId,
-      };
-
-      guardianManualAttend(attendeeData, {
-        onSettled: () => setSelectedParentId(null),
-        onSuccess: () => {
-          // Remove the registered parent from availableParents
-          setAvailableParents((prev) =>
-            prev.filter((parent) => parent.id !== parentId)
-          );
-        },
-      });
-    } catch (error) {
-      console.error("Error attending parent:", error.message);
-    }
+    guardianManualAttend(attendeeData, {
+      onSettled: () => setSelectedParentId(null),
+      onSuccess: () =>
+        setAvailableParents((prev) => prev.filter((p) => p.id !== parentId)),
+    });
   };
-  // Function child attend event
+
   const handleChildAttend = (childId) => {
-    try {
-      setSelectedChildId(childId);
-      const child = childData.find((c) => c.id === childId);
-      if (!child) {
-        console.error("Child not found");
-        return;
-      }
-      const attendeeData = {
-        id: child.id,
-        event_id: selectedEvent,
-        attendee_type: "children",
-        attended: false,
-        main_applicant: false,
-        family_id: child.family_id,
-        first_name: child.first_name,
-        last_name: child.last_name,
-        registered_by: userId,
-      };
+    setSelectedChildId(childId);
 
-      childManualAttend(attendeeData, {
-        onSettled: () => setSelectedChildId(null),
-        onSuccess: () => {
-          // Remove the registered parent from availableParents
-          setAvailableChildren((prev) =>
-            prev.filter((child) => child.id !== childId)
-          );
-        },
-      });
-    } catch (error) {
-      console.error("Error attending child:", error.message);
-    }
+    const child = childData.find((c) => c.id === childId);
+    if (!child) return;
+
+    const attendeeData = {
+      id: child.id,
+      event_id: selectedEvent,
+      attendee_type: "children",
+      attended: false,
+      main_applicant: false,
+      family_id: child.family_id,
+      first_name: child.first_name,
+      last_name: child.last_name,
+      registered_by: userId,
+    };
+
+    childManualAttend(attendeeData, {
+      onSettled: () => setSelectedChildId(null),
+      onSuccess: () =>
+        setAvailableChildren((prev) => prev.filter((c) => c.id !== childId)),
+    });
   };
 
-  // Function to cancel attendance
   const handleCancelAttendance = (attendeeId) => {
-    removeAttendee(attendeeId);
+    removeAttendee({ attendeeId, eventId: selectedEvent });
   };
 
   return (
     <div>
-      <section>
+      {/* ✅ New Panel at Top */}
+      <PreviousAttendeesPanel
+        eventName={eventName}
+        attendees={previousAttendees}
+        registeredAttendees={registeredAttendees}
+        onQuickAttend={handleQuickAttendAll}
+        isSubmitting={isQuickSubmitting}
+      />
+
+      {/* Parents */}
+      <section className="mt-6">
         {availableParents.length > 0 && (
           <>
             <Label className="font-bold">Available Parents/Guardians</Label>
@@ -268,11 +292,13 @@ const FamilyData = ({ userId, selectedEvent }) => {
           </>
         )}
       </section>
+
+      {/* Children */}
       <section className="mt-6">
         {availableChildren.length > 0 && (
           <Label className="font-bold">Available Children</Label>
         )}
-        {availableChildren?.map((child) => (
+        {availableChildren.map((child) => (
           <ChildMemberCard
             key={child.id}
             name={`${child.first_name} ${child.last_name}`}
@@ -282,9 +308,11 @@ const FamilyData = ({ userId, selectedEvent }) => {
           />
         ))}
       </section>
-      {registeredAttendees.length > 0 && (
+
+      {/* Registered */}
+      {registeredAttendees?.length > 0 && (
         <section className="mt-6">
-          <Label>Attendees from your Family</Label>
+          <Label className="font-bold">Attendees from your Family</Label>
           <RegisteredAttendees
             attendees={registeredAttendees}
             onCancelAttendance={handleCancelAttendance}
@@ -299,5 +327,7 @@ const FamilyData = ({ userId, selectedEvent }) => {
 FamilyData.propTypes = {
   userId: PropTypes.string.isRequired,
   selectedEvent: PropTypes.string,
+  eventName: PropTypes.string,
 };
+
 export default FamilyData;
