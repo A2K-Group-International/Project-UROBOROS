@@ -68,6 +68,7 @@ const ManualAttendEvents = ({
         </DialogHeader>
         <div>
           <FamilyData
+            eventId={eventId}
             userId={userId}
             selectedEvent={selectedEvent}
             eventName={eventName}

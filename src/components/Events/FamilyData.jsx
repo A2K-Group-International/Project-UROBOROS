@@ -111,7 +111,7 @@ RegisteredAttendees.propTypes = {
   isPending: PropTypes.bool,
 };
 
-const FamilyData = ({ userId, selectedEvent, eventName }) => {
+const FamilyData = ({ userId, selectedEvent, eventName, eventId }) => {
   const [availableParents, setAvailableParents] = useState([]);
   const [availableChildren, setAvailableChildren] = useState([]);
   const [selectedParentId, setSelectedParentId] = useState(null);
@@ -128,7 +128,8 @@ const FamilyData = ({ userId, selectedEvent, eventName }) => {
 
   const { data: previousAttendees } = useGetPreviousAttendees(
     eventName,
-    familyId
+    familyId,
+    eventId
   );
 
   const { mutate: removeAttendee, isPending: isRemovingAttendee } =
@@ -325,6 +326,7 @@ const FamilyData = ({ userId, selectedEvent, eventName }) => {
 };
 
 FamilyData.propTypes = {
+  eventId: PropTypes.string,
   userId: PropTypes.string.isRequired,
   selectedEvent: PropTypes.string,
   eventName: PropTypes.string,
