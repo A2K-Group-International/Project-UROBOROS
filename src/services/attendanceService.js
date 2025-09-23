@@ -783,11 +783,12 @@ const fetchAlreadyRegistered = async (eventId, attendeeIds) => {
   return data;
 };
 
-const removeAttendee = async (attendeeId) => {
+const removeAttendee = async (attendeeId, eventId) => {
   const { data, error } = await supabase
     .from("attendance")
     .delete()
-    .eq("attendee_id", attendeeId);
+    .eq("attendee_id", attendeeId)
+    .eq("event_id", eventId);
 
   if (error) {
     throw new Error(error.message);
@@ -1550,6 +1551,79 @@ const parentsWithEmail = async (familyId) => {
   }
 };
 
+const fetchPreviousAttendees = async (familyId, eventName, eventId) => {
+  // console.log("service", familyId, eventName, eventId);
+  const { data: currentEvent, error: currentEventError } = await supabase
+    .from("events")
+    .select("id, event_date")
+    .eq("id", eventId)
+    .single();
+
+  if (currentEventError || !currentEvent) {
+    console.error("Error fetching current event:", currentEventError);
+    return [];
+  }
+
+  const currentDate = currentEvent.event_date;
+
+  // Step 2: Get the 3 events *before* this event
+  const { data: events, error: eventError } = await supabase
+    .from("events")
+    .select("id, event_date")
+    .eq("event_name", eventName)
+    .lt("event_date", currentDate) // only past events
+    .order("event_date", { ascending: false })
+    .limit(3);
+
+  if (eventError) {
+    console.error("Error fetching events:", eventError);
+    return [];
+  }
+  if (!events || events.length === 0) return [];
+
+  const eventIds = events.map((e) => e.id);
+
+  // Step 3: Fetch attendance for those events
+  let query = supabase
+    .from("attendance")
+    .select(
+      "attendee_id, first_name, last_name, attendee_type, family_id, created_at"
+    )
+    .in("event_id", eventIds)
+    .order("created_at", { ascending: false });
+
+  if (familyId) {
+    query = query.eq("family_id", familyId);
+  }
+
+  const { data: attendance, error: attendanceError } = await query;
+
+  if (attendanceError) {
+    console.error("Error fetching attendance:", attendanceError);
+    return [];
+  }
+  if (!attendance || attendance.length === 0) return [];
+
+  // Step 4: Deduplicate by attendee_id (keep the latest record)
+  const uniqueAttendance = Object.values(
+    attendance.reduce((acc, curr) => {
+      if (!acc[curr.attendee_id]) {
+        acc[curr.attendee_id] = curr;
+      }
+      return acc;
+    }, {})
+  );
+
+  // Step 5: Return cleaned list
+  return uniqueAttendance.map((att) => ({
+    attendee_id: att.attendee_id,
+    first_name: att.first_name,
+    last_name: att.last_name,
+    attendee_type: att.attendee_type,
+    family_id: att.family_id,
+  }));
+};
+
 export {
   fetchChildrenAttendanceHistory,
   fetchParentAttendanceHistory,
@@ -1574,4 +1648,5 @@ export {
   updateWalkInAttendee,
   getAttendanceFromExistingRecord,
   parentsWithEmail,
+  fetchPreviousAttendees,
 };
