@@ -139,6 +139,7 @@ const Requests = () => {
                   <SelectItem value="parishioner">Parishioners</SelectItem>
                   <SelectItem value="volunteer">Volunteers</SelectItem>
                   <SelectItem value="coordinator">Coordinators</SelectItem>
+                  <SelectItem value="admin">Admins</SelectItem>
                   <SelectItem value="family">Families</SelectItem>
                 </SelectGroup>
               </SelectContent>

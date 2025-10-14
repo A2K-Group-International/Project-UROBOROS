@@ -57,6 +57,7 @@ const NewProfileForm = ({ id = "new-user-form", user, onClose }) => {
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Roles</SelectLabel>
+                    <SelectItem value="admin">Admin</SelectItem>
                     <SelectItem value="coordinator">Coordinator</SelectItem>
                     <SelectItem value="volunteer">Volunteer</SelectItem>
                     <SelectItem value="parishioner">Parishioner</SelectItem>
