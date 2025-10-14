@@ -25,6 +25,7 @@ import PollList from "./pages/PollList";
 import LicenseVerificationError from "./pages/LicenseVerificationError";
 import LicenseVerificationSuccess from "./pages/LicenseVerificationSuccess";
 import LicenseVerification from "./pages/LicenseVerification";
+import ConfirmationForm from "./pages/ConfirmationForm";
 
 const App = () => {
   return (
@@ -45,7 +46,7 @@ const App = () => {
           element={<LicenseVerificationSuccess />}
         />
         <Route
-        path="/license-verification-error"
+          path="/license-verification-error"
           element={<LicenseVerificationError />}
         />
 
@@ -81,6 +82,10 @@ const App = () => {
             <Route path="/family" element={<Family />} />
             <Route path="/consultation" element={<Consultation />} />
             <Route path="/poll-list" element={<PollList />} />
+            <Route
+              path="/ministries/saint-laurence-confirmation-form-2025-2026"
+              element={<ConfirmationForm />}
+            />
           </Route>
         </Route>
       </Routes>
