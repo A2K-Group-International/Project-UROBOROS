@@ -1,4 +1,5 @@
 import {
+  getConfirmationRegistrations,
   getUserCoordinator,
   getUserMinistry,
   submitRegistrationForm,
@@ -24,5 +25,12 @@ export const useGetUserCoordinator = (userId, ministryId) => {
     queryKey: ["user-coordinator", userId, ministryId],
     queryFn: () => getUserCoordinator(userId, ministryId),
     enabled: !!userId && !!ministryId,
+  });
+};
+
+export const useGetConfirmRegistration = () => {
+  return useQuery({
+    queryKey: ["confirm-registration"],
+    queryFn: () => getConfirmationRegistrations(),
   });
 };

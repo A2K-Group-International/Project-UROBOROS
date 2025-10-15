@@ -19,7 +19,7 @@ import { registrationSchema } from "@/zodSchema/ConfirmationFormSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import DatePicker from "react-datepicker";
 
 import "react-datepicker/dist/react-datepicker.css";
@@ -39,6 +39,7 @@ const ConfirmationForm = () => {
   const ministryId = searchParams.get("id");
   const { userData } = useUser();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const { data: hasAccess, isLoading } = useUserMinistry(
     userData?.id,
@@ -119,13 +120,21 @@ const ConfirmationForm = () => {
     });
   };
 
+  const handleViewResults = () => {
+    navigate(`/confirmation-results?id=${ministryId}`);
+  };
+
   return (
     <div className="mt-8 flex flex-col items-center gap-4 pb-32 lg:pb-0">
       <div className="flex items-center gap-2">
         <Title className="text-center text-xl md:text-start">
           Saint Laurence Confirmation Form 2025 - 2026
         </Title>
-        {isCoordinator && <Button variant="outline">View Results</Button>}
+        {isCoordinator && (
+          <Button variant="outline" onClick={handleViewResults}>
+            View Results
+          </Button>
+        )}
       </div>
 
       <div className="w-full max-w-2xl">

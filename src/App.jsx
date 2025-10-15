@@ -26,6 +26,7 @@ import LicenseVerificationError from "./pages/LicenseVerificationError";
 import LicenseVerificationSuccess from "./pages/LicenseVerificationSuccess";
 import LicenseVerification from "./pages/LicenseVerification";
 import ConfirmationForm from "./pages/ConfirmationForm";
+import ConfirmationResults from "./pages/ConfirmationResults";
 
 const App = () => {
   return (
@@ -85,6 +86,10 @@ const App = () => {
             <Route
               path="/ministries/saint-laurence-confirmation-form-2025-2026"
               element={<ConfirmationForm />}
+            />
+            <Route
+              path="/confirmation-results"
+              element={<ConfirmationResults />}
             />
           </Route>
         </Route>

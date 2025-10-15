@@ -59,3 +59,26 @@ export const getUserCoordinator = async (userId, ministryId) => {
   }
   return !!data;
 };
+
+export const getConfirmationRegistrations = async () => {
+  const { data, error } = await supabase
+    .from("confirmation_registrations")
+    .select(
+      `
+      id, created_at, user_id, data,
+      users (
+        first_name, 
+        last_name, 
+        contact_number, 
+        email
+      )
+    `
+    )
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching confirmation registrations:", error);
+    throw error;
+  }
+  return data;
+};
