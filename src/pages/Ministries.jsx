@@ -121,7 +121,7 @@ const MinistryItem = ({
         </div>
       </div>
       {/* Confirmation Form */}
-      {ministry.id === "65dfe933-6706-4d94-bde2-565d2e586dfd" && (
+      {ministry.id === "6452a725-48d1-4ceb-b1dd-13904fab9c8b" && (
         <span
           className="cursor-pointer pl-10 underline"
           onClick={handleConfirmationFormClick}
@@ -569,7 +569,7 @@ const MemberMinistryItem = ({
         </div>
       </div>
 
-      {ministry?.ministry_id === "65dfe933-6706-4d94-bde2-565d2e586dfd" && (
+      {ministry?.ministry_id === "6452a725-48d1-4ceb-b1dd-13904fab9c8b" && (
         <span
           className="cursor-pointer pl-10 underline"
           onClick={handleConfirmationFormClick}
