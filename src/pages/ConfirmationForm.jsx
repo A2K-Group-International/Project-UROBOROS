@@ -91,7 +91,7 @@ const ConfirmationForm = () => {
     return <Loading />;
   }
 
-  if (!hasAccess) {
+  if (!hasAccess && !isCoordinator) {
     return (
       <div className="p-8">
         <Title>Access Denied</Title>
