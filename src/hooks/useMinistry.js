@@ -11,9 +11,8 @@ import {
   editMinistry,
   // getAssignedMinistries,
 } from "@/services/ministryService";
-// import { ROLES } from "@/constants/roles";
 
-const useMinistry = ({ ministryId, _role }) => {
+const useMinistry = ({ ministryId, role }) => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -30,10 +29,8 @@ const useMinistry = ({ ministryId, _role }) => {
 
   const { data: ministries, isLoading: ministryLoading } = useQuery({
     queryKey: ["ministries"],
-    queryFn: async () => {
-      return getAllMinistries();
-    },
-    // enabled: role === "admin",
+    queryFn: () => getAllMinistries(),
+    enabled: role === "admin",
   });
 
   const coordinators = useQuery({
