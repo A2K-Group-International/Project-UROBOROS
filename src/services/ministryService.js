@@ -102,14 +102,31 @@ export const getAllMinistries = async () => {
     throw new Error(error.message);
   }
 
-  data.map((ministry) => {
-    const url = supabase.storage
-      .from("Uroboros")
-      .getPublicUrl(ministry.image_url);
-    ministry.image_url = url.data.publicUrl;
-  });
+  // Process image URLs safely
+  const processedData =
+    data?.map((ministry) => {
+      try {
+        if (ministry.image_url) {
+          const url = supabase.storage
+            .from("Uroboros")
+            .getPublicUrl(ministry.image_url);
 
-  return data;
+          return {
+            ...ministry,
+            image_url: url.data.publicUrl,
+          };
+        }
+        return ministry;
+      } catch (error) {
+        console.error(
+          `Error processing image for ministry ${ministry.id}:`,
+          error
+        );
+        return ministry;
+      }
+    }) || [];
+
+  return processedData;
 };
 
 export const getAssignedMinistries = async (userId) => {
