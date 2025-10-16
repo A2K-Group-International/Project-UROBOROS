@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { Label } from "@/components/ui/label";
 import { ChevronDown, ChevronRight, Loader2 } from "lucide-react";
@@ -60,6 +60,8 @@ const MinistryItem = ({
   selectedGroup,
   onSelectGroup,
 }) => {
+  const navigate = useNavigate();
+
   // Fetch groups
   const {
     groups: { data: groups = [] },
@@ -67,6 +69,12 @@ const MinistryItem = ({
   } = useGroups({
     ministryId: ministry.id,
   });
+
+  const handleConfirmationFormClick = () => {
+    navigate(
+      `/ministries/saint-laurence-confirmation-form-2025-2026?id=${ministry.id}`
+    );
+  };
 
   return (
     <div className="overflow-hidden rounded-lg border border-primary-outline">
@@ -112,6 +120,15 @@ const MinistryItem = ({
           />
         </div>
       </div>
+      {/* Confirmation Form */}
+      {ministry.id === "65dfe933-6706-4d94-bde2-565d2e586dfd" && (
+        <span
+          className="cursor-pointer pl-10 underline"
+          onClick={handleConfirmationFormClick}
+        >
+          Confirmation Form 2025 - 2026
+        </span>
+      )}
 
       {isExpanded && (
         <MinistryGroups
@@ -511,6 +528,13 @@ const MemberMinistryItem = ({
 }) => {
   // Add state for tracking expanded groups within this ministry item
   const [expandedGroups, setExpandedGroups] = useState(new Set());
+  const navigate = useNavigate();
+
+  const handleConfirmationFormClick = () => {
+    navigate(
+      `/ministries/saint-laurence-confirmation-form-2025-2026?id=${ministry.ministry_id}`
+    );
+  };
 
   return (
     <div className="overflow-hidden rounded-lg border border-primary-outline">
@@ -545,6 +569,14 @@ const MemberMinistryItem = ({
         </div>
       </div>
 
+      {ministry?.ministry_id === "65dfe933-6706-4d94-bde2-565d2e586dfd" && (
+        <span
+          className="cursor-pointer pl-10 underline"
+          onClick={handleConfirmationFormClick}
+        >
+          Confirmation Form 2025 - 2026
+        </span>
+      )}
       {isExpanded && (
         <div className="px-4 pb-4">
           <div className="space-y-1 pl-9">
