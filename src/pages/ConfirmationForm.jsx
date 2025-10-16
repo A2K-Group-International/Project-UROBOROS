@@ -148,6 +148,7 @@ const ConfirmationForm = () => {
                 <FormItem>
                   <FormLabel>
                     Candidate Details Full Name(include first and last names)
+                    <span className="text-red-500">{" *"}</span>
                   </FormLabel>
                   <FormControl>
                     <div className="relative flex-1">
@@ -191,7 +192,9 @@ const ConfirmationForm = () => {
               name="address"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Address</FormLabel>
+                  <FormLabel>
+                    Address <span className="text-red-500">{" *"}</span>
+                  </FormLabel>
                   <FormControl>
                     <div className="relative flex-1">
                       <Input
@@ -211,7 +214,9 @@ const ConfirmationForm = () => {
               name="date_of_birth"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Date of Birth</FormLabel>
+                  <FormLabel>
+                    Date of Birth <span className="text-red-500">{" *"}</span>
+                  </FormLabel>
                   <DatePicker
                     selected={field.value}
                     onChange={field.onChange}
@@ -236,6 +241,7 @@ const ConfirmationForm = () => {
                   <FormItem className="flex flex-col">
                     <FormLabel>
                       Where do you normally attend Sunday Mass?
+                      <span className="text-red-500">{" *"}</span>
                     </FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
@@ -289,7 +295,9 @@ const ConfirmationForm = () => {
               name="baptism_date"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Date of Baptism</FormLabel>
+                  <FormLabel>
+                    Date of Baptism <span className="text-red-500">{" *"}</span>
+                  </FormLabel>
                   <DatePicker
                     selected={field.value}
                     onChange={field.onChange}
@@ -309,7 +317,10 @@ const ConfirmationForm = () => {
               name="baptism_place"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Place/Church of Baptism</FormLabel>
+                  <FormLabel>
+                    Place/Church of Baptism
+                    <span className="text-red-500">{" *"}</span>
+                  </FormLabel>
                   <FormControl>
                     <div className="relative flex-1">
                       <Input
@@ -404,7 +415,10 @@ const ConfirmationForm = () => {
               name="main_contact_name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Main Contact Name</FormLabel>
+                  <FormLabel>
+                    Main Contact Name
+                    <span className="text-red-500">{" *"}</span>
+                  </FormLabel>
                   <FormControl>
                     <div className="relative flex-1">
                       <Input
@@ -431,7 +445,10 @@ const ConfirmationForm = () => {
                 name="candidate_relationship"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Relationship to Candidate</FormLabel>
+                    <FormLabel>
+                      Relationship to Candidate
+                      <span className="text-red-500">{" *"}</span>
+                    </FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select" />
@@ -475,11 +492,13 @@ const ConfirmationForm = () => {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>
+                    Email <span className="text-red-500">{" *"}</span>
+                  </FormLabel>
                   <FormControl>
                     <div className="relative flex-1">
                       <Input
-                        placeholder="Add event name here"
+                        placeholder="Add email here"
                         className="pr-14"
                         {...field}
                       />
@@ -494,7 +513,9 @@ const ConfirmationForm = () => {
               name="mobile_number"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Mobile Number</FormLabel>
+                  <FormLabel>
+                    Mobile Number <span className="text-red-500">{" *"}</span>
+                  </FormLabel>
                   <FormControl>
                     <div className="relative flex-1">
                       <Input
@@ -591,6 +612,7 @@ const ConfirmationForm = () => {
                   <FormLabel>
                     I give permission for the Confirmation Leaders to contact
                     the Main Contact in the following ways:
+                    <span className="text-red-500">{" *"}</span>
                   </FormLabel>
                   <FormControl>
                     <CustomReactSelect
@@ -630,6 +652,7 @@ const ConfirmationForm = () => {
                     I give permission for the Confirmation Leaders to send me
                     the following types of information in the format stated
                     above - Please check all that apply
+                    <span className="text-red-500">{" *"}</span>
                   </FormLabel>
                   <FormControl>
                     <CustomReactSelect

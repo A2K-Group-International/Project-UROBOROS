@@ -28,9 +28,10 @@ export const useGetUserCoordinator = (userId, ministryId) => {
   });
 };
 
-export const useGetConfirmRegistration = () => {
+export const useGetConfirmRegistration = (page = 1, perPage = 10) => {
   return useQuery({
-    queryKey: ["confirm-registration"],
-    queryFn: () => getConfirmationRegistrations(),
+    queryKey: ["confirm-registration", page, perPage],
+    queryFn: () => getConfirmationRegistrations(page, perPage),
+    keepPreviousData: true,
   });
 };

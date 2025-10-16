@@ -60,7 +60,16 @@ export const getUserCoordinator = async (userId, ministryId) => {
   return !!data;
 };
 
-export const getConfirmationRegistrations = async () => {
+export const getConfirmationRegistrations = async (page = 1, perPage = 10) => {
+  const start = (page - 1) * perPage;
+  const end = start + perPage - 1;
+
+  //Get total count
+
+  const { count } = await supabase
+    .from("confirmation_registrations")
+    .select("*", { count: "exact", head: true });
+
   const { data, error } = await supabase
     .from("confirmation_registrations")
     .select(
@@ -74,11 +83,12 @@ export const getConfirmationRegistrations = async () => {
       )
     `
     )
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .range(start, end);
 
   if (error) {
     console.error("Error fetching confirmation registrations:", error);
     throw error;
   }
-  return data;
+  return { data, count, totalPages: Math.ceil(count / perPage) };
 };

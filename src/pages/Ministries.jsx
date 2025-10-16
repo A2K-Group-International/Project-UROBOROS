@@ -528,6 +528,13 @@ const MemberMinistryItem = ({
 }) => {
   // Add state for tracking expanded groups within this ministry item
   const [expandedGroups, setExpandedGroups] = useState(new Set());
+  const navigate = useNavigate();
+
+  const handleConfirmationFormClick = () => {
+    navigate(
+      `/ministries/saint-laurence-confirmation-form-2025-2026?id=${ministry.ministry_id}`
+    );
+  };
 
   return (
     <div className="overflow-hidden rounded-lg border border-primary-outline">
@@ -562,6 +569,14 @@ const MemberMinistryItem = ({
         </div>
       </div>
 
+      {ministry?.ministry_id === "65dfe933-6706-4d94-bde2-565d2e586dfd" && (
+        <span
+          className="cursor-pointer pl-10 underline"
+          onClick={handleConfirmationFormClick}
+        >
+          Confirmation Form 2025 - 2026
+        </span>
+      )}
       {isExpanded && (
         <div className="px-4 pb-4">
           <div className="space-y-1 pl-9">
