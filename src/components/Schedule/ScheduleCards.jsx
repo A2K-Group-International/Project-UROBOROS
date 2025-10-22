@@ -16,8 +16,8 @@ const ScheduleCards = ({ event, onEventClick, urlPrms, filter }) => {
   useEffect(() => {
     if (event.event_date) {
       const eventDate = new Date(`${event.event_date}`);
-      const sevenDaysAhead = new Date(
-        eventDate.getTime() + 7 * 24 * 60 * 60 * 1000
+      const sevenDaysAhead = new Date( // Default is 7days ahead
+        eventDate.getTime() + 30 * 24 * 60 * 60 * 1000 // temporary set to 30days
       );
       const currentDate = new Date();
       if (sevenDaysAhead < currentDate) {
