@@ -416,10 +416,10 @@ const ScheduleDetails = () => {
     let offset = 0;
     if (role === "volunteer") {
       // 24 hours ahead for volunteer
-      offset = 24 * 60 * 60 * 1000;
+      offset = 30 * 24 * 60 * 60 * 1000; //temporary set to 30days
     } else if (role === "admin" || role === "coordinator") {
       // 7 days ahead for admin
-      offset = 7 * 24 * 60 * 60 * 1000;
+      offset = 30 * 24 * 60 * 60 * 1000; // temporary set to 30days
     }
 
     const eventOffset = new Date(eventDateTime.getTime() + offset);
