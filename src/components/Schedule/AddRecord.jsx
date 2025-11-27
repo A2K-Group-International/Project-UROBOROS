@@ -30,6 +30,11 @@ import { useLocation } from "react-router-dom";
 import { useUser } from "@/context/useUser";
 import { z } from "zod";
 
+import {
+  stringWithWhitespaceValidation,
+  ukPhoneNumberValidation,
+} from "@/lib/validationHelpers";
+
 const AddRecord = ({ eventId }) => {
   const [openDialog, setOpenDialog] = useState(false);
   const location = useLocation();
@@ -39,12 +44,9 @@ const AddRecord = ({ eventId }) => {
     parents: z
       .array(
         z.object({
-          parentFirstName: z.string().min(1, "Parent's first name is required"),
-          parentLastName: z.string().min(1, "Parent's last name is required"),
-          parentContactNumber: z
-            .string()
-            .min(1, "Parent's contact number is required")
-            .regex(/^[0-9]{11}$/, "Contact number must be exactly 11 digits."),
+          parentFirstName: stringWithWhitespaceValidation("Parent's first name"),
+          parentLastName: stringWithWhitespaceValidation("Parent's last name"),
+          parentContactNumber: ukPhoneNumberValidation(),
           isMainApplicant: z.boolean(),
         })
       )
@@ -68,8 +70,8 @@ const AddRecord = ({ eventId }) => {
     children: z
       .array(
         z.object({
-          childFirstName: z.string().min(1, "Child's first name is required"), // Child first name is required
-          childLastName: z.string().min(1, "Child's last name is required"), // Child last name is required
+          childFirstName: stringWithWhitespaceValidation("Child's first name"),
+          childLastName: stringWithWhitespaceValidation("Child's last name"),
         })
       )
       .min(1, "At least one child is required"),

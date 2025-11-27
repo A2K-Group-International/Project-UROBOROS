@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/popover";
 import PropTypes from "prop-types";
 import TimeOutDialog from "./TimeOutDialog";
+import DeleteAttendeeDialog from "./DeleteAttendeeDialog";
 
 const AttendanceTable = ({
   attendance,
@@ -73,7 +74,7 @@ const AttendanceTable = ({
                     />
                   </TableCell>
 
-                  <TableCell className="text-nowrap py-1 md:p-4">
+                  <TableCell className="text-nowrap py-1 md:p-4 capitalize">
                     <p>{`${attendee.first_name} ${attendee.last_name}`}</p>
                   </TableCell>
 
@@ -122,6 +123,10 @@ const AttendanceTable = ({
                     <EditParentAttendeeDialog
                       attendee={attendee}
                       onSubmit={onSubmit}
+                      disableSchedule={disableSchedule}
+                    />
+                    <DeleteAttendeeDialog
+                      attendeeId={attendee.id}
                       disableSchedule={disableSchedule}
                     />
                   </TableCell>
