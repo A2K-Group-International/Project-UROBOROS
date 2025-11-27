@@ -1,10 +1,7 @@
 import { z } from "zod";
+import { stringWithWhitespaceValidation } from "@/lib/validationHelpers";
 
 export const editChildSchema = z.object({
-  firstName: z.string().min(2, {
-    message: "First name must be at least 2 characters.",
-  }),
-  lastName: z.string().min(2, {
-    message: "Last name must be at least 2 characters.",
-  }),
+  firstName: stringWithWhitespaceValidation("First name"),
+  lastName: stringWithWhitespaceValidation("Last name"),
 });

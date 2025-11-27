@@ -1,11 +1,13 @@
 import * as z from "zod";
+import {
+  stringWithWhitespaceValidation,
+  ukPhoneNumberValidation,
+} from "@/lib/validationHelpers";
 
 const parentSchema = z.object({
-  first_name: z.string().min(1, "First name is required"),
-  last_name: z.string().min(1, "Last name is required"),
-  contact_number: z.string().regex(/^[0-9]{11}$/, {
-    message: "Contact number must be exactly 11 digits.",
-  }),
+  first_name: stringWithWhitespaceValidation("First name"),
+  last_name: stringWithWhitespaceValidation("Last name"),
+  contact_number: ukPhoneNumberValidation(),
   time_attended: z
     .string()
     .optional()
@@ -42,23 +44,19 @@ const addFamilySchema = z.object({
   parents: z
     .array(
       z.object({
-        firstName: z.string().min(1, "First name is required"),
-        lastName: z.string().min(1, "Last name is required"),
-        contactNumber: z
-          .string()
-          .min(1, "Contact number is required")
-          .regex(/^\d{11}$/, "Phone number must be exactly 11 digits")
-          .refine(
-            (val) => val !== "09123456789",
-            "This specific number is not allowed"
-          ),
+        firstName: stringWithWhitespaceValidation("First name"),
+        lastName: stringWithWhitespaceValidation("Last name"),
+        contactNumber: ukPhoneNumberValidation().refine(
+          (val) => val !== "09123456789",
+          "This specific number is not allowed"
+        ),
       })
     )
     .min(1, "At least one parent is required"),
   children: z.array(
     z.object({
-      firstName: z.string().min(1, "First name is required"),
-      lastName: z.string().min(1, "Last name is required"),
+      firstName: stringWithWhitespaceValidation("First name"),
+      lastName: stringWithWhitespaceValidation("Last name"),
     })
   ),
 });

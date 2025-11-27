@@ -37,6 +37,7 @@ import { Icon } from "@iconify/react";
 import LicenseList from "@/components/Request/LicenseList";
 import AddLicenseForm from "@/components/Request/AddLicenseForm";
 import LicensePieChart from "@/components/Request/LicensePieChart";
+import FamilyList from "@/components/Request/Families/FamilyList";
 
 const Requests = () => {
   const [tab, setTab] = useState("users");
@@ -66,6 +67,7 @@ const Requests = () => {
         <Tabs onValueChange={(value) => setTab(value)} defaultValue={tab}>
           <TabsList>
             <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="families">Families</TabsTrigger>
             <TabsTrigger value="categories">Categories</TabsTrigger>
             <TabsTrigger value="licenses">Licenses</TabsTrigger>
           </TabsList>
@@ -140,7 +142,7 @@ const Requests = () => {
                   <SelectItem value="volunteer">Volunteers</SelectItem>
                   <SelectItem value="coordinator">Coordinators</SelectItem>
                   <SelectItem value="admin">Admins</SelectItem>
-                  <SelectItem value="family">Families</SelectItem>
+                  {/* <SelectItem value="family">Families</SelectItem> */}
                 </SelectGroup>
               </SelectContent>
             </Select>
@@ -176,7 +178,9 @@ const Requests = () => {
           </div>
         )}
       </div>
+
       {tab === "users" && <UsersList role={role} onRowEdit={onRowEdit} />}
+      {tab === "families" && <FamilyList />}
       {tab === "categories" && <CategoryList />}
       {tab === "licenses" && <LicenseList status={status} />}
     </div>

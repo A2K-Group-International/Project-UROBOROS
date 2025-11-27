@@ -1,15 +1,16 @@
 import { z } from "zod";
+import {
+  stringWithWhitespaceValidation,
+  ukPhoneNumberValidation,
+} from "@/lib/validationHelpers";
 
 export const addRecordSchema = z.object({
   parents: z
     .array(
       z.object({
-        parentFirstName: z.string().min(1, "Parent's first name is required"), // Parent first name is required
-        parentLastName: z.string().min(1, "Parent's last name is required"), // Parent last name is required
-        parentContactNumber: z
-          .string()
-          .min(1, "Parent's contact number is required")
-          .regex(/^[0-9]{11}$/, "Contact number must be exactly 11 digits."),
+        parentFirstName: stringWithWhitespaceValidation("Parent's first name"), // Parent first name is required
+        parentLastName: stringWithWhitespaceValidation("Parent's last name"), // Parent last name is required
+        parentContactNumber: ukPhoneNumberValidation(),
         isMainApplicant: z.boolean(),
       })
     )
@@ -29,8 +30,8 @@ export const addRecordSchema = z.object({
   children: z
     .array(
       z.object({
-        childFirstName: z.string().min(1, "Child's first name is required"), // Child first name is required
-        childLastName: z.string().min(1, "Child's last name is required"), // Child last name is required
+        childFirstName: stringWithWhitespaceValidation("Child's first name"), // Child first name is required
+        childLastName: stringWithWhitespaceValidation("Child's last name"), // Child last name is required
       })
     )
     .min(1, "At least one child is required"),

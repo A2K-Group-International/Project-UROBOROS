@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ukMobileNumberValidation } from "@/lib/validationHelpers";
 
 export const registrationSchema = z
   .object({
@@ -39,15 +40,7 @@ export const registrationSchema = z
       .string()
       .min(1, "Please select your relationship to the candidate"),
     candidate_relationship_other: z.string().optional(),
-    mobile_number: z
-      .string()
-      .trim()
-      .min(1, { message: "Contact number is required" })
-      .regex(/^(\+44|0)7\d{9}$/, {
-        message:
-          "Must be a valid UK mobile number (e.g., +447123456789 or 07123456789)",
-      })
-      .transform((val) => (val.startsWith("0") ? `+44${val.slice(1)}` : val)),
+    mobile_number: ukMobileNumberValidation(),
 
     // Sponsor Details
     sponsor_name: z.string().optional(),
