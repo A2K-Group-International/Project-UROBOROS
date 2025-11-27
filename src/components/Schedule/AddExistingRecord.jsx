@@ -358,7 +358,7 @@ const AddExistingRecord = ({ eventId }) => {
                                     }
                                   />
                                 )}
-                                <Label>
+                                <Label className="capitalize">
                                   {parent.first_name} {parent.last_name}
                                 </Label>
                               </div>
@@ -429,7 +429,7 @@ const AddExistingRecord = ({ eventId }) => {
                                     }
                                   />
                                 )}
-                                <Label>
+                                <Label className="capitalize">
                                   {child.first_name} {child.last_name}
                                 </Label>
                               </div>
@@ -527,7 +527,7 @@ const AddExistingRecord = ({ eventId }) => {
                                   }
                                 />
                               )}
-                              <Label>
+                              <Label className="capitalize">
                                 {walkIn.first_name} {walkIn.last_name}
                               </Label>
                             </div>
