@@ -11,7 +11,6 @@ import Loading from "@/components/Loading";
 import { Skeleton } from "@/components/ui/skeleton";
 import useInterObserver from "@/hooks/useInterObserver";
 import { cn } from "@/lib/utils";
-import FamilyCards from "@/components/Request/FamilyCards";
 import { Icon } from "@iconify/react";
 import PropTypes from "prop-types";
 import useManageUsers from "@/hooks/Request/useManageUser";
@@ -53,7 +52,7 @@ const UsersList = ({ role, onRowEdit }) => {
                     j % 2 !== 0 ? "bg-primary bg-opacity-35" : "bg-white"
                   )}
                 >
-                  <TableCell className="w-[300px] rounded-l-lg text-center">
+                  <TableCell className="w-[300px] rounded-l-lg text-center capitalize">
                     {`${row.first_name} ${row.last_name}`}
                   </TableCell>
                   <TableCell className="w-[300px] text-center">
@@ -89,8 +88,6 @@ const UsersList = ({ role, onRowEdit }) => {
       )}
 
       {/* {hasNextPage && tab !== "family" &&<Skeleton className="h-32 w-full rounded-xl" />} */}
-
-      {role === "family" && <FamilyCards />}
     </>
   );
 };

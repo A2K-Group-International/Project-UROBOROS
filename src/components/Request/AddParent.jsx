@@ -30,19 +30,16 @@ import { Loader2 } from "lucide-react";
 
 import useAddParent from "@/hooks/Family/useAddParent";
 
+import {
+  stringWithWhitespaceValidation,
+  ukPhoneNumberValidation,
+  capitalizeName,
+} from "@/lib/validationHelpers";
+
 const formSchema = z.object({
-  firstName: z
-    .string()
-    .min(2, { message: "First name must be at least 2 characters" })
-    .max(50, { message: "First name must not exceed 50 characters" }),
-  lastName: z
-    .string()
-    .min(2, { message: "Last name must be at least 2 characters" })
-    .max(50, { message: "Last name must not exceed 50 characters" }),
-  contactNumber: z.string().regex(/^(\+44|44|0)\d{10}$/, {
-    message:
-      "Contact number must be a valid contact number with exactly 11 digits.",
-  }),
+  firstName: stringWithWhitespaceValidation("First name").transform(capitalizeName),
+  lastName: stringWithWhitespaceValidation("Last name").transform(capitalizeName),
+  contactNumber: ukPhoneNumberValidation(),
 });
 
 const AddParent = ({ familyId, familyFirstName, familyLastName }) => {
@@ -80,8 +77,8 @@ const AddParent = ({ familyId, familyFirstName, familyLastName }) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="h-6 w-5 rounded-lg">
-          <Icon className="h-3 w-3 text-white" icon="mingcute:add-fill"></Icon>
+        <Button className="h-7 w-7 rounded-lg">
+          <Icon className="h-5 w-3 text-white" icon="mingcute:add-fill"></Icon>
         </Button>
       </DialogTrigger>
       <DialogContent className="text-primary-text">
@@ -141,7 +138,7 @@ const AddParent = ({ familyId, familyFirstName, familyLastName }) => {
                       <FormControl>
                         <Input
                           {...field}
-                          placeholder="09123456789"
+                          placeholder="07123456789"
                           type="tel"
                         />
                       </FormControl>

@@ -795,6 +795,18 @@ const removeAttendee = async (attendeeId) => {
   return data;
 };
 
+const deleteAttendanceRecord = async (id) => {
+  const { data, error } = await supabase
+    .from("attendance")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+  return data;
+};
+
 const fetchParentAttendanceHistory = async (event_name) => {
   const { data, error } = await supabase
     .from("previous_attendees")
@@ -1553,6 +1565,7 @@ const parentsWithEmail = async (familyId) => {
 export {
   fetchChildrenAttendanceHistory,
   fetchParentAttendanceHistory,
+  deleteAttendanceRecord,
   editAttendee,
   getEventAttendance,
   fetchAttendeesByTicketCode,

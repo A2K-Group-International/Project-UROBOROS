@@ -76,8 +76,8 @@ const AddChild = ({ familyId, familyFirstName, familyLastName }) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="h-6 w-5 rounded-lg">
-          <Icon className="h-3 w-3 text-white" icon="mingcute:add-fill"></Icon>
+        <Button className="h-7 w-7 rounded-lg">
+          <Icon className="h-5 w-3 text-white" icon="mingcute:add-fill"></Icon>
         </Button>
       </DialogTrigger>
       <DialogContent className="text-primary-text">

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ukPhoneNumberValidation } from "@/lib/validationHelpers";
 
 // Custom validation function to check if at least one attendee is selected
 const atLeastOneAttendee = (data) => {
@@ -21,7 +22,7 @@ export const manualAttendEventsSchema = z
           id: z.string(), // Make sure the id is required
           first_name: z.string().optional(),
           last_name: z.string().optional(),
-          contact_number: z.string().optional(),
+          contact_number: ukPhoneNumberValidation().optional().or(z.literal("")),
           family_id: z.string().optional(),
         })
       )
