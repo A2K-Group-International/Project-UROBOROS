@@ -6,11 +6,64 @@
 import { z } from "zod";
 
 /**
- * Creates a string schema with whitespace validation
+ * List of common placeholder/fake names to reject
+ */
+const INVALID_NAMES = [
+  "xxx",
+  "test",
+  "admin",
+  "user",
+  "name",
+  "firstname",
+  "lastname",
+  "asdf",
+  "qwerty",
+  "none",
+  "null",
+  "undefined",
+  "n/a",
+  "na",
+];
+
+/**
+ * Capitalizes a name properly (first letter of each word)
+ * Handles hyphenated names, apostrophes, and multiple words
+ * @param {string} name - The name to capitalize
+ * @returns {string} Properly capitalized name
+ * @example
+ * capitalizeName("john") // "John"
+ * capitalizeName("mary-jane") // "Mary-Jane"
+ * capitalizeName("o'brien") // "O'Brien"
+ * capitalizeName("mary ann") // "Mary Ann"
+ */
+export const capitalizeName = (name) => {
+  if (!name || typeof name !== "string") return name;
+
+  return name
+    .trim()
+    .toLowerCase()
+    .split(/(\s|-|')/) // Split on spaces, hyphens, and apostrophes
+    .map((part, index, arr) => {
+      // Check if this part comes after a hyphen or apostrophe
+      const prevPart = arr[index - 1];
+      const shouldCapitalize =
+        index === 0 || prevPart === " " || prevPart === "-" || prevPart === "'";
+
+      if (shouldCapitalize && part.length > 0) {
+        return part.charAt(0).toUpperCase() + part.slice(1);
+      }
+      return part;
+    })
+    .join("");
+};
+
+/**
+ * Creates a string schema with strict name validation for first/last names
+ * Validates that the input is a real name with proper formatting
  * @param {string} fieldName - The name of the field for error messages
- * @param {number} minLength - Minimum length after trimming
- * @param {number} maxLength - Maximum length after trimming
- * @returns {z.ZodString} Zod string schema with whitespace validation
+ * @param {number} minLength - Minimum length after trimming (default: 2)
+ * @param {number} maxLength - Maximum length after trimming (default: 50)
+ * @returns {z.ZodEffects} Zod schema with comprehensive name validation
  */
 export const stringWithWhitespaceValidation = (
   fieldName,
@@ -29,7 +82,57 @@ export const stringWithWhitespaceValidation = (
     })
     .refine((val) => val.trim().length > 0, {
       message: `${fieldName} cannot be only whitespace`,
-    });
+    })
+    .refine(
+      (val) => {
+        // Only allow letters, spaces, hyphens, and apostrophes
+        // Supports international characters (Unicode letters)
+        return /^[a-zA-Z\u00C0-\u017F\s'-]+$/.test(val);
+      },
+      {
+        message: `${fieldName} can only contain letters, spaces, hyphens, and apostrophes`,
+      }
+    )
+    .refine(
+      (val) => {
+        // Prevent excessive repeating characters (more than 2 in a row)
+        // This catches "xxx", "aaa", "zzz", etc.
+        return !/(.)\1{2,}/.test(val);
+      },
+      {
+        message: `${fieldName} cannot contain more than 2 repeating characters`,
+      }
+    )
+    .refine(
+      (val) => {
+        // Check against common fake/placeholder names
+        const lowerVal = val.toLowerCase().trim();
+        return !INVALID_NAMES.includes(lowerVal);
+      },
+      {
+        message: `Please enter a valid ${fieldName.toLowerCase()}`,
+      }
+    )
+    .refine(
+      (val) => {
+        // Must contain at least one vowel (a, e, i, o, u)
+        // Real names typically have vowels
+        return /[aeiouAEIOU]/.test(val);
+      },
+      {
+        message: `${fieldName} must contain at least one vowel`,
+      }
+    )
+    .refine(
+      (val) => {
+        // Prevent names that are just spaces and special characters
+        const lettersOnly = val.replace(/[\s'-]/g, "");
+        return lettersOnly.length >= minLength;
+      },
+      {
+        message: `${fieldName} must contain at least ${minLength} letters`,
+      }
+    );
 };
 
 /**

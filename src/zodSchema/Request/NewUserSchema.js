@@ -2,12 +2,13 @@ import { z } from "zod";
 import {
   stringWithWhitespaceValidation,
   ukPhoneNumberValidation,
+  capitalizeName,
 } from "@/lib/validationHelpers";
 
 export const newUserSchema = z
   .object({
-    first_name: stringWithWhitespaceValidation("First Name"),
-    last_name: stringWithWhitespaceValidation("Last Name"),
+    first_name: stringWithWhitespaceValidation("First Name").transform(capitalizeName),
+    last_name: stringWithWhitespaceValidation("Last Name").transform(capitalizeName),
     contact_number: ukPhoneNumberValidation(),
     email: z.string().email().min(1, "Email is Required"),
     role: z.string().min(1, "Role is Required"),
@@ -20,8 +21,8 @@ export const newUserSchema = z
   });
 
 export const editingUserSchema = z.object({
-  first_name: stringWithWhitespaceValidation("First Name"),
-  last_name: stringWithWhitespaceValidation("Last Name"),
+  first_name: stringWithWhitespaceValidation("First Name").transform(capitalizeName),
+  last_name: stringWithWhitespaceValidation("Last Name").transform(capitalizeName),
   contact_number: ukPhoneNumberValidation(),
   role: z.string().min(1, "Role is Required"),
 });

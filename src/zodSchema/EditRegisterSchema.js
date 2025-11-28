@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   stringWithWhitespaceValidation,
   ukPhoneNumberValidation,
+  capitalizeName,
 } from "@/lib/validationHelpers";
 
 export const EditRegisterSchema = z.object({
@@ -11,8 +12,8 @@ export const EditRegisterSchema = z.object({
   parents: z
     .array(
       z.object({
-        parentFirstName: stringWithWhitespaceValidation("Parent's first name"), // Parent first name is required
-        parentLastName: stringWithWhitespaceValidation("Parent's last name"), // Parent last name is required
+        parentFirstName: stringWithWhitespaceValidation("Parent's first name").transform(capitalizeName), // Parent first name is required
+        parentLastName: stringWithWhitespaceValidation("Parent's last name").transform(capitalizeName), // Parent last name is required
         parentContactNumber: ukPhoneNumberValidation(),
         isMainApplicant: z.boolean(),
         id: z.string().uuid("Parent ID must be a valid UUID").optional(), // ID is optional for updates
@@ -34,8 +35,8 @@ export const EditRegisterSchema = z.object({
   children: z
     .array(
       z.object({
-        childFirstName: stringWithWhitespaceValidation("Child's first name"), // Child first name is required
-        childLastName: stringWithWhitespaceValidation("Child's last name"), // Child last name is required
+        childFirstName: stringWithWhitespaceValidation("Child's first name").transform(capitalizeName), // Child first name is required
+        childLastName: stringWithWhitespaceValidation("Child's last name").transform(capitalizeName), // Child last name is required
         id: z.string().uuid("Child ID must be a valid UUID").optional(), // ID is optional for updates
       })
     )

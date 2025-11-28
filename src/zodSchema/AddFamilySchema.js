@@ -2,11 +2,12 @@ import * as z from "zod";
 import {
   stringWithWhitespaceValidation,
   ukPhoneNumberValidation,
+  capitalizeName,
 } from "@/lib/validationHelpers";
 
 const parentSchema = z.object({
-  first_name: stringWithWhitespaceValidation("First name"),
-  last_name: stringWithWhitespaceValidation("Last name"),
+  first_name: stringWithWhitespaceValidation("First name").transform(capitalizeName),
+  last_name: stringWithWhitespaceValidation("Last name").transform(capitalizeName),
   contact_number: ukPhoneNumberValidation(),
   time_attended: z
     .string()
@@ -44,8 +45,8 @@ const addFamilySchema = z.object({
   parents: z
     .array(
       z.object({
-        firstName: stringWithWhitespaceValidation("First name"),
-        lastName: stringWithWhitespaceValidation("Last name"),
+        firstName: stringWithWhitespaceValidation("First name").transform(capitalizeName),
+        lastName: stringWithWhitespaceValidation("Last name").transform(capitalizeName),
         contactNumber: ukPhoneNumberValidation().refine(
           (val) => val !== "09123456789",
           "This specific number is not allowed"
@@ -55,8 +56,8 @@ const addFamilySchema = z.object({
     .min(1, "At least one parent is required"),
   children: z.array(
     z.object({
-      firstName: stringWithWhitespaceValidation("First name"),
-      lastName: stringWithWhitespaceValidation("Last name"),
+      firstName: stringWithWhitespaceValidation("First name").transform(capitalizeName),
+      lastName: stringWithWhitespaceValidation("Last name").transform(capitalizeName),
     })
   ),
 });

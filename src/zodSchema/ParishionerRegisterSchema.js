@@ -2,12 +2,13 @@ import * as z from "zod";
 import {
   stringWithWhitespaceValidation,
   ukPhoneNumberValidation,
+  capitalizeName,
 } from "@/lib/validationHelpers";
 
 export const parishionerRegisterSchema = z
   .object({
-    firstName: stringWithWhitespaceValidation("First name"),
-    lastName: stringWithWhitespaceValidation("Last name"),
+    firstName: stringWithWhitespaceValidation("First name").transform(capitalizeName),
+    lastName: stringWithWhitespaceValidation("Last name").transform(capitalizeName),
     contactNumber: ukPhoneNumberValidation(),
     email: z
       .string()

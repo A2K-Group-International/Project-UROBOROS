@@ -33,11 +33,12 @@ import useAddParent from "@/hooks/Family/useAddParent";
 import {
   stringWithWhitespaceValidation,
   ukPhoneNumberValidation,
+  capitalizeName,
 } from "@/lib/validationHelpers";
 
 const formSchema = z.object({
-  firstName: stringWithWhitespaceValidation("First name"),
-  lastName: stringWithWhitespaceValidation("Last name"),
+  firstName: stringWithWhitespaceValidation("First name").transform(capitalizeName),
+  lastName: stringWithWhitespaceValidation("Last name").transform(capitalizeName),
   contactNumber: ukPhoneNumberValidation(),
 });
 

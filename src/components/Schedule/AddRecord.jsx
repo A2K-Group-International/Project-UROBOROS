@@ -33,6 +33,7 @@ import { z } from "zod";
 import {
   stringWithWhitespaceValidation,
   ukPhoneNumberValidation,
+  capitalizeName,
 } from "@/lib/validationHelpers";
 
 const AddRecord = ({ eventId }) => {
@@ -44,8 +45,8 @@ const AddRecord = ({ eventId }) => {
     parents: z
       .array(
         z.object({
-          parentFirstName: stringWithWhitespaceValidation("Parent's first name"),
-          parentLastName: stringWithWhitespaceValidation("Parent's last name"),
+          parentFirstName: stringWithWhitespaceValidation("Parent's first name").transform(capitalizeName),
+          parentLastName: stringWithWhitespaceValidation("Parent's last name").transform(capitalizeName),
           parentContactNumber: ukPhoneNumberValidation(),
           isMainApplicant: z.boolean(),
         })
@@ -70,8 +71,8 @@ const AddRecord = ({ eventId }) => {
     children: z
       .array(
         z.object({
-          childFirstName: stringWithWhitespaceValidation("Child's first name"),
-          childLastName: stringWithWhitespaceValidation("Child's last name"),
+          childFirstName: stringWithWhitespaceValidation("Child's first name").transform(capitalizeName),
+          childLastName: stringWithWhitespaceValidation("Child's last name").transform(capitalizeName),
         })
       )
       .min(1, "At least one child is required"),

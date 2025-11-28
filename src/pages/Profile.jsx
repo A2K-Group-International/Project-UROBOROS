@@ -37,10 +37,14 @@ import { Icon } from "@iconify/react";
 import { Switch } from "@/components/ui/switch";
 import ChangeProfile from "@/components/ChangeProfile";
 import { Link } from "react-router-dom";
+import {
+  stringWithWhitespaceValidation,
+  capitalizeName,
+} from "@/lib/validationHelpers";
 
 const nameSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
+  firstName: stringWithWhitespaceValidation("First name").transform(capitalizeName),
+  lastName: stringWithWhitespaceValidation("Last name").transform(capitalizeName),
 });
 
 const emailSchema = z.object({

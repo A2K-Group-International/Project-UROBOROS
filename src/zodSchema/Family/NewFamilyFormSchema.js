@@ -1,12 +1,13 @@
 import {
   stringWithWhitespaceValidation,
   ukPhoneNumberValidation,
+  capitalizeName,
 } from "@/lib/validationHelpers";
 import { z } from "zod";
 
 export const newFamilySchema = z.object({
-  first_name: stringWithWhitespaceValidation("First Name"),
-  last_name: stringWithWhitespaceValidation("Last Name"),
+  first_name: stringWithWhitespaceValidation("First Name").transform(capitalizeName),
+  last_name: stringWithWhitespaceValidation("Last Name").transform(capitalizeName),
   type: z.string().min(1, "Type is Required"),
   contact_number: z.string().optional(),
 }).superRefine((data, ctx) => {
