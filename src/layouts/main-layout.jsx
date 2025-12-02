@@ -53,7 +53,6 @@ const MainLayout = () => {
         >
           <div className="z-50 flex items-center justify-between gap-3 lg:hidden">
             <div className="text-xl font-bold text-accent">
-              {" "}
               {userData?.role === ROLES[0] && "Coordinator Management Centre"}
               {userData?.role === ROLES[1] && "Volunteer Management Centre"}
               {(userData?.role === ROLES[2] || userData?.role === ROLES[3]) &&

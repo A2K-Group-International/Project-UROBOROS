@@ -27,6 +27,8 @@ import LicenseVerificationSuccess from "./pages/LicenseVerificationSuccess";
 import LicenseVerification from "./pages/LicenseVerification";
 import ConfirmationForm from "./pages/ConfirmationForm";
 import ConfirmationResults from "./pages/ConfirmationResults";
+import Lyrics from "./pages/Lyrics";
+import AddSong from "./pages/AddSong";
 
 const App = () => {
   return (
@@ -64,6 +66,8 @@ const App = () => {
           <Route element={<RequireRole roles={[ROLES[4]]} />}>
             <Route path="/requests" element={<Requests />} />
             <Route path="/feedback" element={<Feedback />} />
+            <Route path="/lyrics" element={<Lyrics />} />
+            <Route path="/lyrics/add-song" element={<AddSong />} />
           </Route>
           {/* ========================================================= */}
           {/* Roles of Coordinator and Volunteer can access the routes below */}
