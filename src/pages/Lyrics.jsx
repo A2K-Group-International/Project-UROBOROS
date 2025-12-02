@@ -60,7 +60,7 @@ const Lyrics = () => {
   };
 
   return (
-    <div className="mb-20 flex flex-col gap-6 py-6 lg:py-0">
+    <div className="mb-20 flex flex-col gap-6 py-6 lg:mb-0 lg:py-0">
       <div className="flex flex-col gap-1">
         <Title>Lyrics Management</Title>
         <Description>Manage lyrics for the parish</Description>
