@@ -68,6 +68,7 @@ const App = () => {
             <Route path="/feedback" element={<Feedback />} />
             <Route path="/lyrics" element={<Lyrics />} />
             <Route path="/lyrics/add-song" element={<AddSong />} />
+            <Route path="/lyrics/:id" element={<AddSong />} />
           </Route>
           {/* ========================================================= */}
           {/* Roles of Coordinator and Volunteer can access the routes below */}
