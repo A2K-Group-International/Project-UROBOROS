@@ -88,8 +88,10 @@ const Login = () => {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader className="h-fit space-y-3">
-          <DialogTitle className="text-2xl font-semibold">Login</DialogTitle>
-          <DialogDescription className="text-muted-foreground text-sm">
+          <DialogTitle className="text-center text-2xl font-semibold text-primary-text">
+            Login
+          </DialogTitle>
+          <DialogDescription className="text-muted-foreground text-sm text-primary-text">
             Enter your account information to access your dashboard.
           </DialogDescription>
         </DialogHeader>
@@ -104,7 +106,9 @@ const Login = () => {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium">Email</FormLabel>
+                  <FormLabel className="text-sm font-medium text-primary-text">
+                    Email
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="email"
@@ -122,7 +126,9 @@ const Login = () => {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel className="text-sm font-medium text-primary-text">
+                    Password
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type={passwordVisible ? "text" : "password"}
@@ -139,7 +145,7 @@ const Login = () => {
             <div className="my-2 flex items-center justify-between gap-2">
               <div className="flex gap-2">
                 <input type="checkbox" onClick={togglePasswordVisibility} />
-                <p>Show Password</p>
+                <p className="text-primary-text">Show Password</p>
               </div>
             </div>
             <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">

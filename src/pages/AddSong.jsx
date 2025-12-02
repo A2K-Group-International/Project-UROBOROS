@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
-import { Camera, Loader2, Upload } from "lucide-react";
+import { Camera, Loader2 } from "lucide-react";
 
 import { Description, Title } from "@/components/Title";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,6 @@ import { googleVisionService } from "@/services/googleVisionService";
 import { useImageCropper } from "@/hooks/useImageCropper";
 import { CropModal } from "@/components/CropModal";
 import { useSong } from "@/hooks/useSong";
-import { CameraModal } from "@/components/CameraModal";
 
 const AddSong = () => {
   const navigate = useNavigate();
@@ -30,13 +29,11 @@ const AddSong = () => {
 
   // OCR State
   const [isScanning, setIsScanning] = useState(false);
-  const [isCameraOpen, setIsCameraOpen] = useState(false);
   const fileInputRef = useRef(null);
 
   // Use Custom Hook for Cropping Logic
   const {
     imgSrc,
-    setImgSrc,
     crop,
     setCrop,
     completedCrop,
@@ -64,11 +61,6 @@ const AddSong = () => {
   // Handle Image Upload Trigger
   const handleScanClick = () => {
     fileInputRef.current?.click();
-  };
-
-  const handleCapture = (imageSrc) => {
-    setImgSrc(imageSrc);
-    setIsCropModalOpen(true);
   };
 
   const handleCropConfirm = async () => {
@@ -209,33 +201,20 @@ const AddSong = () => {
                 {/* Header with Scan Button */}
                 <div className="flex items-center justify-between">
                   <FormLabel>Lyrics</FormLabel>
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="primary"
-                      onClick={() => setIsCameraOpen(true)}
-                      disabled={isScanning}
-                      className="gap-2"
-                    >
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleScanClick}
+                    disabled={isScanning}
+                    className="gap-2"
+                  >
+                    {isScanning ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
                       <Camera className="h-4 w-4" />
-                      Capture Image
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={handleScanClick}
-                      disabled={isScanning}
-                      className="gap-2"
-                    >
-                      {isScanning ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Upload className="h-4 w-4" />
-                      )}
-                      {isScanning ? "Uploading..." : "Upload Image"}
-                    </Button>
-                  </div>
+                    )}
+                    {isScanning ? "Uploading..." : "Upload Image"}
+                  </Button>
                 </div>
 
                 <FormControl>
@@ -285,13 +264,6 @@ const AddSong = () => {
         onImageLoad={onImageLoad}
         onConfirm={handleCropConfirm}
         isScanning={isScanning}
-      />
-
-      {/* Camera Modal Component */}
-      <CameraModal
-        isOpen={isCameraOpen}
-        onClose={setIsCameraOpen}
-        onCapture={handleCapture}
       />
     </div>
   );
