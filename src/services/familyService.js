@@ -381,8 +381,8 @@ export const fetchFamilies = async ({ page, pageSize, search }) => {
   const select = `
     id,
     users(id, first_name, last_name, contact_number),
-    parents(first_name, last_name, contact_number),
-    children(first_name, last_name)
+    parents(id, first_name, last_name, contact_number),
+    children(id, first_name, last_name)
   `;
 
   // Base filter to exclude null user_id AND apply search

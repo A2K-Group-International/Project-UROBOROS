@@ -37,10 +37,14 @@ import { Icon } from "@iconify/react";
 import { Switch } from "@/components/ui/switch";
 import ChangeProfile from "@/components/ChangeProfile";
 import { Link } from "react-router-dom";
+import {
+  stringWithWhitespaceValidation,
+  capitalizeName,
+} from "@/lib/validationHelpers";
 
 const nameSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
+  firstName: stringWithWhitespaceValidation("First name").transform(capitalizeName),
+  lastName: stringWithWhitespaceValidation("Last name").transform(capitalizeName),
 });
 
 const emailSchema = z.object({
@@ -143,7 +147,7 @@ const Profile = () => {
               />
             </div>
             <div className="mt-10 flex flex-wrap items-center gap-x-4 md:mt-16 md:text-4xl lg:mt-20 lg:text-5xl">
-              <p className="text-lg font-bold text-accent">{`${data?.first_name} ${data?.last_name}`}</p>
+              <p className="text-lg font-bold text-accent capitalize">{`${data?.first_name} ${data?.last_name}`}</p>
               <EditNameForm
                 userId={data?.id}
                 firstName={data?.first_name}

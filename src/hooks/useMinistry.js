@@ -11,7 +11,6 @@ import {
   editMinistry,
   // getAssignedMinistries,
 } from "@/services/ministryService";
-// import { ROLES } from "@/constants/roles";
 
 const useMinistry = ({ ministryId, role }) => {
   const queryClient = useQueryClient();
@@ -30,9 +29,7 @@ const useMinistry = ({ ministryId, role }) => {
 
   const { data: ministries, isLoading: ministryLoading } = useQuery({
     queryKey: ["ministries"],
-    queryFn: async () => {
-      return getAllMinistries();
-    },
+    queryFn: () => getAllMinistries(),
     enabled: role === "admin",
   });
 

@@ -67,7 +67,7 @@ const Family = () => {
 
   return (
     <div className="flex flex-col gap-2">
-      <Title>Family information</Title>
+      <Title>Family Information</Title>
       {/* Hide the New family form if the user is coparent */}
       {userRole !== "coparent" && (
         <div className="mt-5 flex gap-2">
@@ -108,7 +108,7 @@ const Family = () => {
               ) : (
                 parentData?.flatMap((parent) => (
                   <TableRow key={parent.id}>
-                    <TableCell className="rounded-l-lg text-center">
+                    <TableCell className="rounded-l-lg text-center capitalize">
                       {`${parent.first_name} ${parent.last_name}`}
                       {parent.parishioner_id === userId && " (You)"}
                     </TableCell>
@@ -202,7 +202,7 @@ const Family = () => {
               ) : (
                 childData?.flatMap((child) => (
                   <TableRow key={child.id}>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center capitalize">
                       {`${child.first_name} ${child.last_name}`}
                     </TableCell>
                     {userRole !== "coparent" && (

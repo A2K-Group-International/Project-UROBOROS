@@ -3,21 +3,22 @@ import { supabase } from "./supabaseClient";
 export const getUserMinistry = async (userId, ministryId) => {
   const { data, error } = await supabase
     .from("group_members")
-    .select("group_id, groups(ministry_id)")
+    .select(`*, groups(ministry_id)`)
     .eq("user_id", userId)
-    .eq("groups.ministry_id", ministryId)
-    .maybeSingle();
+    .eq("groups.ministry_id", ministryId);
+  // .maybeSingle();
 
   if (error) {
     console.error("Error fetching user ministry:", error);
   }
 
   // If not in the group
-  if (!data) {
+  if (error) {
+    console.error("Error fetching user ministry:", error);
     return false;
   }
 
-  return true;
+  return data && data.length > 0;
 };
 
 export const submitRegistrationForm = async (userId, formData) => {
@@ -51,13 +52,15 @@ export const getUserCoordinator = async (userId, ministryId) => {
     .from("ministry_coordinators")
     .select("*")
     .eq("coordinator_id", userId)
-    .eq("ministry_id", ministryId)
-    .maybeSingle();
+    .eq("ministry_id", ministryId);
+  // .maybeSingle();
 
   if (error) {
     console.error("Error fetching user coordinator:", error);
+    return false;
   }
-  return !!data;
+
+  return data && data.length > 0;
 };
 
 export const getConfirmationRegistrations = async (page = 1, perPage = 10) => {
