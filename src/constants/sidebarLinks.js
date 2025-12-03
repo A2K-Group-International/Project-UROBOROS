@@ -49,6 +49,12 @@ const COMMON_LINKS = {
     selectedIcon: "mingcute:chart-bar-fill",
     isBeta: true,
   },
+  lyrics: {
+    label: "Lyrics",
+    link: "/lyrics",
+    icon: "mingcute:music-line",
+    selectedIcon: "mingcute:music-fill",
+  },
   requests: {
     label: "Requests",
     link: "/requests",
@@ -94,6 +100,7 @@ export const SIDEBAR_LINKS = Object.freeze({
     COMMON_LINKS.schedule,
     COMMON_LINKS.events,
     COMMON_LINKS.poll,
+    COMMON_LINKS.lyrics,  
     COMMON_LINKS.requests,
   ],
 });

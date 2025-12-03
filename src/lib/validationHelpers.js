@@ -1,8 +1,3 @@
-/**
- * @module validationHelpers
- * @description Reusable validation helpers for Zod schemas
- */
-
 import { z } from "zod";
 
 /**
@@ -24,6 +19,14 @@ const INVALID_NAMES = [
   "n/a",
   "na",
 ];
+
+export const stringWhiteSpaceValidation = (fieldName) =>
+  z
+    .string()
+    .min(1, `${fieldName} is required`)
+    .refine((val) => val.trim().length > 0, {
+      message: `${fieldName} cannot be empty or whitespace only`,
+    });
 
 /**
  * Capitalizes a name properly (first letter of each word)
