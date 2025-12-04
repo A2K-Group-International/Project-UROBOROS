@@ -16,27 +16,10 @@ export default defineConfig({
     basicSsl(),
     VitePWA({
       registerType: "autoUpdate",
-      manifest: {
-        name: "Saint Laurence",
-        short_name: "Saint Laurence",
-        description: "Parish Management Portal",
-        start_url: "/",
-        display: "standalone",
-        orientation: "portrait",
-        theme_color: "#663E2F",
-        background_color: "#F6F0ED",
-        icons: [
-          {
-            src: "/pwa-192x192.png",
-            sizes: "192x192",
-            type: "image/png",
-          },
-          {
-            src: "/pwa-512x512.png",
-            sizes: "512x512",
-            type: "image/png",
-          },
-        ],
+      includeAssets: ["favicon.ico", "robots.txt", "apple-touch-icon.png"],
+      manifest: false,
+      workbox: {
+        maximumFileSizeToCacheInBytes: 4000000,
       },
     }),
   ],
