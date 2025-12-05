@@ -27,11 +27,25 @@ const Home = () => {
         data: { session },
       } = await supabase.auth.getSession();
 
-      supabase.auth.onAuthStateChange((event) => {
+      supabase.auth.onAuthStateChange(async (event, session) => {
         if (event === "PASSWORD_RECOVERY") {
           // show screen to update user's password
           navigate("/reset-password");
           return;
+        }
+        if (event === "SIGNED_IN" || session) {
+          // Check if user exists in public.users
+          const { data: userProfile } = await supabase
+            .from("users")
+            .select("*")
+            .eq("id", session.user.id)
+            .maybeSingle();
+
+          if (!userProfile) {
+            navigate("/complete-profile");
+          } else {
+            navigate("/announcements");
+          }
         }
       });
 

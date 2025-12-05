@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Icon } from "@iconify/react";
 import { useUser } from "@/context/useUser";
 import { useToast } from "@/hooks/use-toast";
 import { loginSchema } from "@/zodSchema/LoginSchema";
+import { loginWithGoogle, loginWithMicrosoft } from "@/services/userService";
 
 import {
   Dialog,
@@ -14,7 +15,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogClose,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -33,8 +33,6 @@ const Login = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const loc = useLocation();
-  const navigate = useNavigate();
   const { login, loading } = useUser();
   const { toast } = useToast();
 
@@ -52,12 +50,34 @@ const Login = () => {
 
   const handleLogin = async (data) => {
     try {
-      await login(data); // Trigger login and get user data
-      setIsDialogOpen(false); // Close dialog
-      navigate(loc?.state?.from || "/announcements", { replace: true });
+      await login(data);
+      setIsDialogOpen(false);
+      // navigate(loc?.state?.from || "/announcements", { replace: true });
       toast({
         title: "Login Successfully",
       });
+    } catch (error) {
+      toast({
+        title: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      await loginWithGoogle();
+    } catch (error) {
+      toast({
+        title: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleMicrosoftLogin = async () => {
+    try {
+      await loginWithMicrosoft();
     } catch (error) {
       toast({
         title: error.message,
@@ -88,8 +108,10 @@ const Login = () => {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader className="h-fit space-y-3">
-          <DialogTitle className="text-2xl font-semibold">Login</DialogTitle>
-          <DialogDescription className="text-muted-foreground text-sm">
+          <DialogTitle className="text-center text-2xl font-semibold text-primary-text">
+            Login
+          </DialogTitle>
+          <DialogDescription className="text-muted-foreground text-sm text-primary-text">
             Enter your account information to access your dashboard.
           </DialogDescription>
         </DialogHeader>
@@ -104,7 +126,9 @@ const Login = () => {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium">Email</FormLabel>
+                  <FormLabel className="text-sm font-medium text-primary-text">
+                    Email
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="email"
@@ -122,43 +146,75 @@ const Login = () => {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel className="text-sm font-medium text-primary-text">
+                      Password
+                    </FormLabel>
+                    <ForgotPassword />
+                  </div>
                   <FormControl>
-                    <Input
-                      type={passwordVisible ? "text" : "password"}
-                      className="w-full"
-                      placeholder="Enter your password"
-                      {...field}
-                    />
+                    <div className="relative">
+                      <Input
+                        type={passwordVisible ? "text" : "password"}
+                        className="w-full pr-10"
+                        placeholder="Enter your password"
+                        {...field}
+                      />
+                      <button
+                        type="button"
+                        onClick={togglePasswordVisibility}
+                        className="text-muted-foreground hover:text-foreground absolute right-3 top-1/2 -translate-y-1/2"
+                      >
+                        <Icon
+                          icon={passwordVisible ? "mdi:eye-off" : "mdi:eye"}
+                          width="20"
+                          height="20"
+                          color="#663E2F"
+                        />
+                      </button>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
-            <div className="my-2 flex items-center justify-between gap-2">
-              <div className="flex gap-2">
-                <input type="checkbox" onClick={togglePasswordVisibility} />
-                <p>Show Password</p>
-              </div>
-            </div>
-            <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
-              <DialogClose asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="mt-3 sm:mt-0"
-                >
-                  Cancel
-                </Button>
-              </DialogClose>
-              <Button form={"login"} type="submit" disabled={loading}>
+            <DialogFooter>
+              <Button
+                form={"login"}
+                type="submit"
+                disabled={loading}
+                className="w-full"
+              >
                 {loading ? "Logging in..." : "Login"}
               </Button>
             </DialogFooter>
           </form>
         </Form>
-        <ForgotPassword />
+
+        <div className="flex items-center justify-center gap-x-2">
+          <div className="h-[1px] w-full bg-primary-outline"></div>
+          <span className="text-primary-text">or</span>
+          <div className="h-[1px] w-full bg-primary-outline"></div>
+        </div>
+
+        <div className="flex flex-col gap-y-2">
+          <Button
+            variant="outline"
+            className="w-full text-primary-text"
+            onClick={handleGoogleLogin}
+          >
+            <Icon icon="logos:google-icon" width="20" height="20" />
+            Continue with Google
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full text-primary-text"
+            onClick={handleMicrosoftLogin}
+          >
+            <Icon icon="logos:microsoft-icon" width="20" height="20" />
+            Continue with Microsoft
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

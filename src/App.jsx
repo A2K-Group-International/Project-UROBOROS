@@ -27,6 +27,9 @@ import LicenseVerificationSuccess from "./pages/LicenseVerificationSuccess";
 import LicenseVerification from "./pages/LicenseVerification";
 import ConfirmationForm from "./pages/ConfirmationForm";
 import ConfirmationResults from "./pages/ConfirmationResults";
+import Lyrics from "./pages/Lyrics";
+import AddSong from "./pages/AddSong";
+import CompleteProfile from "./pages/CompleteProfile";
 
 const App = () => {
   return (
@@ -40,6 +43,7 @@ const App = () => {
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/accept-invite" element={<AcceptInvite />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/complete-profile" element={<CompleteProfile />} />
 
         <Route path="/verify-license" element={<LicenseVerification />} />
         <Route
@@ -64,6 +68,9 @@ const App = () => {
           <Route element={<RequireRole roles={[ROLES[4]]} />}>
             <Route path="/requests" element={<Requests />} />
             <Route path="/feedback" element={<Feedback />} />
+            <Route path="/lyrics" element={<Lyrics />} />
+            <Route path="/lyrics/add-song" element={<AddSong />} />
+            <Route path="/lyrics/:id" element={<AddSong />} />
           </Route>
           {/* ========================================================= */}
           {/* Roles of Coordinator and Volunteer can access the routes below */}
