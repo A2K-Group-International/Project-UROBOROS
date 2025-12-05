@@ -43,19 +43,19 @@ const ForgotPassword = () => {
 
       // Disable the button and start the countdown
       setButtonDisabled(true);
-      setCountdown(30); 
+      setCountdown(30);
 
       const timer = setInterval(() => {
         setCountdown((prevCountdown) => {
           if (prevCountdown <= 1) {
             // Stop the timer when it reaches 0
-            clearInterval(timer); 
-            setButtonDisabled(false); 
+            clearInterval(timer);
+            setButtonDisabled(false);
             return 0;
           }
-          return prevCountdown - 1; 
+          return prevCountdown - 1;
         });
-      }, 1000); 
+      }, 1000);
     },
   });
 
@@ -72,7 +72,9 @@ const ForgotPassword = () => {
 
   return (
     <Dialog>
-      <DialogTrigger>Forgot Password?</DialogTrigger>
+      <DialogTrigger className="text-xs text-primary-text">
+        Forgot Password?
+      </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Forgot Password?</DialogTitle>
@@ -103,8 +105,8 @@ const ForgotPassword = () => {
               {isButtonDisabled
                 ? `Resend in ${countdown}s`
                 : sendVerificationMutation.isPending
-                ? "Sending Email Verification..."
-                : "Send Email Verification"}
+                  ? "Sending Email Verification..."
+                  : "Send Email Verification"}
             </Button>
           </form>
         </Form>

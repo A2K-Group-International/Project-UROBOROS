@@ -164,7 +164,7 @@ export const ukPhoneNumberValidation = () => {
         // UK phone numbers: +44 followed by 10 digits, or 0 followed by 10 digits
         // Restrict to valid prefixes: 1 (landline), 2 (landline), 3 (UK wide), 7 (mobile), 8 (special)
         // Excludes 09 (premium), 04 (reserved), 05 (corporate), 06 (unused)
-        return /^(\+44|0044|0)(1|2|3|7|8)\d{9}$/.test(cleaned);
+        return /^(\+44|0044|0)(1|2|3|7|8)\d{8,10}$/.test(cleaned);
       },
       {
         message:
