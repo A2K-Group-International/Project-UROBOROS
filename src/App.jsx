@@ -29,6 +29,7 @@ import ConfirmationForm from "./pages/ConfirmationForm";
 import ConfirmationResults from "./pages/ConfirmationResults";
 import Lyrics from "./pages/Lyrics";
 import AddSong from "./pages/AddSong";
+import CompleteProfile from "./pages/CompleteProfile";
 
 const App = () => {
   return (
@@ -42,6 +43,7 @@ const App = () => {
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/accept-invite" element={<AcceptInvite />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/complete-profile" element={<CompleteProfile />} />
 
         <Route path="/verify-license" element={<LicenseVerification />} />
         <Route
