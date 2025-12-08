@@ -445,3 +445,20 @@ export const inviteFamilyMember = async (data, inviterId, inviterEmail) => {
 
   return responseData;
 };
+
+export const acceptFamilyInvitation = async (token) => {
+  const { data, error } = await supabase.functions.invoke(
+    "accept-family-invitation",
+    {
+      body: { token },
+    }
+  );
+
+  if (error) {
+    throw new Error(error.message);
+  }
+  if (data?.error) {
+    throw new Error(data.error);
+  }
+  return data;
+};

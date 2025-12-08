@@ -1,12 +1,16 @@
 import { useUser } from "@/context/useUser";
-import { useToast } from "@/hooks/use-toast";
+import { toast, useToast } from "@/hooks/use-toast";
 import {
   useFetchChildren,
   useFetchFamilyId,
   useFetchGuardian,
 } from "@/hooks/useFamily";
-import { inviteFamilyMember } from "@/services/familyService";
+import {
+  acceptFamilyInvitation,
+  inviteFamilyMember,
+} from "@/services/familyService";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 
 export const useFamilyData = () => {
   const { userData } = useUser();
@@ -72,6 +76,24 @@ export const useInviteFamilyMember = () => {
         title: "Failed to send invitation",
         variant: "destructive",
       });
+    },
+  });
+};
+
+export const useAcceptInvitation = () => {
+  const navigate = useNavigate();
+  return useMutation({
+    mutationFn: (token) => acceptFamilyInvitation(token),
+
+    onSuccess: () => {
+      toast({ title: "Invitation accepted" });
+      navigate("/dashboard");
+    },
+
+    onError: (error) => {
+      console.error("Error accepting invitation:", error);
+      toast({ title: "Error accepting invitation", variant: "destructive" });
+      navigate("/");
     },
   });
 };
