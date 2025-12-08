@@ -421,3 +421,27 @@ export const fetchFamilies = async ({ page, pageSize, search }) => {
 
   return paginatedData;
 };
+
+export const inviteFamilyMember = async (data, inviterId, inviterEmail) => {
+  //Invoke the supabase edge function
+  const { data: responseData, error } = await supabase.functions.invoke(
+    "create-family-invitation",
+    {
+      body: {
+        email: data.email,
+        inviterId,
+        inviterEmail,
+      },
+    }
+  );
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (responseData?.error) {
+    throw new Error(responseData.error);
+  }
+
+  return responseData;
+};
