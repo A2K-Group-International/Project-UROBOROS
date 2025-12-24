@@ -67,7 +67,11 @@ const ManualAttendEvents = ({
           </DialogDescription>
         </DialogHeader>
         <div>
-          <FamilyData userId={userId} selectedEvent={selectedEvent} />
+          <FamilyData
+            userId={userId}
+            selectedEvent={selectedEvent}
+            eventName={eventName}
+          />
         </div>
         <DialogFooter>
           <DialogClose asChild>
