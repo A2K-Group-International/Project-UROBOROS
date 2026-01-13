@@ -83,6 +83,7 @@ import {
   getMinistryVolunteers,
 } from "@/services/ministryService";
 import { ROLES } from "@/constants/roles";
+import AddFromPreviousRecord from "./AddFromPreviousRecord";
 
 //Fetch volunteer based on Ministry
 const useMinistryVolunteers = (ministryId) => {
@@ -525,6 +526,10 @@ const ScheduleDetails = () => {
           <div className="flex flex-col gap-1 md:flex-row">
             {!disableSchedule && (
               <div className="flex flex-wrap gap-1">
+                <AddFromPreviousRecord
+                  eventId={eventId}
+                  eventName={event.event_name}
+                />
                 <AddExistingRecord eventId={eventId} />
                 <AddRecord eventId={eventId} />
               </div>
