@@ -76,26 +76,19 @@ const SendFeedback = () => {
   });
 
   const onSubmit = (data) => {
-    try {
-      const formData = new FormData();
+      createPublicFeedBack(
+        {
+          name: data.name,
+          email: data.email,
+          subject: data.subject,
+          description: data.description,
+          images: currentFiles,
+        },
+        () => {
+          navigate("/feedback/success"); 
+        }
+      );
 
-      // Append form data to FormData object
-      formData.append("name", data.name);
-      formData.append("email", data.email);
-      formData.append("subject", data.subject);
-      formData.append("description", data.description);
-
-      //Append images to FormData
-      currentFiles.forEach((file) => {
-        formData.append("images", file);
-      });
-
-      createPublicFeedBack(formData, () => {
-        navigate("/feedback/success"); // Navigate to the success page
-      });
-    } catch (error) {
-      console.error("Error submitting feedback:", error);
-    }
   };
 
   const handleResetForm = () => {

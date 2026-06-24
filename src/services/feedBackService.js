@@ -1,106 +1,74 @@
-import axios from "axios";
 import { supabase } from "./supabaseClient";
-
-const getAuthToken = async () => {
-  try {
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.getSession();
-
-    if (error) {
-      console.error("Error fetching session:", error.message);
-      return null;
-    }
-
-    return session?.access_token || null;
-  } catch (err) {
-    console.error("Error retrieving token:", err);
-    return null;
-  }
-};
+import { paginate, uploadFile } from "@/lib/utils";
 
 const publicCreateFeedback = async (data) => {
-  try {
-    const { feedback } = data;
-    const { data: result } = await axios.post(
-      `${import.meta.env.VITE_SPARKD_API_URL}/feedback/create`,
-      // `http://localhost:3000/feedback/create`,
-      data,
-      {
-        feedback,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    return {
-      success: true,
-      message: "Feedback submitted successfully",
-      details: result,
-    };
-  } catch (error) {
-    console.error("Error in submitting feedback:", error);
-    throw new Error(
-      error.response?.data?.message || "Failed to submit feedback"
-    );
-  }
+  const { name, email, subject, description, images = [] } = data;
+
+  const files = await Promise.all(
+    images.map(async (file) => ({
+      url: await uploadFile({ file, folder: "feedback" }),
+      name: file.name,
+    }))
+  );
+
+  const { data: id, error } = await supabase.rpc("submit_feedback", {
+    p_name: name,
+    p_email: email,
+    p_subject: subject,
+    p_description: description,
+    p_files: files,
+  });
+
+  if (error) throw new Error(error.message || "Failed to submit feedback");
+  return { success: true, message: "Feedback submitted successfully", details: { id } };
 };
 
-const getAllFeedback = async ({ pageParam = null, status = "all" }) => {
-  const token = await getAuthToken();
-  const params = new URLSearchParams();
-  if (pageParam) params.append("cursor", pageParam);
-  params.append("limit", "12");
-  params.append("status", status);
-
+const getAllFeedback = async ({ page = 1, status = "all" }) => {
   try {
-    const response = await axios.get(
-      `${import.meta.env.VITE_SPARKD_API_URL}/feedback`,
-      // `http://localhost:3000/feedback`,
-      {
-        params,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    return response.data;
+    const paginatedData = await paginate({
+      key: "feedbacks",
+      page,
+      pageSize: 12,
+      select: "*, feedback_files(id, url, name)",
+      order: [{ column: "created_at", ascending: false }],
+      query: status !== "all" ? { status } : {},
+    });
+
+    // Resolve stored storage paths (e.g. "feedback/<uuid>.jpg") to public URLs
+    paginatedData.items = paginatedData.items.map((item) => ({
+      ...item,
+      feedback_files: (item.feedback_files ?? []).map((file) => ({
+        ...file,
+        url: supabase.storage.from("Uroboros").getPublicUrl(file.url).data
+          .publicUrl,
+      })),
+    }));
+
+    return paginatedData;
   } catch (error) {
     console.error("Error fetching feedback:", error);
-    throw new Error(
-      error.response?.data?.message || "Failed to fetch feedbacks"
-    );
+    throw new Error(error.message || "Failed to fetch feedbacks");
   }
 };
 
 const updateFeedbackStatus = async (id, status) => {
-  try {
-    const token = await getAuthToken();
+  const { data, error } = await supabase
+    .from("feedbacks")
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .select()
+    .single();
 
-    const { data: result } = await axios.patch(
-      `${import.meta.env.VITE_SPARKD_API_URL}/feedback/${id}/status`,
-      // `http://localhost:3000/feedback/${id}/status`,
-      {
-        status,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    return {
-      success: true,
-      message: "Status updated successfully",
-      details: result,
-    };
-  } catch (error) {
+  if (error) {
     console.error("Failed to update feedback status", error);
-    throw error;
+    throw new Error(error.message || "Failed to update feedback status");
   }
+
+  return {
+    success: true,
+    message: "Status updated successfully",
+    details: data,
+  };
 };
 
 export { publicCreateFeedback, getAllFeedback, updateFeedbackStatus };
