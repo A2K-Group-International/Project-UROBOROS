@@ -421,3 +421,44 @@ export const fetchFamilies = async ({ page, pageSize, search }) => {
 
   return paginatedData;
 };
+
+export const inviteFamilyMember = async (data, inviterId, inviterEmail) => {
+  //Invoke the supabase edge function
+  const { data: responseData, error } = await supabase.functions.invoke(
+    "create-family-invitation",
+    {
+      body: {
+        email: data.email,
+        inviterId,
+        inviterEmail,
+      },
+    }
+  );
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (responseData?.error) {
+    throw new Error(responseData.error);
+  }
+
+  return responseData;
+};
+
+export const acceptFamilyInvitation = async (token) => {
+  const { data, error } = await supabase.functions.invoke(
+    "accept-family-invitation",
+    {
+      body: { token },
+    }
+  );
+
+  if (error) {
+    throw new Error(error.message);
+  }
+  if (data?.error) {
+    throw new Error(data.error);
+  }
+  return data;
+};

@@ -1,53 +1,37 @@
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import axios from "axios";
+import { useToast } from "@/hooks/use-toast";
+import { useAcceptInvitation } from "@/hooks/useFamilyData";
 
 const AcceptInvite = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = searchParams.get("token");
+  const { toast } = useToast();
+  const acceptMutation = useAcceptInvitation();
 
   useEffect(() => {
-    const acceptInvitation = async () => {
-      if (!token) {
-        console.error("No token found");
-        return;
-      }
+    if (!token) {
+      toast({ title: "No token found", variant: "destructive" });
+      navigate("/");
+      return;
+    }
 
-      try {
-        const response = await axios.post(
-          "https://uroboros-api.onrender.com/accept-invite",
-          // `${import.meta.env.VITE_UROBOROS_API_URL}/accept-invite`,
-          {
-            token,
-          },
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
+    acceptMutation.mutate(token);
+  }, []);
 
-        if (response.status === 200) {
-          // Invitation accepted successfully
-          alert("Invitation accepted successfully!");
-          navigate("/"); // Redirect to dashboard
-        } else {
-          // Handle errors
-          alert(response.data.error || "Failed to accept invitation");
-          navigate("/");
-        }
-      } catch (error) {
-        console.error("Error accepting invite:", error);
-        alert("Failed to accept invitation");
-        navigate("/");
-      }
-    };
-
-    acceptInvitation();
-  }, [token, navigate]);
-
-  return null;
+  if (acceptMutation.isPending) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="border-gray-900 mx-auto h-12 w-12 animate-spin rounded-full border-b-2"></div>
+          <p className="mt-4 text-lg text-primary-text">
+            Accepting invitation...
+          </p>
+        </div>
+      </div>
+    );
+  }
 };
 
 export default AcceptInvite;

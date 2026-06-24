@@ -21,14 +21,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { supabase } from "@/services/supabaseClient";
-import axios from "axios";
+import { useUser } from "@/context/useUser";
+import { useInviteFamilyMember } from "@/hooks/useFamilyData";
 
 const formSchema = z.object({
   email: z.string().email("Invalid email address"),
 });
 
 const InviteFamily = () => {
+  const { userData } = useUser();
+  const inviteMutation = useInviteFamilyMember();
+
   // 1. Define your form.
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -38,56 +41,26 @@ const InviteFamily = () => {
   });
 
   const onSubmit = async (data) => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    const token = session?.access_token;
-    try {
-      // Get user name
-      const { data: user, error } = await supabase
-        .from("users")
-        .select("first_name, last_name")
-        .eq("id", session.user.id)
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      const inviterName = `${user?.first_name} ${user?.last_name}`;
-
-      const response = await axios.post(
-        // `${import.meta.env.VITE_UROBOROS_API_URL}/invite/send-invite`,
-        "https://uroboros-api.onrender.com/invite/send-invite",
-        { email: data.email, inviterName },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          withCredentials: true,
-        }
-      );
-
-      if (response.status === 200) {
-        alert("Invitation sent successfully");
-      } else {
-        alert(`Failed to send invitation: ${response.data.error}`);
-      }
-    } catch (error) {
-      alert(`Failed to send invitation: ${error.message}`);
-    }
+    await inviteMutation.mutateAsync({
+      email: data?.email,
+      inviterId: userData?.id,
+      inviterEmail: userData?.email,
+    });
   };
 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline">Invite Member</Button>
+        <Button variant="outline" className="text-primary-text">
+          Invite Member
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Invite a new Family Member</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-primary-text">
+            Invite a new Family Member
+          </DialogTitle>
+          <DialogDescription className="text-primary-text">
             Please make sure to invite a family who is not yet a member of any
             family.
           </DialogDescription>
@@ -113,7 +86,9 @@ const InviteFamily = () => {
               )}
             />
             <div className="flex justify-end">
-              <Button type="submit">Submit</Button>
+              <Button type="submit" disabled={inviteMutation.isPending}>
+                {inviteMutation?.isPending ? "Submitting..." : "Submit"}
+              </Button>
             </div>
           </form>
         </Form>

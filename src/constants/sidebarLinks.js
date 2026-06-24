@@ -100,7 +100,7 @@ export const SIDEBAR_LINKS = Object.freeze({
     COMMON_LINKS.schedule,
     COMMON_LINKS.events,
     COMMON_LINKS.poll,
-    COMMON_LINKS.lyrics,  
+    COMMON_LINKS.lyrics,
     COMMON_LINKS.requests,
   ],
 });
