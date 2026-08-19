@@ -7,11 +7,14 @@ import Login from "@/components/Login";
 import { supabase } from "@/services/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@iconify/react";
+import { getTrainingVideo } from "@/services/landingServices";
 
 const Home = () => {
   const navigate = useNavigate();
   const currentYear = new Date().getFullYear();
   const [showVideo, setShowVideo] = useState(false);
+
+  const videoUrl = getTrainingVideo();
 
   const toggleVideo = () => {
     if (showVideo) {
@@ -20,6 +23,8 @@ const Home = () => {
       setShowVideo(true);
     }
   };
+
+  console.log(videoUrl)
 
   useEffect(() => {
     const getSession = async () => {
@@ -173,25 +178,24 @@ const Home = () => {
             : "bottom-[-100%] top-[100%] opacity-0"
         }`}
       >
-        {" "}
         <div className="h-[56dvw] w-[99dvw] sm:h-[80dvh] sm:w-[75dvw]">
-          <iframe
+          <video
             className="rounded-2xl"
-            src={
-              showVideo
-                ? "https://www.youtube.com/embed/3pAuz0TTVn0?controls=1&mute=1&autoplay=1"
-                : ""
-            }
-            title="Creating a Parishioner Account"
+            src={showVideo ? videoUrl : ""}
+            controls
+            controlsList="nodownload"
+            onContextMenu={(e) => e.preventDefault()}
+            preload="metadata"
+            playsInline
             style={{
               border: "1px solid",
               width: "100%",
               height: "100%",
+              objectFit: "cover"
             }}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            referrerPolicy="strict-origin-when-cross-origin"
-            allowFullScreen
-          ></iframe>
+          >
+            Your browser does not support the video.
+          </video>
         </div>
         <p
           className="cursor-pointer rounded-full bg-accent px-12 py-3 text-[1rem] font-medium text-white/80 hover:underline sm:text-[1.2rem]"
