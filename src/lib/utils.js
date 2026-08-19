@@ -4,9 +4,34 @@ import { supabase } from "@/services/supabaseClient";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
+import { v4 as uuidv4 } from "uuid";
 
 const cn = (...inputs) => {
   return twMerge(clsx(inputs));
+};
+
+/**
+ * Uploads a file to a folder in a Supabase storage bucket.
+ * @param {object} params
+ * @param {File} params.file - The file to upload.
+ * @param {string} params.folder - The folder within the bucket (e.g. "feedback").
+ * @param {string} [params.bucket] - The storage bucket name. Defaults to "Uroboros".
+ * @returns {Promise<string>} The stored file path (e.g. "feedback/<uuid>.jpg").
+ * @throws {Error} If the upload fails.
+ */
+const uploadFile = async ({ file, folder, bucket = "Uroboros" }) => {
+  const fileExt = file.name.split(".").pop();
+  const filePath = `${folder}/${uuidv4()}.${fileExt}`;
+
+  const { data, error } = await supabase.storage
+    .from(bucket)
+    .upload(filePath, file);
+
+  if (error) {
+    throw new Error(`Error uploading file: ${error.message}`);
+  }
+
+  return data.path;
 };
 
 /**
@@ -485,6 +510,7 @@ export {
   getCurrentTime,
   cn,
   paginate,
+  uploadFile,
   getInitial,
   downloadExcel,
   exportAttendanceList,

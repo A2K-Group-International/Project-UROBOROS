@@ -26,6 +26,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import useFeedback from "@/hooks/useFeedbacks";
 import { Loader2 } from "lucide-react";
 
@@ -43,9 +51,11 @@ const Feedback = () => {
     isError,
   } = useInfiniteQuery({
     queryKey: ["feedbacks", statusFilter],
-    queryFn: ({ pageParam = null }) =>
-      getAllFeedback({ pageParam, status: statusFilter }),
-    getNextPageParam: (lastPage) => lastPage.nextCursor || undefined,
+    queryFn: ({ pageParam }) =>
+      getAllFeedback({ page: pageParam, status: statusFilter }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) =>
+      lastPage.nextPage ? lastPage.currentPage + 1 : undefined,
   });
 
   const observerRef = useRef(null);
@@ -93,7 +103,7 @@ const Feedback = () => {
     );
 
   // Flatten all feedback items from all pages
-  const allFeedback = data?.pages.flatMap((page) => page.data || page) || [];
+  const allFeedback = data?.pages.flatMap((page) => page.items) || [];
 
   return (
     <div className="container mx-auto py-6">
@@ -116,6 +126,8 @@ const Feedback = () => {
         <Table>
           <TableHeader className="bg-primary">
             <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Email</TableHead>
               <TableHead className="w-[200px]">Subject</TableHead>
               <TableHead className="w-[400px]">Description</TableHead>
               <TableHead>Attachment</TableHead>
@@ -126,13 +138,15 @@ const Feedback = () => {
           <TableBody>
             {allFeedback.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="py-6 text-center">
+                <TableCell colSpan={5} className="py-6 text-center">
                   No feedback submissions found
                 </TableCell>
               </TableRow>
             ) : (
               allFeedback.map((feedback) => (
                 <TableRow key={feedback.id}>
+                  <TableCell className="font-medium">{feedback?.name ? feedback?.name : "-"}</TableCell>
+                  <TableCell className="font-medium">{feedback?.email}</TableCell>
                   <TableCell className="font-medium">
                     {feedback.subject}
                   </TableCell>
@@ -140,12 +154,28 @@ const Feedback = () => {
                   <TableCell>
                     <div className="flex flex-wrap gap-2">
                       {feedback.feedback_files?.map((file) => (
-                        <img
-                          key={file.id}
-                          src={file.url}
-                          alt={file.name}
-                          className="h-16 w-16 rounded border object-cover"
-                        />
+                        <Dialog key={file.id}>
+                          <DialogTrigger asChild>
+                            <img
+                              src={file.url}
+                              alt={file.name}
+                              className="h-16 w-16 cursor-pointer rounded border object-cover transition-opacity hover:opacity-80"
+                            />
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-5xl">
+                            <DialogHeader>
+                              <DialogTitle className="truncate pr-8 text-left sr-only">
+                                Attachment
+                              </DialogTitle>
+                              <DialogDescription className="sr-only">Attachment</DialogDescription>
+                            </DialogHeader>
+                            <img
+                              src={file.url}
+                              alt={file.name}
+                              className="max-h-[80vh] w-full rounded object-contain"
+                            />
+                          </DialogContent>
+                        </Dialog>
                       ))}
                       {!feedback.feedback_files?.length && (
                         <span className="text-gray-400">No attachment</span>
