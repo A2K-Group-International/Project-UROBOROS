@@ -1,3 +1,4 @@
+import React from "react";
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { getEventsCalendar, getAllEventsForCalendar } from "@/services/eventService";
 import { fetchUserMinistryIds } from "@/services/ministryService";
@@ -52,14 +53,17 @@ export const useEventsCalendar = (options = {}) => {
     refetch
   } = useInfiniteQuery({
     queryKey: ["events-infinite", ministryIds, limit],
-    queryFn: ({ pageParam = 1 }) => getEventsCalendar(ministryIds, {
-      page: pageParam,
+    queryFn: ({ pageParam }) => getEventsCalendar(ministryIds, {
+      page: pageParam?.page || 1,
       limit,
-      cursor: pageParam > 1 ? pageParam : null
+      cursor: pageParam?.cursor || null
     }),
     enabled: !!ministryIds && enabled,
     getNextPageParam: (lastPage, pages) => {
-      return lastPage.pagination?.hasMore ? pages.length + 1 : undefined;
+      return lastPage.pagination?.hasMore ? {
+        page: pages.length + 1,
+        cursor: lastPage.pagination.nextCursor
+      } : undefined;
     },
     staleTime: 3 * 60 * 1000, // Cache for 3 minutes
     cacheTime: 15 * 60 * 1000, // Keep in cache for 15 minutes
@@ -67,8 +71,18 @@ export const useEventsCalendar = (options = {}) => {
     refetchOnWindowFocus: false,
   });
 
-  // Flatten all events from infinite pages
-  const allEvents = infiniteData?.pages?.flatMap(page => page.data) || [];
+  // Flatten all events from infinite pages and remove duplicates
+  const allEvents = React.useMemo(() => {
+    const events = infiniteData?.pages?.flatMap(page => page.data) || [];
+    // Remove duplicates by creating a Map keyed by event ID
+    const uniqueEventsMap = new Map();
+    events.forEach(event => {
+      if (event?.id && !uniqueEventsMap.has(event.id)) {
+        uniqueEventsMap.set(event.id, event);
+      }
+    });
+    return Array.from(uniqueEventsMap.values());
+  }, [infiniteData?.pages]);
 
   return {
     // Data

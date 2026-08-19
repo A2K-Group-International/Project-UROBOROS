@@ -83,7 +83,7 @@ const Events = () => {
             )}
           </div>
         ) : (
-          events.map((event) => (
+          events.filter(event => event?.id).map((event) => (
             <EventCard
               key={event.id}
               eventId={event.id}
