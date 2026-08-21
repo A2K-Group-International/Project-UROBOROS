@@ -1,35 +1,28 @@
 // /src/index.js (React 18 setup)
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@radix-ui/react-tooltip";
-import App from "@/App";
 import "@/index.css";
-import "@/lib/prototypes";
-import { UserProvider } from "@/context/UserContext";
-
-// Create a new instance of QueryClient
-const queryClient = new QueryClient();
+import { MAINTENANCE_MODE } from "@/constants/maintenance";
+import Maintenance from "@/pages/Maintenance";
 
 // Get the root element where React will mount the app
 const rootElement = document.getElementById("root");
 const root = createRoot(rootElement);
 
-// Render the app wrapped in QueryClientProvider, UserProvider, and include the React Query Devtools
-root.render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      {/* <SidebarProvider> */}
-      <TooltipProvider>
-        <UserProvider>
-          <App />
-          <Toaster />
-        </UserProvider>
-      </TooltipProvider>
-      {/* </SidebarProvider> */}
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
-  </StrictMode>
-);
+if (MAINTENANCE_MODE) {
+  // Site-wide gate. Nothing below this point loads: no router, no auth, no
+  // Supabase. Flip MAINTENANCE_MODE in @/constants/maintenance to restore.
+  root.render(
+    <StrictMode>
+      <Maintenance />
+    </StrictMode>
+  );
+} else {
+  import("@/AppRoot").then(({ default: AppRoot }) => {
+    root.render(
+      <StrictMode>
+        <AppRoot />
+      </StrictMode>
+    );
+  });
+}

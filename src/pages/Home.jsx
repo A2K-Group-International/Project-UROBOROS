@@ -24,8 +24,6 @@ const Home = () => {
     }
   };
 
-  console.log(videoUrl)
-
   useEffect(() => {
     const getSession = async () => {
       const {
