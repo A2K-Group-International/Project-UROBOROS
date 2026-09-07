@@ -8,7 +8,7 @@ import MainLayout from "@/layouts/main-layout";
 import Announcements from "@/pages/Announcements";
 import Family from "@/pages/Family";
 import Events from "@/pages/Events";
-import PrivacyPolicy from "@/pages/Privacy-Policy";
+import PrivacyPolicy from "@/pages/privacy-policy-v2";
 
 import RequireRole from "@/components/RequireRole";
 
