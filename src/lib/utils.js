@@ -277,7 +277,9 @@ const downloadExcel = (event, eventvolunteers, attendance, attendanceCount) => {
           [
             family?.family_surname ? `Family Surname:  ` : "Registered by: ",
             family?.family_surname ??
-              `${family.registered_by.first_name} ${family.registered_by.last_name}`,
+              `${family.registered_by?.first_name ?? ""} ${
+                family.registered_by?.last_name ?? ""
+              }`.trim(),
           ],
           ...(attendedParents.length > 0
             ? [
@@ -390,7 +392,9 @@ const exportAttendanceList = (
     doc.text(
       family?.family_surname
         ? `Family Surname ${family?.family_surname}`
-        : `Registered by ${family.registered_by.first_name} ${family.registered_by.last_name}`,
+        : `Registered by ${family.registered_by?.first_name ?? ""} ${
+            family.registered_by?.last_name ?? ""
+          }`.trim(),
       10,
       currentY
     );

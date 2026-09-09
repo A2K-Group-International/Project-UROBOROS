@@ -13,6 +13,13 @@ const ScheduleCards = ({ event, onEventClick, urlPrms, filter }) => {
   const role = userData?.role;
   const [disableEdit, setDisabledEdit] = useState(false);
 
+  // events.created_by is nullable, and the embed also resolves to null when the
+  // creator has no profiles row, so this cannot be dereferenced directly.
+  const createdByName =
+    [event.created_by?.first_name, event.created_by?.last_name]
+      .filter(Boolean)
+      .join(" ") || "Unknown";
+
   useEffect(() => {
     if (event.date) {
       const eventDate = new Date(`${event.date}`);
@@ -51,7 +58,7 @@ const ScheduleCards = ({ event, onEventClick, urlPrms, filter }) => {
             </p>
             {(role === ROLES.ADMIN || role === ROLES.COORDINATOR) && (
               <p className="text-sm text-primary-text">
-                {`Created by: ${event.created_by.first_name} ${event.created_by.last_name}`}
+                {`Created by: ${createdByName}`}
               </p>
             )}
             <p className="text-md font-bold leading-none text-primary-text">
@@ -94,7 +101,7 @@ const ScheduleCards = ({ event, onEventClick, urlPrms, filter }) => {
                   {event.category} - {event.visibility}
                 </p>
                 {role === ROLES.ADMIN && (
-                  <p className="text-sm text-primary-text">{`Created by: ${event.created_by.first_name} ${event.created_by.last_name}`}</p>
+                  <p className="text-sm text-primary-text">{`Created by: ${createdByName}`}</p>
                 )}
                 <p className="text-md font-bold leading-none text-primary-text">
                   <span className="font-semibold">Date: </span>
