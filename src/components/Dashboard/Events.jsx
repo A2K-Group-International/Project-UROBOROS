@@ -89,9 +89,9 @@ const Events = () => {
             data.allDayEvents.map((date, index) => (
               <DateCard
                 key={index}
-                title={date.event_name}
+                title={date.name}
                 status={date.status}
-                time={date.event_time}
+                time={date.time}
               />
             ))}
 
@@ -103,10 +103,10 @@ const Events = () => {
               {data.otherEvents.map((date, index) => (
                 <DateCard
                   key={index}
-                  title={date.event_name}
+                  title={date.name}
                   status={date.status}
-                  time={date.event_time}
-                  date={date.event_date}
+                  time={date.time}
+                  date={date.date}
                 />
               ))}
             </>

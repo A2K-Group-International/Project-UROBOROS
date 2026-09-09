@@ -64,17 +64,17 @@ const EditEvent = ({
   const eventForm = useForm({
     resolver: zodResolver(createEventSchema),
     defaultValues: {
-      eventName: eventData?.event_name || "",
-      eventCategory: eventData?.event_category || "",
-      eventVisibility: eventData?.event_visibility || "",
+      eventName: eventData?.name || "",
+      eventCategory: eventData?.category || "",
+      eventVisibility: eventData?.visibility || "",
       ministry: eventData?.ministry_id || "",
-      eventDate: eventData?.event_date
-        ? new Date(`${eventData?.event_date}T${eventData?.event_time}`)
+      eventDate: eventData?.date
+        ? new Date(`${eventData?.date}T${eventData?.time}`)
         : null,
-      eventTime: eventData?.event_time
-        ? new Date(`${eventData?.event_date}T${eventData?.event_time}`)
+      eventTime: eventData?.time
+        ? new Date(`${eventData?.date}T${eventData?.time}`)
         : "",
-      eventDescription: eventData?.event_description || "",
+      eventDescription: eventData?.description || "",
       assignVolunteer:
         eventData?.event_volunteers.map(
           (volunteer) => volunteer.volunteer_id

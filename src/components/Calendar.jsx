@@ -32,12 +32,12 @@ const Calendar = ({ events }) => {
 
   const eventData = events?.map((item) => {
     // Create a default time (e.g., "00:00:00") if time is null
-    const eventTime = item.event_time || "00:00:00";
+    const eventTime = item.time || "00:00:00";
 
     return {
-      title: item.event_name,
-      start: `${item.event_date}T${eventTime}`,
-      description: item.event_description,
+      title: item.name,
+      start: `${item.date}T${eventTime}`,
+      description: item.description,
       id: item.id,
     };
   });
@@ -107,10 +107,10 @@ Calendar.propTypes = {
   events: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.string.isRequired,
-      event_name: PropTypes.string.isRequired,
-      event_date: PropTypes.string.isRequired,
-      event_time: PropTypes.string,
-      event_description: PropTypes.string,
+      name: PropTypes.string.isRequired,
+      date: PropTypes.string.isRequired,
+      time: PropTypes.string,
+      description: PropTypes.string,
     })
   ),
 };

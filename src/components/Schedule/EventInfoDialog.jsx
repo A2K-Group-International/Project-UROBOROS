@@ -28,11 +28,11 @@ const EventInfoDialog = ({ open, event, eventData, onClose }) => {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader className="text-start">
-          <DialogTitle>{currentEventDetails?.event_name}</DialogTitle>
+          <DialogTitle>{currentEventDetails?.name}</DialogTitle>
           <DialogDescription>
-            <p>Date: {formatEventDate(currentEventDetails?.event_date)}</p>
+            <p>Date: {formatEventDate(currentEventDetails?.date)}</p>
             {currentEventDetails?.requires_attendance && (
-              <p>Time: {formatEventTime(currentEventDetails?.event_time)}</p>
+              <p>Time: {formatEventTime(currentEventDetails?.time)}</p>
             )}
             <p>
               Description: {event?.description || "No description provided."}
@@ -47,9 +47,9 @@ const EventInfoDialog = ({ open, event, eventData, onClose }) => {
             currentEventDetails?.requires_attendance && (
               <ManualAttendEvents
                 eventId={currentEventDetails?.id}
-                eventName={currentEventDetails?.event_name}
-                eventTime={currentEventDetails?.event_time}
-                eventDate={currentEventDetails?.event_date}
+                eventName={currentEventDetails?.name}
+                eventTime={currentEventDetails?.time}
+                eventDate={currentEventDetails?.date}
               />
             )}
         </DialogFooter>
@@ -69,10 +69,10 @@ EventInfoDialog.propTypes = {
   eventData: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.string,
-      event_name: PropTypes.string,
-      event_date: PropTypes.string,
-      event_time: PropTypes.string,
-      event_description: PropTypes.string,
+      name: PropTypes.string,
+      date: PropTypes.string,
+      time: PropTypes.string,
+      description: PropTypes.string,
     })
   ),
   onClose: PropTypes.func.isRequired,

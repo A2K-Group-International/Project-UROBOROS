@@ -242,9 +242,9 @@ const downloadExcel = (event, eventvolunteers, attendance, attendanceCount) => {
     : [];
 
   const headings = [
-    ["Event Name", event?.event_name || "Unknown Event"],
-    ["Event Date", event?.event_date || "Unknown Date"],
-    ["Event Category", event?.event_category || "Unknown Category"],
+    ["Event Name", event?.name || "Unknown Event"],
+    ["Event Date", event?.date || "Unknown Date"],
+    ["Event Category", event?.category || "Unknown Category"],
     ["Total Attended", attendanceCount?.attended || "Unknown"],
     ["Assigned Volunteers", volunteerList.join(", ") || "No Volunteers"],
     [],
@@ -318,7 +318,7 @@ const downloadExcel = (event, eventvolunteers, attendance, attendanceCount) => {
   XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
 
   // Writes workbook to file
-  XLSX.writeFile(workbook, `${event?.event_name}.xlsx`);
+  XLSX.writeFile(workbook, `${event?.name}.xlsx`);
 };
 
 const exportAttendanceList = (
@@ -331,10 +331,10 @@ const exportAttendanceList = (
 
   // Add Title
   doc.setFontSize(18);
-  doc.text(`Event Name: ${event.event_name}`, 10, 10);
+  doc.text(`Event Name: ${event.name}`, 10, 10);
 
   // Format Event Date
-  const eventDate = new Date(event.event_date);
+  const eventDate = new Date(event.date);
   const formattedDate = eventDate.toLocaleDateString("en-US", {
     day: "2-digit",
     month: "long",
@@ -427,7 +427,7 @@ const exportAttendanceList = (
   });
 
   // Save the PDF
-  doc.save(`${event.event_name}-${formattedDate}.pdf`);
+  doc.save(`${event.name}-${formattedDate}.pdf`);
 };
 
 const formatEventDate = (date) => {

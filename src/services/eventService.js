@@ -11,20 +11,20 @@ export const fetchSelectedEvents = async (date) => {
   const { data, error } = await supabase
     .from("events")
     .select("*")
-    .eq("event_date", formattedDate)
-    .order("event_time", { ascending: true });
+    .eq("date", formattedDate)
+    .order("time", { ascending: true });
   if (error) {
     throw new Error(`Error fetching today's events: ${error.message}`);
   }
   const getEventStatus = (event) => {
     const now = new Date();
     const eventDate = new Date(
-      `${event.event_date}T${event.event_time || "24:00:00"}` // Default to midnight if no time is provided
+      `${event.date}T${event.time || "24:00:00"}` // Default to midnight if no time is provided
     );
 
-    if (eventDate < now || (event.event_time === null && eventDate < now)) {
+    if (eventDate < now || (event.time === null && eventDate < now)) {
       return "Done";
-    } else if (event.event_time === null && eventDate > now) {
+    } else if (event.time === null && eventDate > now) {
       return "All Day";
     } else if (eventDate === now) {
       return "Ongoing";
@@ -91,14 +91,14 @@ export const createEvent = async (eventData) => {
       .from("events")
       .insert([
         {
-          event_name: eventName,
-          event_category: eventCategory,
-          event_visibility: eventVisibility,
+          name: eventName,
+          category: eventCategory,
+          visibility: eventVisibility,
           ministry_id: ministry || null,
-          event_date: eventDate,
-          event_time: eventTime,
-          event_description: eventDescription || null,
-          creator_id: userId,
+          date: eventDate,
+          time: eventTime,
+          description: eventDescription || null,
+          created_by: userId,
           requires_attendance: eventObservation,
           image_url: imagePath,
         },
@@ -157,13 +157,13 @@ export const createEvent = async (eventData) => {
 //     const { data: updatedEvent, error: eventError } = await supabase
 //       .from("events")
 //       .update({
-//         event_name: eventName,
-//         event_category: eventCategory,
-//         event_visibility: eventVisibility,
+//         name: eventName,
+//         category: eventCategory,
+//         visibility: eventVisibility,
 //         ministry_id: ministry || null, // Ministry is optional
-//         event_date: eventDate, // formatted date (yyyy-MM-dd)
-//         event_time: eventTime, // formatted time (HH:mm:ss)
-//         event_description: eventDescription || null, // Optional field
+//         date: eventDate, // formatted date (yyyy-MM-dd)
+//         time: eventTime, // formatted time (HH:mm:ss)
+//         description: eventDescription || null, // Optional field
 //       })
 //       .eq("id", eventData.eventId) // Update the event with the matching ID
 //       .select("id") // Return the updated event ID
@@ -211,13 +211,13 @@ export const updateEvent = async ({ eventId, updatedData }) => {
     const { eventPosterImage, ...eventDetails } = updatedData;
 
     const updatePayload = {
-      event_name: eventDetails.eventName,
-      event_category: eventDetails.eventCategory,
-      event_visibility: eventDetails.eventVisibility,
+      name: eventDetails.eventName,
+      category: eventDetails.eventCategory,
+      visibility: eventDetails.eventVisibility,
       ministry_id: eventDetails.ministry || null,
-      event_date: eventDetails.eventDate,
-      event_time: eventDetails.eventTime,
-      event_description: eventDetails.eventDescription || null,
+      date: eventDetails.eventDate,
+      time: eventDetails.eventTime,
+      description: eventDetails.eventDescription || null,
       requires_attendance: eventDetails.eventObservation,
     };
 
@@ -355,23 +355,23 @@ export const getEvents = async ({
       const lastDayOfMonth = new Date(year, month, 0).getDate();
       const endOfMonth = `${year}-${month}-${lastDayOfMonth}`;
 
-      filters.gte = { event_date: startOfMonth };
-      filters.lte = { event_date: endOfMonth };
+      filters.gte = { date: startOfMonth };
+      filters.lte = { date: endOfMonth };
     }
 
     // Search filter
     if (query) {
-      filters.ilike = { event_name: query };
+      filters.ilike = { name: query };
     }
 
     // Role-based access
     if (role === "admin" || role === "coordinator") {
       if (eventFilter === "public") {
-        filters.eq = [{ column: "event_visibility", value: "public" }];
+        filters.eq = [{ column: "visibility", value: "public" }];
       } else if (eventFilter === "private") {
-        filters.eq = [{ column: "event_visibility", value: "private" }];
+        filters.eq = [{ column: "visibility", value: "private" }];
       } else if (eventFilter === "owned") {
-        filters.eq = [{ column: "creator_id", value: userId }];
+        filters.eq = [{ column: "created_by", value: userId }];
       } else if (eventFilter === "ministry") {
         const { data: userCoordinator, error: coordinatorError } =
           // Fetch coordinator ministries
@@ -469,19 +469,19 @@ export const getEvents = async ({
             operator: "in",
             value: `(${ministryIds.join(",")})`,
           },
-          { column: "event_visibility", operator: "eq", value: "public" },
+          { column: "visibility", operator: "eq", value: "public" },
         ];
       } else {
-        filters.eq = [{ column: "event_visibility", value: "public" }];
+        filters.eq = [{ column: "visibility", value: "public" }];
       }
     }
 
-    const order = [{ column: "event_date", ascending: true }];
+    const order = [{ column: "date", ascending: true }];
 
     // Paginated fetch
     const paginatedData = await paginate({
       key: "events",
-      select: `*, creator_id(first_name, last_name), event_volunteers (volunteer_id)`,
+      select: `*, created_by(first_name, last_name), event_volunteers (volunteer_id)`,
       page,
       pageSize,
       filters,
@@ -625,17 +625,17 @@ export const getAllEventsForCalendar = async (ministry = []) => {
     const publicEventsQuery = supabase
       .from("events")
       .select("*")
-      .eq("event_visibility", "public")
-      .order("event_date", { ascending: false });
+      .eq("visibility", "public")
+      .order("date", { ascending: false });
 
     const privateEventsQuery =
       ministry.length > 0
         ? supabase
             .from("events")
             .select("*")
-            .eq("event_visibility", "private")
+            .eq("visibility", "private")
             .in("ministry_id", ministry)
-            .order("event_date", { ascending: false })
+            .order("date", { ascending: false })
         : null;
 
     // Execute both queries in parallel
@@ -665,8 +665,8 @@ export const getAllEventsForCalendar = async (ministry = []) => {
 
     // Sort by date (newest first for calendar)
     uniqueEvents.sort((a, b) => {
-      const dateA = new Date(`${a.event_date}T${a.event_time || "00:00:00"}`);
-      const dateB = new Date(`${b.event_date}T${b.event_time || "00:00:00"}`);
+      const dateA = new Date(`${a.date}T${a.time || "00:00:00"}`);
+      const dateB = new Date(`${b.date}T${b.time || "00:00:00"}`);
       return dateB - dateA;
     });
 
@@ -699,17 +699,17 @@ export const getEventsCalendar = async (ministry = [], options = {}) => {
     let publicEventsQuery = supabase
       .from("events")
       .select("*", { count: "exact" })
-      .eq("event_visibility", "public")
-      .gte("event_date", today);
+      .eq("visibility", "public")
+      .gte("date", today);
 
     let privateEventsQuery =
       ministry.length > 0
         ? supabase
             .from("events")
             .select("*", { count: "exact" })
-            .eq("event_visibility", "private")
+            .eq("visibility", "private")
             .in("ministry_id", ministry)
-            .gte("event_date", today)
+            .gte("date", today)
         : null;
 
     // Apply cursor-based pagination if cursor is provided
@@ -722,14 +722,14 @@ export const getEventsCalendar = async (ministry = [], options = {}) => {
 
     // Apply sorting and pagination (ascending for upcoming events)
     publicEventsQuery = publicEventsQuery
-      .order("event_date", { ascending: true })
-      .order("event_time", { ascending: true })
+      .order("date", { ascending: true })
+      .order("time", { ascending: true })
       .limit(limit);
 
     if (privateEventsQuery) {
       privateEventsQuery = privateEventsQuery
-        .order("event_date", { ascending: true })
-        .order("event_time", { ascending: true })
+        .order("date", { ascending: true })
+        .order("time", { ascending: true })
         .limit(limit);
     }
 
@@ -760,8 +760,8 @@ export const getEventsCalendar = async (ministry = [], options = {}) => {
 
     // Sort combined results (upcoming events in chronological order)
     uniqueEvents.sort((a, b) => {
-      const dateA = new Date(`${a.event_date}T${a.event_time || "00:00:00"}`);
-      const dateB = new Date(`${b.event_date}T${b.event_time || "00:00:00"}`);
+      const dateA = new Date(`${a.date}T${a.time || "00:00:00"}`);
+      const dateB = new Date(`${b.date}T${b.time || "00:00:00"}`);
       return dateA - dateB;
     });
 
@@ -844,9 +844,9 @@ export const getParishionerEvents = async ({ page = 1, pageSize } = {}) => {
       key: "events",
       page,
       pageSize,
-      order: [{ column: "event_date", ascending: true }],
+      order: [{ column: "date", ascending: true }],
       filters: {
-        gte: { event_date: today }, // Include events with dates greater than or equal to today
+        gte: { date: today }, // Include events with dates greater than or equal to today
       },
     });
 
@@ -865,8 +865,8 @@ export const getWalkInEvents = async () => {
   const { data, error } = await supabase
     .from("events")
     .select("*")
-    .order("event_date", { ascending: true })
-    .gte("event_date", today);
+    .order("date", { ascending: true })
+    .gte("date", today);
 
   if (error) throw error; // React Query will handle this as a query failure
 
@@ -897,9 +897,9 @@ export const getEventsByCreatorId = async (userId) => {
   const { data, error } = await supabase
     .from("events")
     .select("*")
-    .gte("event_date", now.toISOString())
-    .eq("creator_id", userId)
-    .order("event_date", { ascending: false });
+    .gte("date", now.toISOString())
+    .eq("created_by", userId)
+    .order("date", { ascending: false });
 
   if (error) {
     throw new Error(error.message);

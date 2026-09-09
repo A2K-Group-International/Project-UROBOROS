@@ -262,7 +262,7 @@ const EditRegistration = () => {
   const upcomingEvents = Array.isArray(walkInEvents)
     ? walkInEvents.filter((event) => {
         const eventDateTime = new Date(
-          event.dateTime || `${event.event_date}T${event.event_time}`
+          event.dateTime || `${event.date}T${event.time}`
         );
 
         return eventDateTime;
@@ -323,10 +323,10 @@ const EditRegistration = () => {
                             <SelectContent>
                               {upcomingEvents.map((event) => (
                                 <SelectItem key={event.id} value={event.id}>
-                                  {event.event_name} -{" "}
+                                  {event.name} -{" "}
                                   {formatDateTime(
                                     event.dateTime ||
-                                      `${event.event_date}T${event.event_time}`
+                                      `${event.date}T${event.time}`
                                   )}
                                 </SelectItem>
                               ))}

@@ -14,8 +14,8 @@ const ScheduleCards = ({ event, onEventClick, urlPrms, filter }) => {
   const [disableEdit, setDisabledEdit] = useState(false);
 
   useEffect(() => {
-    if (event.event_date) {
-      const eventDate = new Date(`${event.event_date}`);
+    if (event.date) {
+      const eventDate = new Date(`${event.date}`);
       const sevenDaysAhead = new Date( // Default is 7days ahead
         eventDate.getTime() + 30 * 24 * 60 * 60 * 1000 // temporary set to 30days
       );
@@ -26,7 +26,7 @@ const ScheduleCards = ({ event, onEventClick, urlPrms, filter }) => {
         setDisabledEdit(false);
       }
     }
-  }, [event.event_date]);
+  }, [event.date]);
 
   return (
     <div className="relative">
@@ -42,21 +42,21 @@ const ScheduleCards = ({ event, onEventClick, urlPrms, filter }) => {
           <div>
             <p className="mb-[6px] text-base font-bold leading-none text-accent">
               {event.requires_attendance
-                ? `${event?.event_name}, ${formatEventTimeCompact(event?.event_time)}`
-                : event.event_name}
+                ? `${event?.name}, ${formatEventTimeCompact(event?.time)}`
+                : event.name}
             </p>
             <p className="text-sm text-primary-text">{event.description}</p>
             <p className="text-sm leading-tight text-primary-text">
-              {event.event_category} - {event.event_visibility}
+              {event.category} - {event.visibility}
             </p>
             {(role === ROLES.ADMIN || role === ROLES.COORDINATOR) && (
               <p className="text-sm text-primary-text">
-                {`Created by: ${event.creator_id.first_name} ${event.creator_id.last_name}`}
+                {`Created by: ${event.created_by.first_name} ${event.created_by.last_name}`}
               </p>
             )}
             <p className="text-md font-bold leading-none text-primary-text">
               <span className="font-semibold">Date: </span>
-              {formatEventDate(event.event_date)}
+              {formatEventDate(event.date)}
             </p>
           </div>
         </div>
@@ -86,19 +86,19 @@ const ScheduleCards = ({ event, onEventClick, urlPrms, filter }) => {
               <div>
                 <p className="mb-[6px] text-base font-bold leading-none text-accent">
                   {event.requires_attendance
-                    ? `${event?.event_name}, ${formatEventTimeCompact(event?.event_time)}`
-                    : event.event_name}
+                    ? `${event?.name}, ${formatEventTimeCompact(event?.time)}`
+                    : event.name}
                 </p>
                 <p className="text-sm text-primary-text">{event.description}</p>
                 <p className="text-sm leading-tight text-primary-text">
-                  {event.event_category} - {event.event_visibility}
+                  {event.category} - {event.visibility}
                 </p>
                 {role === ROLES.ADMIN && (
-                  <p className="text-sm text-primary-text">{`Created by: ${event.creator_id.first_name} ${event.creator_id.last_name}`}</p>
+                  <p className="text-sm text-primary-text">{`Created by: ${event.created_by.first_name} ${event.created_by.last_name}`}</p>
                 )}
                 <p className="text-md font-bold leading-none text-primary-text">
                   <span className="font-semibold">Date: </span>
-                  {formatEventDate(event.event_date)}
+                  {formatEventDate(event.date)}
                 </p>
               </div>
             </div>
@@ -132,13 +132,13 @@ ScheduleCards.propTypes = {
   setEditDialogOpenIndex: PropTypes.func.isRequired,
   event: PropTypes.shape({
     id: PropTypes.string.isRequired,
-    event_name: PropTypes.string.isRequired,
-    event_date: PropTypes.string.isRequired,
-    event_time: PropTypes.string,
-    event_category: PropTypes.string,
-    event_visibility: PropTypes.string,
+    name: PropTypes.string.isRequired,
+    date: PropTypes.string.isRequired,
+    time: PropTypes.string,
+    category: PropTypes.string,
+    visibility: PropTypes.string,
     requires_attendance: PropTypes.bool,
-    creator_id: PropTypes.shape({
+    created_by: PropTypes.shape({
       first_name: PropTypes.string,
       last_name: PropTypes.string,
     }),

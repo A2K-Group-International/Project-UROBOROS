@@ -300,7 +300,7 @@ export const insertGuardians = async (parentData) => {
   const { data: existingHistoryAttendees } = await supabase
     .from("previous_attendees")
     .select("first_name, last_name")
-    .eq("event_name", eventData.event_name)
+    .eq("event_name", eventData.name)
     .eq("first_name", parentData.first_name)
     .eq("last_name", parentData.last_name)
     .single();
@@ -313,7 +313,7 @@ export const insertGuardians = async (parentData) => {
         {
           first_name: parentData.first_name,
           last_name: parentData.last_name,
-          event_name: eventData.event_name,
+          event_name: eventData.name,
           family_type: parentData.attendee_type,
           registered_by: parentData.registered_by,
         },
@@ -370,7 +370,7 @@ export const insertChildren = async (childData) => {
   const { data: existingHistoryAttendees } = await supabase
     .from("previous_attendees")
     .select("first_name, last_name")
-    .eq("event_name", eventData.event_name)
+    .eq("event_name", eventData.name)
     .eq("first_name", childData.first_name)
     .eq("last_name", childData.last_name)
     .single();
@@ -383,7 +383,7 @@ export const insertChildren = async (childData) => {
         {
           first_name: childData.first_name,
           last_name: childData.last_name,
-          event_name: eventData.event_name,
+          event_name: eventData.name,
           family_type: childData.attendee_type,
           registered_by: childData.registered_by,
         },
@@ -407,9 +407,9 @@ const fetchAttendeesByTicketCode = async (registrationCode) => {
         *,
         events:events (
           id,
-          event_name,
-          event_date,
-          event_time
+          name,
+          date,
+          time
         )
       `
       )
@@ -451,7 +451,7 @@ const fetchAttendeesByTicketCode = async (registrationCode) => {
         familyId, // Add familyId to the top level of the response
         event: {
           id: event.id,
-          name: event.event_name,
+          name: event.name,
         },
         parents,
         children,

@@ -190,21 +190,21 @@ const CreateEvent = ({
   const eventForm = useForm({
     resolver: zodResolver(eventData ? updateEventSchema : createEventSchema),
     defaultValues: {
-      eventName: eventData?.event_name || "",
-      eventCategory: eventData?.event_category || "",
+      eventName: eventData?.name || "",
+      eventCategory: eventData?.category || "",
       eventVisibility:
-        eventData?.event_visibility ||
+        eventData?.visibility ||
         (userData?.role === ROLES.COORDINATOR ? "private" : "public"),
       ministry:
         eventData?.ministry_id ||
         (coordinatorMinistry?.length === 1 ? coordinatorMinistry[0] : ""),
-      eventDate: eventData?.event_date
-        ? new Date(`${eventData?.event_date}T${eventData?.event_time}`)
+      eventDate: eventData?.date
+        ? new Date(`${eventData?.date}T${eventData?.time}`)
         : null,
-      eventTime: eventData?.event_time
-        ? new Date(`${eventData?.event_date}T${eventData?.event_time}`)
+      eventTime: eventData?.time
+        ? new Date(`${eventData?.date}T${eventData?.time}`)
         : "",
-      eventDescription: eventData?.event_description || "",
+      eventDescription: eventData?.description || "",
       assignVolunteer:
         eventData?.event_volunteers.map(
           (volunteer) => volunteer.volunteer_id
