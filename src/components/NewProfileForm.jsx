@@ -98,7 +98,7 @@ const NewProfileForm = ({ id = "new-user-form", user, onClose }) => {
         </div>
         <FormField
           control={form.control}
-          name="contact_number"
+          name="mobile_number"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Contact Tel No.</FormLabel>

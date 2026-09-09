@@ -620,7 +620,7 @@ const createUserProfile = async (user, { firstName, lastName, contactNumber }) =
       email: user.email,
       first_name: firstName,
       last_name: lastName,
-      contact_number: contactNumber,
+      mobile_number: contactNumber,
       role: "parishioner",
       is_confirmed: false,
     })
@@ -681,7 +681,7 @@ const createParentRecord = async (userId, { firstName, lastName, contactNumber }
       parishioner_id: userId,
       first_name: firstName,
       last_name: lastName,
-      contact_number: contactNumber,
+      mobile_number: contactNumber,
       family_id: familyId,
     });
 
@@ -745,7 +745,7 @@ const registerService = async ({
         email: user.user.email,
         first_name: firstName,
         last_name: lastName,
-        contact_number: contactNumber,
+        mobile_number: contactNumber,
         role: "parishioner",
         is_confirmed: false,
       },
@@ -772,7 +772,7 @@ const registerService = async ({
           parishioner_id: user.user.id,
           first_name: firstName,
           last_name: lastName,
-          contact_number: contactNumber,
+          mobile_number: contactNumber,
           family_id: newUserFamily[0].id,
         },
       ]);
@@ -783,7 +783,7 @@ const registerService = async ({
       id: user.user.id,
       firstName,
       lastName,
-      contact_number: contactNumber,
+      mobile_number: contactNumber,
       familyId: newUserFamily[0].id,
     };
   } catch (error) {

@@ -36,7 +36,7 @@ const EditParent = ({ parent }) => {
     defaultValues: {
       firstName: parent.first_name || "",
       lastName: parent.last_name || "",
-      contactNumber: parent.contact_number || "",
+      contactNumber: parent.mobile_number || "",
     },
   });
 
@@ -46,7 +46,7 @@ const EditParent = ({ parent }) => {
       form.reset({
         firstName: parent.first_name || "",
         lastName: parent.last_name || "",
-        contactNumber: parent.contact_number || "",
+        contactNumber: parent.mobile_number || "",
       });
     }
   }, [parent, form]);
@@ -150,7 +150,7 @@ EditParent.propTypes = {
     id: PropTypes.string.isRequired,
     first_name: PropTypes.string,
     last_name: PropTypes.string,
-    contact_number: PropTypes.string,
+    mobile_number: PropTypes.string,
     users: PropTypes.shape({
       id: PropTypes.string,
     }),

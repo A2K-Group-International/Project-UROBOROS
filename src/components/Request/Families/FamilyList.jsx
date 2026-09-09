@@ -155,7 +155,7 @@ const FamiyList = () => {
                             <p>{`${parent.first_name} ${parent.last_name}`}</p>
                           </TableCell>
                           <TableCell className="text-nowrap py-1 md:p-4">
-                            <p>{`${parent.contact_number}`}</p>
+                            <p>{`${parent.mobile_number}`}</p>
                           </TableCell>
                           <TableCell className="rounded-r-lg py-1 md:p-4">
                             <EditParent parent={parent} />

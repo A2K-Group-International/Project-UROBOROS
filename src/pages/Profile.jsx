@@ -166,7 +166,7 @@ const Profile = () => {
             </div>
             <Label className="text-sm font-bold text-accent/75">Contact</Label>
             <div className="flex items-center justify-between rounded-xl bg-[#FDFBFA] px-6 py-5 font-semibold text-accent">
-              <p>{data?.contact_number}</p>
+              <p>{data?.mobile_number}</p>
               <ContactForm userId={data?.id} />
             </div>
             <Label className="text-sm font-bold text-accent/75">

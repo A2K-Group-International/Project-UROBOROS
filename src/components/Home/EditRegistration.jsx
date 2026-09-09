@@ -163,7 +163,7 @@ const EditRegistration = () => {
       registration_code: ticketCode,
       first_name: parent.parentFirstName,
       last_name: parent.parentLastName,
-      contact_number: parent.parentContactNumber,
+      mobile_number: parent.parentContactNumber,
       attendee_type: "parents",
       main_applicant: parent.isMainApplicant || false, // Handle optional field
       family_id: familyId, // Add family_id to each parent

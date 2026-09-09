@@ -53,7 +53,7 @@ const NewFamilyForm = () => {
       first_name: "",
       last_name: "",
       type: "guardian",
-      contact_number: "",
+      mobile_number: "",
     },
   });
 
@@ -63,7 +63,7 @@ const NewFamilyForm = () => {
     form.setValue("first_name", "");
     form.setValue("last_name", "");
     if (value !== "guardian") {
-      form.setValue("contact_number", "");
+      form.setValue("mobile_number", "");
     }
   };
 
@@ -72,7 +72,7 @@ const NewFamilyForm = () => {
     form.setValue("type", "guardian");
     form.setValue("first_name", "");
     form.setValue("last_name", "");
-    form.setValue("contact_number", "");
+    form.setValue("mobile_number", "");
   };
 
   // Mutation for adding parent
@@ -89,7 +89,7 @@ const NewFamilyForm = () => {
       const newMember = {
         firstName: data.first_name.trim(),
         lastName: data.last_name.trim(),
-        contactNumber: data.contact_number?.trim(), // Only for guardian
+        contactNumber: data.mobile_number?.trim(), // Only for guardian
       };
 
       // Check if the family member already exists
@@ -219,7 +219,7 @@ const NewFamilyForm = () => {
             {form.watch("type") === "guardian" && (
               <FormField
                 control={form.control}
-                name="contact_number"
+                name="mobile_number"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Contact Tel No.</FormLabel>

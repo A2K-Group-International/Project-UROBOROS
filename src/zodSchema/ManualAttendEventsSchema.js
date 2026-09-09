@@ -22,7 +22,7 @@ export const manualAttendEventsSchema = z
           id: z.string(), // Make sure the id is required
           first_name: z.string().optional(),
           last_name: z.string().optional(),
-          contact_number: ukPhoneNumberValidation().optional().or(z.literal("")),
+          mobile_number: ukPhoneNumberValidation().optional().or(z.literal("")),
           family_id: z.string().optional(),
         })
       )

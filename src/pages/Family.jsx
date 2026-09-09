@@ -113,7 +113,7 @@ const Family = () => {
                       {parent.parishioner_id === userId && " (You)"}
                     </TableCell>
                     <TableCell className="text-center">
-                      {parent.contact_number}
+                      {parent.mobile_number}
                     </TableCell>
                     {userRole !== "coparent" &&
                       parent.parishioner_id !== userId && (
@@ -134,7 +134,7 @@ const Family = () => {
                                   parentId={parent.id}
                                   parentFirstName={parent.first_name}
                                   parentLastName={parent.last_name}
-                                  parentContactNumber={parent.contact_number}
+                                  parentContactNumber={parent.mobile_number}
                                   parentUserId={parent.parishioner_id}
                                 />
                               </DropdownMenuItem>
@@ -151,7 +151,7 @@ const Family = () => {
                               parentId={parent.id}
                               parentFirstName={parent.first_name}
                               parentLastName={parent.last_name}
-                              parentContactNumber={parent.contact_number}
+                              parentContactNumber={parent.mobile_number}
                               openModal={true}
                               onClose={handleCloseDialog}
                             />

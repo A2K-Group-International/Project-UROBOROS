@@ -279,7 +279,7 @@ const downloadExcel = (event, eventvolunteers, attendance, attendanceCount) => {
                 ...attendedParents.map((parent) => [
                   "",
                   `${parent?.first_name} ${parent?.last_name}`,
-                  `${parent?.contact_number}`,
+                  `${parent?.mobile_number}`,
                   new Date(parent.time_attended).toLocaleTimeString("en-GB", {
                     hour: "2-digit",
                     minute: "2-digit",
@@ -294,7 +294,7 @@ const downloadExcel = (event, eventvolunteers, attendance, attendanceCount) => {
                 ...attendedChildren.map((child) => [
                   "",
                   `${child?.first_name} ${child?.last_name}`,
-                  `${child?.contact_number ?? "N/A"}`,
+                  `${child?.mobile_number ?? "N/A"}`,
                   new Date(child.time_attended).toLocaleTimeString("en-GB", {
                     hour: "2-digit",
                     minute: "2-digit",
@@ -399,7 +399,7 @@ const exportAttendanceList = (
         head: [["Parents/Guardians", "Contact", "Status"]],
         body: attendedParents.map((parent) => [
           `${parent.first_name} ${parent.last_name}`,
-          parent.contact_number || "N/A",
+          parent.mobile_number || "N/A",
           "Attended",
         ]),
         theme: "striped",

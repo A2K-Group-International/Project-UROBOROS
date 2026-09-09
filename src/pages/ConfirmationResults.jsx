@@ -85,7 +85,7 @@ const ConfirmationResults = () => {
                     {item.users?.first_name} {item.users?.last_name}
                   </TableCell>
                   <TableCell>{item.users?.email}</TableCell>
-                  <TableCell>{item.users?.contact_number}</TableCell>
+                  <TableCell>{item.users?.mobile_number}</TableCell>
                   <TableCell>
                     <ConfirmationDetailsCard data={item.data} />
                   </TableCell>

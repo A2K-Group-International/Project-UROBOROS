@@ -10,7 +10,7 @@ export const newUserSchema = z
   .object({
     first_name: stringWithWhitespaceValidation("First Name").transform(capitalizeName),
     last_name: stringWithWhitespaceValidation("Last Name").transform(capitalizeName),
-    contact_number: ukPhoneNumberValidation(),
+    mobile_number: ukPhoneNumberValidation(),
     email: z.string().email().min(1, "Email is Required"),
     role: z.enum(ALL_ROLES, { message: "Role is Required" }),
     password: z.string().min(6),
@@ -24,6 +24,6 @@ export const newUserSchema = z
 export const editingUserSchema = z.object({
   first_name: stringWithWhitespaceValidation("First Name").transform(capitalizeName),
   last_name: stringWithWhitespaceValidation("Last Name").transform(capitalizeName),
-  contact_number: ukPhoneNumberValidation(),
+  mobile_number: ukPhoneNumberValidation(),
   role: z.enum(ALL_ROLES, { message: "Role is Required" }),
 });

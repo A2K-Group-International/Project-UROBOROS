@@ -26,7 +26,7 @@ const useManageUsers = ({
     defaultValues: {
       first_name: user?.first_name || "",
       last_name: user?.last_name || "",
-      contact_number: user?.contact_number || "",
+      mobile_number: user?.mobile_number || "",
       role: user?.role || "",
       email: "",
       password: "",
@@ -134,7 +134,7 @@ const useManageUsers = ({
         lastName: data.last_name,
         email: data.email,
         password: data.password,
-        contactNumber: data.contact_number,
+        contactNumber: data.mobile_number,
         role: data.role,
       };
 

@@ -80,7 +80,7 @@ const AddFromRecord = ({ eventId, event_name }) => {
       parents: values.parents.map((parent) => ({
         parentFirstName: parent.first_name,
         parentLastName: parent.last_name,
-        parentContactNumber: parent.contact_number,
+        parentContactNumber: parent.mobile_number,
       })),
       children: values.children.map((child) => ({
         childFirstName: child.first_name,

@@ -47,7 +47,7 @@ export const addParent = async (parentsData, familyId) => {
           family_id: familyId,
           first_name: parent.firstName,
           last_name: parent.lastName,
-          contact_number: parent.contactNumber,
+          mobile_number: parent.contactNumber,
         }))
       )
       .select();
@@ -166,7 +166,7 @@ export const getGuardian = async (familyId) => {
     const { data: loggedInUser, error: loggedInUserError } = await supabase
       .from("parents")
       .select(
-        "id,first_name, last_name, contact_number,family_id, parishioner_id"
+        "id,first_name, last_name, mobile_number,family_id, parishioner_id"
       )
       .eq("family_id", familyId)
       .eq("parishioner_id", loggedInUserId)
@@ -180,7 +180,7 @@ export const getGuardian = async (familyId) => {
     const { data: otherParents, error: otherParentsError } = await supabase
       .from("parents")
       .select(
-        "id,first_name, last_name, contact_number,family_id, parishioner_id"
+        "id,first_name, last_name, mobile_number,family_id, parishioner_id"
       )
       .eq("family_id", familyId)
       .or(`parishioner_id.neq.${loggedInUserId},parishioner_id.is.null`);
@@ -201,7 +201,7 @@ export const getGuardian = async (familyId) => {
 export const fetchParents = async (familyId) => {
   const { data, error } = await supabase
     .from("parents")
-    .select("id,first_name, last_name, contact_number,family_id")
+    .select("id,first_name, last_name, mobile_number,family_id")
     .eq("family_id", familyId);
   if (error) {
     throw new Error(error.message);
@@ -246,7 +246,7 @@ export const updateParent = async (parentId, data, parentUserId) => {
     .update({
       first_name: firstName,
       last_name: lastName,
-      contact_number: contactNumber,
+      mobile_number: contactNumber,
     })
     .eq("id", parentId)
     .select()
@@ -262,7 +262,7 @@ export const updateParent = async (parentId, data, parentUserId) => {
       .update({
         first_name: firstName,
         last_name: lastName,
-        contact_number: contactNumber,
+        mobile_number: contactNumber,
       })
       .eq("id", parentUserId);
 
@@ -380,8 +380,8 @@ export const deleteChild = async (childId) => {
 export const fetchFamilies = async ({ page, pageSize, search }) => {
   const select = `
     id,
-    users(id, first_name, last_name, contact_number),
-    parents(id, first_name, last_name, contact_number),
+    users(id, first_name, last_name, mobile_number),
+    parents(id, first_name, last_name, mobile_number),
     children(id, first_name, last_name)
   `;
 

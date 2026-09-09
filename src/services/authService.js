@@ -25,7 +25,7 @@ const registerUser = async ({
         email: user.user.email,
         first_name: firstName,
         last_name: lastName,
-        contact_number: contactNumber,
+        mobile_number: contactNumber,
         role, // Set role as needed
         is_confirmed: false,
       },
@@ -52,7 +52,7 @@ const registerUser = async ({
           parishioner_id: user.user.id,
           first_name: firstName,
           last_name: lastName,
-          contact_number: contactNumber,
+          mobile_number: contactNumber,
           family_id: newUserFamily[0].id,
         },
       ]);
@@ -71,14 +71,14 @@ const updateContact = async (userId, newContactNumber) => {
   try {
     const { data: userData, error: userError } = await supabase
       .from("users")
-      .update({ contact_number: newContactNumber })
+      .update({ mobile_number: newContactNumber })
       .eq("id", userId);
 
     if (userError) throw userError;
 
     const { data: parentData, error: parentError } = await supabase
       .from("parents")
-      .update({ contact_number: newContactNumber })
+      .update({ mobile_number: newContactNumber })
       .eq("parishioner_id", userId);
 
     if (parentError) throw parentError;
@@ -114,7 +114,7 @@ const registerCoParent = async ({
         email: user.user.email,
         first_name: firstName,
         last_name: lastName,
-        contact_number: contactNumber,
+        mobile_number: contactNumber,
         role,
         is_confirmed: false,
       },

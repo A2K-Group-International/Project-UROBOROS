@@ -58,7 +58,7 @@ const insertEventAttendance = async (submittedData) => {
   const parentRecords = parents.map((parent) => ({
     first_name: parent.parentFirstName,
     last_name: parent.parentLastName,
-    contact_number: parent.parentContactNumber,
+    mobile_number: parent.parentContactNumber,
     family_id: familyId[0].id,
     main_applicant:
       mainApplicant &&
@@ -90,7 +90,7 @@ const insertEventAttendance = async (submittedData) => {
           attendee.type === "parents" ? attendee.main_applicant : null,
         first_name: attendee.first_name,
         last_name: attendee.last_name,
-        contact_number: attendee.contact_number,
+        mobile_number: attendee.mobile_number,
         family_id: attendee.family_id,
         registration_code: attendee.registration_code,
       }))
@@ -134,7 +134,7 @@ const insertEventAttendance = async (submittedData) => {
 //     mainApplicant &&
 //     parent.first_name === mainApplicant.parentFirstName &&
 //     parent.last_name === mainApplicant.parentLastName,
-//   contact_number: mainApplicant.contact_number, // Check the main applicant in walk in registration
+//   mobile_number: mainApplicant.mobile_number, // Check the main applicant in walk in registration
 // }));
 
 // const childrenWithType = childrenData.map((child) => ({
@@ -238,7 +238,7 @@ const getEventAttendance = async (eventId) => {
 //           main_applicant: guardian.main_applicant,
 //           first_name: guardian.first_name,
 //           last_name: guardian.last_name,
-//           contact_number: guardian.contact_number,
+//           mobile_number: guardian.mobile_number,
 //           family_id: guardian.family_id,
 //           registration_code: guardian.registration_code,
 //         }))
@@ -274,7 +274,7 @@ export const insertGuardians = async (parentData) => {
         family_id: parentData.family_id,
         first_name: parentData.first_name,
         last_name: parentData.last_name,
-        contact_number: parentData.contact_number,
+        mobile_number: parentData.mobile_number,
         registered_by: parentData.registered_by,
         time_attended: parentData.time_attended,
       },
@@ -427,7 +427,7 @@ const fetchAttendeesByTicketCode = async (registrationCode) => {
           id: parent.id,
           firstName: parent.first_name,
           lastName: parent.last_name,
-          contactNumber: parent.contact_number,
+          contactNumber: parent.mobile_number,
           isMainApplicant: parent.main_applicant,
         }));
 
@@ -559,7 +559,7 @@ const insertNewRecord = async (submittedData) => {
   const parentRecords = parents.map((parent) => ({
     first_name: parent.parentFirstName,
     last_name: parent.parentLastName,
-    contact_number: parent.parentContactNumber,
+    mobile_number: parent.parentContactNumber,
     main_applicant:
       mainApplicant &&
       parent.parentFirstName === mainApplicant.parentFirstName &&
@@ -619,7 +619,7 @@ const insertNewRecord = async (submittedData) => {
         last_name: attendee.last_name,
         time_attended: new Date().toISOString(),
         attended: true,
-        contact_number: attendee.contact_number || null,
+        mobile_number: attendee.mobile_number || null,
         family_id: attendee.family_id,
         registration_code: attendee.registration_code || null,
         registered_by,
@@ -639,7 +639,7 @@ const editAttendee = async ({
   last_name,
   time_attended,
   time_out,
-  contact_number,
+  mobile_number,
   attendeeId,
 }) => {
   const convertToISOString = (time) => {
@@ -662,7 +662,7 @@ const editAttendee = async ({
       last_name,
       time_attended: time_attended ? convertToISOString(time_attended) : null,
       time_out: time_out ? convertToISOString(time_out) : null,
-      contact_number: contact_number ?? null,
+      mobile_number: mobile_number ?? null,
     })
     .select("id")
     .eq("id", attendeeId);
@@ -680,7 +680,7 @@ const editAttendee = async ({
         first_name,
         last_name,
         updated_at: new Date(),
-        contact_number: contact_number ?? null,
+        contact_number: mobile_number ?? null,
       },
     ]);
 
@@ -757,7 +757,7 @@ const addSingleAttendee = async ({
           last_name: attendeeData.last_name,
           updated_at: new Date(),
           family_id,
-          contact_number: attendeeData.contact_number ?? null,
+          contact_number: attendeeData.mobile_number ?? null,
         },
       ]);
 
@@ -842,7 +842,7 @@ const searchAttendee = async ({ searchTerm = "", page = 1, pageSize = 10 }) => {
       const [parentsResult, childrenResult, walkInResult] = await Promise.all([
         supabase
           .from("parents")
-          .select("id, first_name, last_name, family_id, contact_number")
+          .select("id, first_name, last_name, family_id, mobile_number")
           .order("first_name", { ascending: true })
           .order("last_name", { ascending: true })
           .range(start, end),
@@ -855,7 +855,7 @@ const searchAttendee = async ({ searchTerm = "", page = 1, pageSize = 10 }) => {
         supabase
           .from("attendance")
           .select(
-            "id, first_name, last_name, family_id, contact_number, attendee_type, event_id"
+            "id, first_name, last_name, family_id, mobile_number, attendee_type, event_id"
           )
           .is("attendee_id", null)
           .order("first_name", { ascending: true })
@@ -989,7 +989,7 @@ const searchAttendee = async ({ searchTerm = "", page = 1, pageSize = 10 }) => {
     const [parentsResult, childrenResult, walkInResult] = await Promise.all([
       supabase
         .from("parents")
-        .select("id, first_name, last_name, family_id, contact_number")
+        .select("id, first_name, last_name, family_id, mobile_number")
         .order("first_name", { ascending: true })
         .order("last_name", { ascending: true }),
       supabase
@@ -1000,7 +1000,7 @@ const searchAttendee = async ({ searchTerm = "", page = 1, pageSize = 10 }) => {
       supabase
         .from("attendance")
         .select(
-          "id, first_name, last_name, family_id, contact_number, attendee_type, event_id"
+          "id, first_name, last_name, family_id, mobile_number, attendee_type, event_id"
         )
         .is("attendee_id", null)
         .order("first_name", { ascending: true })
@@ -1151,7 +1151,7 @@ const searchAttendee = async ({ searchTerm = "", page = 1, pageSize = 10 }) => {
 //       supabase
 //         .from("attendance")
 //         .select(
-//           "id, first_name, last_name, family_id, contact_number, attendee_type, event_id"
+//           "id, first_name, last_name, family_id, mobile_number, attendee_type, event_id"
 //         )
 //         .is("attendee_id", null)
 //         .or(`first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%`)
@@ -1389,7 +1389,7 @@ const addSingleAttendeeFromRecord = async (attendeeDetails) => {
           last_name: attendeeDetails.attendee.last_name,
           event_id: attendeeDetails.event.id,
           family_id: attendeeDetails.family.id,
-          contact_number: attendeeDetails.attendee.contact,
+          mobile_number: attendeeDetails.attendee.contact,
           attendee_type: attendeeDetails.attendee.type,
           attended: attendeeDetails.attended,
           time_attended: attendeeDetails.time_attended,
@@ -1450,7 +1450,7 @@ const addSingleWalkInAttendeeFromRecord = async (attendeeDetails) => {
           last_name: attendeeDetails.attendee.last_name,
           event_id: attendeeDetails.event.id,
           family_id: attendeeDetails.family.id,
-          contact_number: attendeeDetails.attendee.contact,
+          mobile_number: attendeeDetails.attendee.contact,
           attendee_type: attendeeDetails.attendee.type,
           attended: attendeeDetails.attended,
           time_attended: attendeeDetails.time_attended,
