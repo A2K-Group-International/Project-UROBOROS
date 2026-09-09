@@ -524,7 +524,7 @@ describe("getMinistryGroups", () => {
       expect.stringContaining("groups(id, name, description")
     );
     expect(mockSelect).toHaveBeenCalledWith(
-      expect.stringContaining("users(id)")
+      expect.stringContaining("users:profiles(id)")
     );
 
     expect(mockEq).toHaveBeenCalledWith("user_id", 123);

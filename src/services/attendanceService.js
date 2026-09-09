@@ -148,7 +148,7 @@ const getEventAttendance = async (eventId) => {
     // Fetch attendance records for the given event
     const { data: attendanceData, error: attendanceError } = await supabase
       .from("attendance")
-      .select("*, registered_by:users(first_name,last_name)")
+      .select("*, registered_by:profiles(first_name,last_name)")
       .eq("event_id", eventId)
       .order("created_at", { ascending: true })
       .order("first_name", { ascending: true })

@@ -90,7 +90,7 @@ export const fetchSingleAnnouncement = async (announcementId) => {
     const { data: announcement, error } = await supabase
       .from("announcements")
       .select(
-        "*, users(first_name, last_name, role), announcement_files(id, url, name, type)"
+        "*, users:profiles(first_name, last_name, role), announcement_files(id, url, name, type)"
       )
       .eq("id", announcementId)
       .single(); // Use single() as we expect one announcement
@@ -157,7 +157,7 @@ export const fetchAnnouncementsV2 = async (
 ) => {
   try {
     const select =
-      "*, users(first_name,last_name,role), announcement_files(url,name,type)";
+      "*, users:profiles(first_name,last_name,role), announcement_files(url,name,type)";
     const order = [{ column: "created_at", ascending: false }];
 
     const query = {};

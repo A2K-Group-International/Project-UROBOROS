@@ -35,7 +35,7 @@ export const getMinistryVolunteers = async (ministryId) => {
 
   const { data: volunteerList, error: volunteerError } = await supabase
     .from("group_members")
-    .select(`users(id, first_name, last_name)`)
+    .select(`users:profiles(id, first_name, last_name)`)
     .eq("group_id", getGroup.id);
 
   // Throw here if there's an error
@@ -47,7 +47,7 @@ export const getMinistryVolunteers = async (ministryId) => {
     await supabase
       .from("ministry_coordinators")
       .select(
-        `users!ministry_coordinators_coordinator_id_fkey(id, first_name, last_name)`
+        `users:profiles!ministry_coordinators_coordinator_id_fkey(id, first_name, last_name)`
       )
       .eq("ministry_id", ministryId);
 
@@ -167,7 +167,7 @@ export const getMinistryGroups = async (userId) => {
         `id, 
          joined_at, 
          groups(id, name, description, ministry_id, image_url, ministry:ministries(id, ministry_name, image_url)), 
-         users(id)`
+         users:profiles(id)`
       )
       .eq("user_id", userId);
 
@@ -237,7 +237,7 @@ export const getMinistryCoordinators = async (ministryId) => {
   const { data, error } = await supabase
     .from("ministry_coordinators")
     .select(
-      "id,users!ministry_coordinators_coordinator_id_fkey(id, first_name,last_name)"
+      "id,users:profiles!ministry_coordinators_coordinator_id_fkey(id, first_name,last_name)"
     )
     .eq("ministry_id", ministryId);
 
@@ -620,7 +620,7 @@ export const fetchAllMinistryVolunteers = async (userId) => {
         const groupIds = volunteerGroups.map((group) => group.id);
         const { data: members, error: memberError } = await supabase
           .from("group_members")
-          .select("users(id, first_name, last_name)")
+          .select("users:profiles(id, first_name, last_name)")
           .in("group_id", groupIds);
 
         if (memberError) {
@@ -639,7 +639,7 @@ export const fetchAllMinistryVolunteers = async (userId) => {
         const { data: coordinators, error: coordError } = await supabase
           .from("ministry_coordinators")
           .select(
-            "users!ministry_coordinators_coordinator_id_fkey(id, first_name, last_name)"
+            "users:profiles!ministry_coordinators_coordinator_id_fkey(id, first_name, last_name)"
           )
           .in("ministry_id", ministryIds);
 
@@ -866,7 +866,7 @@ export const fetchUserMinistryIds = async (userId) => {
 export const getMinistriesMembers = async (ministryIds) => {
   const { data, error } = await supabase
     .from("groups")
-    .select("group_members(users(id))")
+    .select("group_members(users:profiles(id))")
     .in("ministry_id", ministryIds);
 
   if (error) {

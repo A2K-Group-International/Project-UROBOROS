@@ -12,7 +12,7 @@ const fetchSubgroupMembers = async (subgroupId) => {
     .select(
       `
         *,
-        users(
+        users:profiles(
           id,
           first_name,
           last_name  
