@@ -5,16 +5,26 @@ import Announcement from "../Announcements/Announcement";
 import useAnnouncements from "@/hooks/useAnnouncements";
 import { Skeleton } from "../ui/skeleton";
 import useInterObserver from "@/hooks/useInterObserver";
+import { useGetUserCoordinator } from "@/hooks/use-confirmation-form";
 import PropTypes from "prop-types";
 import foldedPaperImage from "@/assets/images/foldedpaper.png";
 
-const GroupAnnouncements = ({ groupId, subgroupId }) => {
+const GroupAnnouncements = ({ ministryId, groupId, subgroupId }) => {
   const [searchParams] = useSearchParams();
   const { userData } = useUser();
 
   // Use the passed subgroupId first, then groupId, then search params
   const subgroupIdToUse = subgroupId || searchParams.get("subgroupId");
   const groupIdToUse = groupId || searchParams.get("groupId");
+
+  // Coordinators moderate every group and subgroup under a ministry they run.
+  // Resolved once for the whole feed rather than per announcement. The hook is
+  // already gated on both ids being present, so a missing ministryId yields
+  // undefined and this stays false.
+  const { data: isMinistryCoordinator = false } = useGetUserCoordinator(
+    userData?.id,
+    ministryId
+  );
 
   const {
     fetchNextPage,
@@ -74,6 +84,7 @@ const GroupAnnouncements = ({ groupId, subgroupId }) => {
               <Announcement
                 announcement={announcement}
                 deleteAnnouncementMutation={deleteAnnouncementMutation}
+                isMinistryCoordinator={isMinistryCoordinator}
               />
             </div>
           ))

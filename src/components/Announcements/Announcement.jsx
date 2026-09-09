@@ -56,6 +56,7 @@ const Announcement = ({
   announcement,
   deleteAnnouncementMutation,
   isModal = false,
+  isMinistryCoordinator = false,
 }) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState();
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -78,10 +79,18 @@ const Announcement = ({
     !announcement?.group_id &&
     !announcement?.subgroup_id;
 
-  // Admins moderate the general feed; everyone else manages only their own.
-  // This is a UI gate only - editAnnouncement/deleteAnnouncement take no owner
-  // argument and check nothing, so RLS is what actually enforces this.
-  const canManage = isOwner || (userData?.role === ROLES.ADMIN && isGeneral);
+  const isGroupScoped = Boolean(
+    announcement?.group_id || announcement?.subgroup_id
+  );
+
+  // Admins moderate the general feed, coordinators moderate the groups and
+  // subgroups of the ministries they run, and everyone else manages only their
+  // own. This is a UI gate only - editAnnouncement/deleteAnnouncement take no
+  // owner argument and check nothing, so RLS is what actually enforces this.
+  const canManage =
+    isOwner ||
+    (userData?.role === ROLES.ADMIN && isGeneral) ||
+    (isMinistryCoordinator && isGroupScoped);
 
   return (
     <div>
@@ -380,6 +389,7 @@ Announcement.propTypes = {
     })
   ),
   isModal: PropTypes.bool,
+  isMinistryCoordinator: PropTypes.bool,
 };
 
 export default Announcement;
