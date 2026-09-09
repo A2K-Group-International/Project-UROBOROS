@@ -418,9 +418,9 @@ export const getAnnouncementMinistryId = async (announcement_id) => {
 
 export const getAnnouncementByComment = async (commentId) => {
   const { data, error } = await supabase
-    .from("comment_data")
+    .from("comments")
     .select(
-      "announcement(id, title, content, created_at, visibility, users(first_name, last_name, role), announcement_files(id, url, name, type))"
+      "announcement:announcements(id, title, content, created_at, visibility, users:profiles(first_name, last_name, role), announcement_files(id, url, name, type))"
     )
     .eq("id", commentId)
     .single();
