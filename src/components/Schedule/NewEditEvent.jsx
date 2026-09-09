@@ -374,7 +374,7 @@ const NewEditEvent = ({
                               <SelectContent>
                                 {assignedMinistriesLoading ? (
                                   <Loader2 className="animate-spin" />
-                                ) : role === ROLES[0] ? (
+                                ) : role === ROLES.COORDINATOR ? (
                                   // If user is coordinator
                                   assignedMinistries?.length > 0 ? (
                                     assignedMinistries?.map((ministry) => (

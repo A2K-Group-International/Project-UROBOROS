@@ -295,7 +295,7 @@ const ScheduleDetails = () => {
   //If public event show all volunteers, coordinators and admins role
   //If private event show only the coordinator and member in volunteer group to the ministry
   const getVolunteerOptionsForRole = () => {
-    if (role === ROLES[4]) {
+    if (role === ROLES.ADMIN) {
       return event?.event_visibility === "public"
         ? allVolunteersRole
         : ministryVolunteerOptions;
@@ -304,7 +304,7 @@ const ScheduleDetails = () => {
     //Coordinator role
     //If public event show all members in volunteer group and their coordinator in their ministry
     //If private event show only volunteers in their volunteer group
-    if (role === ROLES[0] || role === ROLES[1]) {
+    if (role === ROLES.COORDINATOR || role === ROLES.VOLUNTEER) {
       return event?.event_visibility === "public"
         ? ministriesVolunteers
         : ministryVolunteerOptions;
@@ -574,8 +574,8 @@ const ScheduleDetails = () => {
                     setDeleteDialogOpen(isOpen);
                   }}
                 >
-                  {((!disableSchedule && role === ROLES[4]) ||
-                    (!disableSchedule && role === ROLES[0])) && (
+                  {((!disableSchedule && role === ROLES.ADMIN) ||
+                    (!disableSchedule && role === ROLES.COORDINATOR)) && (
                     <DialogTrigger asChild>
                       <Button className="rounded-xl px-3 py-3">
                         <Icon icon={"mingcute:delete-3-line"} />

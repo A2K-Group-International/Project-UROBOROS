@@ -13,7 +13,7 @@ const useRoleSwitcher = () => {
     localStorage.setItem("temporaryRole", role);
     // setTemporaryRole(role);
 
-    if (role === ROLES[4]) {
+    if (role === ROLES.ADMIN) {
       navigate("/ministries");
     } else {
       navigate("/announcements");
@@ -21,38 +21,38 @@ const useRoleSwitcher = () => {
   };
 
   const roles = [
-    { label: "Switch to Parishioner", value: ROLES[2] },
-    { label: "Switch to Volunteer", value: ROLES[1] },
-    { label: "Switch to Coordinator", value: ROLES[0] },
-    { label: "Switch to Admin", value: ROLES[4] },
+    { label: "Switch to Parishioner", value: ROLES.PARISHIONER },
+    { label: "Switch to Volunteer", value: ROLES.VOLUNTEER },
+    { label: "Switch to Coordinator", value: ROLES.COORDINATOR },
+    { label: "Switch to Admin", value: ROLES.ADMIN },
   ];
 
   const availableRoles = roles.filter((role) => {
-    if (userData?.role === ROLES[1]) {
-      if (localStorage.getItem("temporaryRole") === ROLES[1]) {
+    if (userData?.role === ROLES.VOLUNTEER) {
+      if (localStorage.getItem("temporaryRole") === ROLES.VOLUNTEER) {
         // Exclude volunteer and show parishioner
         return (
-          role.value !== ROLES[1] &&
-          role.value !== ROLES[0] &&
-          role.value !== ROLES[4]
+          role.value !== ROLES.VOLUNTEER &&
+          role.value !== ROLES.COORDINATOR &&
+          role.value !== ROLES.ADMIN
         );
       }
-      if (localStorage.getItem("temporaryRole") === ROLES[2]) {
+      if (localStorage.getItem("temporaryRole") === ROLES.PARISHIONER) {
         // Exclude parishioner and show volunteer
         return (
-          role.value !== ROLES[2] &&
-          role.value !== ROLES[0] &&
-          role.value !== ROLES[4]
+          role.value !== ROLES.PARISHIONER &&
+          role.value !== ROLES.COORDINATOR &&
+          role.value !== ROLES.ADMIN
         );
       }
-    } else if (userData?.role === ROLES[2]) {
+    } else if (userData?.role === ROLES.PARISHIONER) {
       // Do not return any role
       return null;
-    } else if (userData?.role === ROLES[0]) {
+    } else if (userData?.role === ROLES.COORDINATOR) {
       // Returns all role except the current temporary role and superadmin
       return (
         role.value !== localStorage.getItem("temporaryRole") &&
-        role?.value !== ROLES[4]
+        role?.value !== ROLES.ADMIN
       );
     } else {
       // Returns all role except the current temporary role

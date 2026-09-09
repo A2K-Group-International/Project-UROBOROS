@@ -12,7 +12,7 @@ import PrivacyPolicy from "@/pages/privacy-policy-v2";
 
 import RequireRole from "@/components/RequireRole";
 
-import { ROLES } from "@/constants/roles";
+import { ROLES, ALL_ROLES } from "@/constants/roles";
 import ResetPassword from "./pages/ResetPassword";
 import AcceptInvite from "./pages/AcceptInvite";
 import SendFeedback from "./pages/SendFeedback";
@@ -59,13 +59,15 @@ const App = () => {
         <Route element={<MainLayout />}>
           {/* ========================================================= */}
           {/* Only Admin and Coordinator can access the routes below */}
-          <Route element={<RequireRole roles={[ROLES[0], ROLES[4]]} />}>
+          <Route
+            element={<RequireRole roles={[ROLES.COORDINATOR, ROLES.ADMIN]} />}
+          >
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/poll" element={<Poll />} />
           </Route>
           {/* ========================================================= */}
           {/* Only admin can access the routes below */}
-          <Route element={<RequireRole roles={[ROLES[4]]} />}>
+          <Route element={<RequireRole roles={[ROLES.ADMIN]} />}>
             <Route path="/requests" element={<Requests />} />
             <Route path="/feedback" element={<Feedback />} />
             <Route path="/lyrics" element={<Lyrics />} />
@@ -75,14 +77,18 @@ const App = () => {
           {/* ========================================================= */}
           {/* Roles of Coordinator and Volunteer can access the routes below */}
           <Route
-            element={<RequireRole roles={[ROLES[0], ROLES[1], ROLES[4]]} />}
+            element={
+              <RequireRole
+                roles={[ROLES.COORDINATOR, ROLES.VOLUNTEER, ROLES.ADMIN]}
+              />
+            }
           >
             {/* Add Route for OrganizedEvents */}
             <Route path="/schedule" element={<Schedule />} />
           </Route>
           {/* ========================================================= */}
           {/* All Roles Can Access Routes Below */}
-          <Route element={<RequireRole roles={[...ROLES]} />}>
+          <Route element={<RequireRole roles={ALL_ROLES} />}>
             <Route path="/announcements" element={<Announcements />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/ministries" element={<Ministries />} />

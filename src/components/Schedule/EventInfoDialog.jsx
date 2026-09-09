@@ -43,7 +43,7 @@ const EventInfoDialog = ({ open, event, eventData, onClose }) => {
           <Button variant="outline" onClick={onClose}>
             Close
           </Button>
-          {userData?.role === ROLES[2] &&
+          {userData?.role === ROLES.PARISHIONER &&
             currentEventDetails?.requires_attendance && (
               <ManualAttendEvents
                 eventId={currentEventDetails?.id}

@@ -149,11 +149,11 @@ const CreateEvent = ({
     if (
       allMinistryVolunteersLoading &&
       watchVisibility === "public" &&
-      userData?.role === ROLES[0]
+      userData?.role === ROLES.COORDINATOR
     ) {
       return [{ value: "", label: "Loading volunteers...", isDisabled: true }];
     }
-    if (watchVisibility === "public" && userData?.role === ROLES[0]) {
+    if (watchVisibility === "public" && userData?.role === ROLES.COORDINATOR) {
       //For public visibility, return all volunteers
       return allMinistryVolunteers?.map((volunteer) => ({
         value: volunteer.id,
@@ -194,7 +194,7 @@ const CreateEvent = ({
       eventCategory: eventData?.event_category || "",
       eventVisibility:
         eventData?.event_visibility ||
-        (userData?.role === ROLES[0] ? "private" : "public"),
+        (userData?.role === ROLES.COORDINATOR ? "private" : "public"),
       ministry:
         eventData?.ministry_id ||
         (coordinatorMinistry?.length === 1 ? coordinatorMinistry[0] : ""),
@@ -426,7 +426,7 @@ const CreateEvent = ({
                       <SelectContent>
                         {assignedMinistriesLoading ? (
                           <Loader2 />
-                        ) : userData?.role === ROLES[0] ? (
+                        ) : userData?.role === ROLES.COORDINATOR ? (
                           // If user is coordinator
                           assignedMinistries?.length > 0 ? (
                             assignedMinistries.map((ministry) => (

@@ -37,8 +37,7 @@ const useManageUsers = ({
   const usersQuery = useInfiniteQuery({
     queryKey: ["users-list", role],
     queryFn: async ({ pageParam }) => {
-      const roles =
-        role === "parishioner" ? ["parishioner", "coparent"] : [role];
+      const roles = [role];
       const response = await getUsers({
         // activeFilter,
         page: pageParam,

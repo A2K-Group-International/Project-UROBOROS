@@ -450,7 +450,7 @@ export const getEvents = async ({
         ...new Set([...volunteerEventIds, ...replacementEventIds]),
       ];
       filters.id = allEventIds.length > 0 ? allEventIds : [];
-    } else if (role === "parishioner" || role === "coparent") {
+    } else if (role === "parishioner") {
       const { data: groupMemberships } = await supabase
         .from("group_members")
         .select("groups(ministry_id)")

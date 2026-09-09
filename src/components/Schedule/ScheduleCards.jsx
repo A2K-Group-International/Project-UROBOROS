@@ -49,7 +49,7 @@ const ScheduleCards = ({ event, onEventClick, urlPrms, filter }) => {
             <p className="text-sm leading-tight text-primary-text">
               {event.event_category} - {event.event_visibility}
             </p>
-            {(role === ROLES[4] || role === ROLES[0]) && (
+            {(role === ROLES.ADMIN || role === ROLES.COORDINATOR) && (
               <p className="text-sm text-primary-text">
                 {`Created by: ${event.creator_id.first_name} ${event.creator_id.last_name}`}
               </p>
@@ -60,7 +60,7 @@ const ScheduleCards = ({ event, onEventClick, urlPrms, filter }) => {
             </p>
           </div>
         </div>
-        {!disableEdit && (role === ROLES[0] || role === ROLES[4]) && (
+        {!disableEdit && (role === ROLES.COORDINATOR || role === ROLES.ADMIN) && (
           <NewEditEvent
             initialEventData={{ ...event }}
             queryKey={[
@@ -93,7 +93,7 @@ const ScheduleCards = ({ event, onEventClick, urlPrms, filter }) => {
                 <p className="text-sm leading-tight text-primary-text">
                   {event.event_category} - {event.event_visibility}
                 </p>
-                {role === ROLES[4] && (
+                {role === ROLES.ADMIN && (
                   <p className="text-sm text-primary-text">{`Created by: ${event.creator_id.first_name} ${event.creator_id.last_name}`}</p>
                 )}
                 <p className="text-md font-bold leading-none text-primary-text">

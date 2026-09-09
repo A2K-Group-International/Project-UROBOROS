@@ -141,7 +141,7 @@ const Schedule = () => {
 
   // Set initial event filter for ministry coordinators
   useEffect(() => {
-    if (userData?.role === ROLES[0] && !urlPrms.get("eventFilter")) {
+    if (userData?.role === ROLES.COORDINATOR && !urlPrms.get("eventFilter")) {
       urlPrms.set("eventFilter", "ministry");
       setUrlPrms(urlPrms);
     }
@@ -153,18 +153,18 @@ const Schedule = () => {
         <div className="flex items-center justify-between">
           <div>
             <Title>
-              {userData?.role === ROLES[1] ? "Assigned Events" : "Scheduler"}
+              {userData?.role === ROLES.VOLUNTEER ? "Assigned Events" : "Scheduler"}
             </Title>
             <Description>
-              {userData?.role === ROLES[1]
+              {userData?.role === ROLES.VOLUNTEER
                 ? "View events assigned to you."
                 : "Manage schedules for your organisation."}
             </Description>
           </div>
-          {/* {userData?.role === ROLES[1] && <VolunteerDialogCalendar />} */}
+          {/* {userData?.role === ROLES.VOLUNTEER && <VolunteerDialogCalendar />} */}
         </div>
         <div className="flex flex-col gap-3">
-          {(userData?.role === ROLES[0] || userData?.role === ROLES[4]) && (
+          {(userData?.role === ROLES.COORDINATOR || userData?.role === ROLES.ADMIN) && (
             <div className="flex gap-1">
               <NewCreateEventForm />
               <CreateMeeting />
@@ -258,7 +258,7 @@ const Schedule = () => {
           </div>
 
           {filter === "events" &&
-            (userData?.role === ROLES[0] || userData?.role === ROLES[4]) && (
+            (userData?.role === ROLES.COORDINATOR || userData?.role === ROLES.ADMIN) && (
               <div>
                 <p className="mb-3 font-montserrat font-semibold text-accent">
                   Schedules
