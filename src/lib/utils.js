@@ -221,13 +221,19 @@ const paginate = async ({
 
 /**
  * Gets first initial of a name.
- * @returns {string} The initial of a name.
+ *
+ * Returns "" rather than throwing when there is no usable name. A blank or
+ * whitespace-leading value used to split into an empty first segment, so
+ * indexing its first character gave undefined and .toUpperCase() threw —
+ * enough to take down the whole page, since nothing here is wrapped in an
+ * error boundary.
+ *
+ * @param {string} [name] The name to take the initial from.
+ * @returns {string} The uppercased initial, or "" if there isn't one.
  */
 const getInitial = (name) => {
-  return name
-    ?.split(" ")
-    .map((word) => word[0])[0]
-    .toUpperCase();
+  const firstWord = typeof name === "string" ? name.trim().split(/\s+/)[0] : "";
+  return firstWord ? firstWord[0].toUpperCase() : "";
 };
 
 const downloadExcel = (event, eventvolunteers, attendance, attendanceCount) => {
