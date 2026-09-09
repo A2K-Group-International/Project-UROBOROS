@@ -100,7 +100,7 @@ describe("AnnouncementsService", () => {
 
       expect(result).toEqual({ id: "announcement123" });
       expect(supabase.storage.from).toHaveBeenCalledWith("Uroboros");
-      expect(supabase.from).toHaveBeenCalledWith("announcement");
+      expect(supabase.from).toHaveBeenCalledWith("announcements");
       expect(supabase.from).toHaveBeenCalledWith("announcement_files");
     });
 
@@ -298,7 +298,7 @@ describe("AnnouncementsService", () => {
               }),
             }),
           };
-        } else if (table === "announcement") {
+        } else if (table === "announcements") {
           return {
             update: vi.fn().mockReturnValue({
               eq: vi.fn().mockResolvedValue({
