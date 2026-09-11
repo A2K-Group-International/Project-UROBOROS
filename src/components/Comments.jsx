@@ -51,15 +51,6 @@ const Comments = ({ announcement_id, isModal }) => {
       staleTime: 1000 * 60 * 5, // 5 minutes - longer stale time to reduce refetches
     });
 
-  // Query for the parent comment
-  const { data: parentCommentData, isSuccess: isParentCommentSuccess } =
-    useQuery({
-      queryKey: ["comment", targetCommentData?.parent_id],
-      queryFn: () => fetchComment(targetCommentData?.parent_id),
-      enabled: !!targetCommentData?.parent_id,
-      staleTime: 1000 * 60 * 5,
-    });
-
   // Main comments query
   const {
     HandleAddComment,
@@ -68,7 +59,7 @@ const Comments = ({ announcement_id, isModal }) => {
     fetchNextPage,
     hasNextPage,
     isFetching,
-  } = useComment(announcement_id, null);
+  } = useComment(announcement_id);
 
   // Function to modify query data to pin our featured comment at the top
   const pinFeaturedCommentToTop = () => {
@@ -115,31 +106,13 @@ const Comments = ({ announcement_id, isModal }) => {
       return;
     }
 
-    // 1. If target comment has loaded
+    // Comments are flat, so the linked comment is always the one to feature
     if (isTargetCommentSuccess && targetCommentData) {
-      // 2. If it's a reply and we need the parent
-      if (targetCommentData.parent_id) {
-        if (isParentCommentSuccess && parentCommentData) {
-          // Set the parent as the featured comment
-          setFeaturedCommentId(String(parentCommentData.id));
-          setCommentToHighlight(String(commentIdFromUrl));
-          featuredCommentData.current = parentCommentData;
-        }
-      } else {
-        // Set the target comment itself as the featured comment
-        setFeaturedCommentId(String(targetCommentData.id));
-        setCommentToHighlight(String(targetCommentData.id));
-        featuredCommentData.current = targetCommentData;
-      }
+      setFeaturedCommentId(String(targetCommentData.id));
+      setCommentToHighlight(String(targetCommentData.id));
+      featuredCommentData.current = targetCommentData;
     }
-  }, [
-    commentIdFromUrl,
-    isModal,
-    targetCommentData,
-    parentCommentData,
-    isTargetCommentSuccess,
-    isParentCommentSuccess,
-  ]);
+  }, [commentIdFromUrl, isModal, targetCommentData, isTargetCommentSuccess]);
 
   // Scroll to the highlighted comment
   useEffect(() => {

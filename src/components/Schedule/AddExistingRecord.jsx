@@ -388,7 +388,7 @@ const AddExistingRecord = ({ eventId }) => {
                                         parent.first_name,
                                         parent.last_name,
                                         parent.family_id,
-                                        parent.contact_number,
+                                        parent.mobile_number,
                                         "parents"
                                       )
                                     }
@@ -459,7 +459,7 @@ const AddExistingRecord = ({ eventId }) => {
                                         child.first_name,
                                         child.last_name,
                                         child.family_id,
-                                        child.contact_number,
+                                        child.mobile_number,
                                         "children"
                                       )
                                     }
@@ -566,7 +566,7 @@ const AddExistingRecord = ({ eventId }) => {
                                       walkIn.first_name,
                                       walkIn.last_name,
                                       walkIn.family_id,
-                                      walkIn.contact_number,
+                                      walkIn.mobile_number,
                                       walkIn.attendee_type
                                     )
                                   }

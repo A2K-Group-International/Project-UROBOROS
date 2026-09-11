@@ -4,8 +4,6 @@ import {
   fetchComments,
   deleteComment,
   updateComment,
-  addReply,
-  fetchNestedReplies,
   likeComment,
   dislikeComment,
   getCommentStatus,
@@ -57,7 +55,7 @@ describe("CommentsService", () => {
   });
 
   describe("addComment", () => {
-    it("should add comment without file successfully", async () => {
+    it("should add comment successfully", async () => {
       const mockData = {
         comment: "Test comment",
         user_id: "user123",
@@ -90,8 +88,7 @@ describe("CommentsService", () => {
         items: [
           {
             id: "comment1",
-            comment_content: "Test comment",
-            file_url: null,
+            content: "Test comment",
             users: { id: "user1", first_name: "John", last_name: "Doe" },
           },
         ],
@@ -135,28 +132,8 @@ describe("CommentsService", () => {
   describe("updateComment", () => {
     it("should throw error when comment_id is missing", async () => {
       await expect(
-        updateComment({ comment: "Updated", file: null })
+        updateComment({ comment: "Updated" })
       ).rejects.toThrow("comment_id is required!");
-    });
-  });
-
-  describe("addReply", () => {
-    it("should throw error when user_id is missing", async () => {
-      await expect(
-        addReply({
-          reply: "Test reply",
-          comment_id: "comment123",
-          announcement_id: "announcement123",
-        })
-      ).rejects.toThrow("User ID and comment ID are required!");
-    });
-  });
-
-  describe("fetchNestedReplies", () => {
-    it("should throw error when comment_id is missing", async () => {
-      await expect(fetchNestedReplies()).rejects.toThrow(
-        "CommentID is required!"
-      );
     });
   });
 
@@ -327,7 +304,7 @@ describe("CommentsService", () => {
     it("should fetch single comment successfully", async () => {
       const mockComment = {
         id: "comment123",
-        comment_content: "Test comment",
+        content: "Test comment",
         users: { first_name: "John", last_name: "Doe" },
       };
 

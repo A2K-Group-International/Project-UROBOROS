@@ -81,7 +81,7 @@ const AddAttendee = ({
     defaultValues: {
       first_name: "",
       last_name: "",
-      contact_number: "",
+      mobile_number: "",
     },
   });
 
@@ -152,7 +152,7 @@ const AddAttendee = ({
               <FormField
                 control={form.control}
                 dis
-                name="contact_number"
+                name="mobile_number"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Contact Number</FormLabel>

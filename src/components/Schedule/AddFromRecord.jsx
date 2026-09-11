@@ -31,7 +31,7 @@ import useAddRecord from "@/hooks/Schedule/useAddRecord";
 import { useUser } from "@/context/useUser";
 import PropTypes from "prop-types";
 
-const AddFromRecord = ({ eventId, event_name }) => {
+const AddFromRecord = ({ eventId, name }) => {
   const [open, setOpen] = useState(false);
   const { userData } = useUser();
   const form = useForm({
@@ -43,13 +43,13 @@ const AddFromRecord = ({ eventId, event_name }) => {
   });
 
   const { data: parentData, isLoading: isParentLoading } = useQuery({
-    queryKey: ["parents", event_name],
-    queryFn: async () => fetchParentAttendanceHistory(event_name),
+    queryKey: ["parents", name],
+    queryFn: async () => fetchParentAttendanceHistory(name),
   });
 
   const { data: childrenData, isLoading: isChildLoading } = useQuery({
-    queryKey: ["children", event_name],
-    queryFn: async () => fetchChildrenAttendanceHistory(event_name),
+    queryKey: ["children", name],
+    queryFn: async () => fetchChildrenAttendanceHistory(name),
   });
 
   const parentOptions = useMemo(() => {
@@ -80,7 +80,7 @@ const AddFromRecord = ({ eventId, event_name }) => {
       parents: values.parents.map((parent) => ({
         parentFirstName: parent.first_name,
         parentLastName: parent.last_name,
-        parentContactNumber: parent.contact_number,
+        parentContactNumber: parent.mobile_number,
       })),
       children: values.children.map((child) => ({
         childFirstName: child.first_name,
@@ -172,7 +172,7 @@ const AddFromRecord = ({ eventId, event_name }) => {
 
 AddFromRecord.propTypes = {
   eventId: PropTypes.string,
-  event_name: PropTypes.string,
+  name: PropTypes.string,
 };
 
 export default AddFromRecord;

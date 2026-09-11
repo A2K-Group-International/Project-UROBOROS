@@ -32,14 +32,14 @@ const EventInfoDialog = ({ open, event, eventData, onClose }) => {
       <DialogContent>
         <DialogHeader className="text-start">
           <DialogTitle>
-            {currentEventDetails?.event_name ||
+            {currentEventDetails?.name ||
               currentEventDetails?.meeting_name}
           </DialogTitle>
           <DialogDescription>
             <p>
               Date:{" "}
               {formatEventDate(
-                currentEventDetails?.event_date ||
+                currentEventDetails?.date ||
                   currentEventDetails?.meeting_date
               )}
             </p>
@@ -47,7 +47,7 @@ const EventInfoDialog = ({ open, event, eventData, onClose }) => {
               <p>
                 Time:{" "}
                 {formatEventTime(
-                  currentEventDetails?.event_time ||
+                  currentEventDetails?.time ||
                     currentEventDetails?.start_time
                 )}
               </p>
@@ -55,7 +55,7 @@ const EventInfoDialog = ({ open, event, eventData, onClose }) => {
             <p>
               Description:{" "}
               {event?.description ||
-                currentEventDetails?.event_description ||
+                currentEventDetails?.description ||
                 currentEventDetails?.meeting_description ||
                 "No description provided."}
             </p>
@@ -101,12 +101,12 @@ const DashboardCalendar = () => {
   const safeEvents = Array.isArray(creatorEventId) ? creatorEventId : [];
 
   const eventData = safeEvents.map((item) => {
-    const eventTime = item.event_time || "00:00:00";
+    const eventTime = item.time || "00:00:00";
 
     return {
-      title: item.event_name,
-      start: `${item.event_date}T${eventTime}`,
-      description: item.event_description,
+      title: item.name,
+      start: `${item.date}T${eventTime}`,
+      description: item.description,
       id: item.id,
     };
   });

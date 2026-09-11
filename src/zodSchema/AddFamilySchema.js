@@ -8,7 +8,7 @@ import {
 const parentSchema = z.object({
   first_name: stringWithWhitespaceValidation("First name").transform(capitalizeName),
   last_name: stringWithWhitespaceValidation("Last name").transform(capitalizeName),
-  contact_number: ukPhoneNumberValidation(),
+  mobile_number: ukPhoneNumberValidation(),
   time_attended: z
     .string()
     .optional()
@@ -39,7 +39,7 @@ const parentSchema = z.object({
     ),
 });
 
-const childSchema = parentSchema.omit({ contact_number: true });
+const childSchema = parentSchema.omit({ mobile_number: true });
 
 const addFamilySchema = z.object({
   parents: z

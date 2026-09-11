@@ -38,8 +38,8 @@ const EditParentAttendeeDialog = ({
               form.setValue("first_name", `${attendee.first_name}`);
               form.setValue("last_name", `${attendee.last_name}`);
               form.setValue(
-                "contact_number",
-                `${attendee.contact_number.toString()}`
+                "mobile_number",
+                `${attendee.mobile_number.toString()}`
               );
               //   setIdEditting(attendee.id);
               setAttendeeEdit(true);
@@ -104,7 +104,7 @@ const EditParentAttendeeDialog = ({
             />
             <FormField
               control={form.control}
-              name="contact_number"
+              name="mobile_number"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Contact</FormLabel>
@@ -139,7 +139,7 @@ EditParentAttendeeDialog.propTypes = {
     last_name: PropTypes.string.isRequired,
     time_attended: PropTypes.instanceOf(Date),
     time_out: PropTypes.instanceOf(Date),
-    contact_number: PropTypes.string.isRequired,
+    mobile_number: PropTypes.string.isRequired,
   }).isRequired,
   onSubmit: PropTypes.func.isRequired,
   disableSchedule: PropTypes.bool.isRequired,

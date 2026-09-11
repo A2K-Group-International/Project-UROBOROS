@@ -34,7 +34,7 @@ export const handleWalkInData = async ({
       registration_code: ticketCode,
       first_name: parent.first_name,
       last_name: parent.last_name,
-      contact_number: parent.contact_number,
+      mobile_number: parent.mobile_number,
       attendee_type: "parents",
       main_applicant: parent.main_applicant,
       family_id: parent.family_id || familyId, // Use family_id from the parent data if it exists, otherwise fallback to extracted familyId

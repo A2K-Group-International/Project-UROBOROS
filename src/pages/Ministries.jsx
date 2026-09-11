@@ -497,7 +497,10 @@ const MobileSubgroupsList = ({ groupId, ministryId }) => {
                 value="announcement"
                 className="no-scrollbar h-[calc(100%-60px)] overflow-y-auto"
               >
-                <GroupAnnouncements subgroupId={subgroup.id} />
+                <GroupAnnouncements
+                  ministryId={ministryId}
+                  subgroupId={subgroup.id}
+                />
               </TabsContent>
               <TabsContent
                 value="members"
@@ -1056,7 +1059,10 @@ const Ministries = () => {
               className="no-scrollbar mt-0 h-full w-full overflow-y-auto bg-primary"
               value="announcement"
             >
-              <GroupAnnouncements subgroupId={selectedSubgroup} />
+              <GroupAnnouncements
+                ministryId={selectedMinistryId}
+                subgroupId={selectedSubgroup}
+              />
             </TabsContent>
 
             <TabsContent
@@ -1107,7 +1113,10 @@ const Ministries = () => {
               className="no-scrollbar mt-0 h-full w-full overflow-y-auto bg-primary"
               value="announcement"
             >
-              <GroupAnnouncements groupId={selectedGroup} />
+              <GroupAnnouncements
+                ministryId={selectedMinistryId}
+                groupId={selectedGroup}
+              />
             </TabsContent>
 
             <TabsContent

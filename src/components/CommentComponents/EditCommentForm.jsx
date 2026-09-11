@@ -2,12 +2,9 @@ import { Button } from "../ui/button";
 import { useForm } from "react-hook-form";
 import PropTypes from "prop-types";
 import { Textarea } from "../ui/textarea";
-import { Input } from "../ui/input";
 import { useEffect, useState, useRef } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
-import { Label } from "../ui/label";
 import { Icon } from "@iconify/react";
-import ImageLoader from "@/lib/ImageLoader";
 import EmojiPicker from "emoji-picker-react";
 import useComment from "@/hooks/useComment";
 import { createPortal } from "react-dom";
@@ -17,15 +14,9 @@ const EditCommentForm = ({
   comment_id,
   setEditting,
   InputDefaultValue,
-  InputDefaultFile,
-  file_type,
-  file_name,
 }) => {
-  const inputRef = useRef(null);
   const emojiButtonRef = useRef(null);
   const textareaRef = useRef(null);
-  const [filePreview, setFilePreview] = useState(null);
-  const [previewType, setPreviewType] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [emojiPickerPosition, setEmojiPickerPosition] = useState({
     top: 0,
@@ -33,40 +24,21 @@ const EditCommentForm = ({
   });
   const [isEmojiPickerPositioned, setIsEmojiPickerPositioned] = useState(false);
 
-  const { updateCommentMutation } = useComment(announcement_id, comment_id);
+  const { updateCommentMutation } = useComment(announcement_id);
 
   const { register, handleSubmit, setValue, watch, getValues } = useForm({
     defaultValues: {
       comment: InputDefaultValue || "",
-      file: InputDefaultFile || null,
     },
   });
 
   const currentText = watch("comment") || "";
 
-  // Initialize file preview if InputDefaultFile exists
   useEffect(() => {
     if (InputDefaultValue) {
       setValue("comment", InputDefaultValue);
     }
-    if (InputDefaultFile) {
-      const convertUrlToFile = async (url) => {
-        const response = await fetch(url);
-        const blob = await response.blob();
-        return new File([blob], file_name, {
-          type: file_type || blob.type,
-        });
-      };
-
-      const convertedFile = convertUrlToFile(InputDefaultFile);
-
-      setValue("file", convertedFile);
-      setFilePreview(InputDefaultFile ?? null);
-      // Try to determine file type from URL or extension
-      const isVideo = file_type?.startsWith("video");
-      setPreviewType(isVideo ? "video" : "image");
-    }
-  }, [InputDefaultFile, InputDefaultValue, file_type, setValue, file_name]);
+  }, [InputDefaultValue, setValue]);
 
   useEffect(() => {
     const updatePosition = () => {
@@ -137,46 +109,19 @@ const EditCommentForm = ({
     }, 0);
   };
 
-  const handleRemoveFile = () => {
-    setFilePreview(null);
-    setPreviewType(null);
-    if (inputRef.current) {
-      inputRef.current.value = "";
-    }
-    setValue("file", null);
-  };
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const type = file.type.split("/")[0];
-      setPreviewType(type);
-      setFilePreview(URL.createObjectURL(file));
-    } else {
-      setFilePreview(null);
-      setPreviewType(null);
-    }
-  };
-
   return (
     <>
       <form
         onSubmit={handleSubmit((inputs) => {
-          const fileData = inputs.file;
-          const actualFile =
-            fileData && fileData.length > 0 ? fileData[0] : null;
           updateCommentMutation.mutate(
             {
               comment: inputs.comment,
-              file: actualFile,
               comment_id,
             },
             {
               onSettled: () => {
                 setEditting(false);
                 setShowEmojiPicker(false);
-                setFilePreview(null);
-                setPreviewType(null);
               },
             }
           );
@@ -191,59 +136,8 @@ const EditCommentForm = ({
           onChange={(e) => setValue("comment", e.target.value)}
           placeholder="Edit your comment..."
         />
-        <Input
-          ref={inputRef}
-          className="hidden"
-          id="file"
-          name="file"
-          type="file"
-          accept="image/*, video/*"
-          multiple={false}
-          {...register("file", {
-            required: false,
-            onChange: handleFileChange,
-          })}
-        />
         <div className="mt-2 flex flex-wrap items-center justify-between">
           <div className="flex items-center gap-2">
-            {!filePreview ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Label
-                    htmlFor="file"
-                    className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full hover:bg-primary"
-                  >
-                    <Icon className="h-5 w-5" icon={"mingcute:camera-2-line"} />
-                  </Label>
-                </TooltipTrigger>
-                <TooltipContent className="text-xs">
-                  Attach a video or photo
-                </TooltipContent>
-              </Tooltip>
-            ) : (
-              <div className="relative">
-                {previewType === "video" ? (
-                  <video
-                    className="h-28 w-fit rounded-md border border-accent object-contain"
-                    src={filePreview}
-                    controls={true}
-                    alt="Preview"
-                  />
-                ) : (
-                  <ImageLoader
-                    className="h-28 w-28 rounded-md border border-accent object-cover"
-                    src={filePreview}
-                    alt="Preview"
-                  />
-                )}
-                <Icon
-                  onClick={handleRemoveFile}
-                  className="absolute right-1 top-1 text-xl text-accent hover:cursor-pointer"
-                  icon={"mingcute:close-circle-fill"}
-                />
-              </div>
-            )}
-
             {/* Emoji Picker Button */}
             <div className="relative">
               <Tooltip>
@@ -324,12 +218,9 @@ const EditCommentForm = ({
 
 EditCommentForm.propTypes = {
   announcement_id: PropTypes.string.isRequired,
-  file_type: PropTypes.string.isRequired,
-  file_name: PropTypes.string.isRequired,
   comment_id: PropTypes.string.isRequired,
   setEditting: PropTypes.func.isRequired,
   InputDefaultValue: PropTypes.string,
-  InputDefaultFile: PropTypes.string,
 };
 
 export default EditCommentForm;

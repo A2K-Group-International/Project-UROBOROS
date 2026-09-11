@@ -208,7 +208,7 @@ const QRScannedFamilyData = ({ userId, selectedEvent }) => {
         family_id: parent.family_id,
         first_name: parent.first_name,
         last_name: parent.last_name,
-        contact_number: parent.contact_number,
+        mobile_number: parent.mobile_number,
         registered_by: userId,
         time_attended: new Date().toISOString(),
       };

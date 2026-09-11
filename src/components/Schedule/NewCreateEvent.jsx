@@ -212,12 +212,12 @@ const NewCreateEventForm = () => {
     if (
       allMinistryVolunteersLoading &&
       watchVisibility === "public" &&
-      role === ROLES[0]
+      role === ROLES.COORDINATOR
     ) {
       return [{ value: "", label: "Loading volunteers...", isDisabled: true }];
     }
     // If event is public and role is coordinator
-    if (watchVisibility === "public" && role === ROLES[0]) {
+    if (watchVisibility === "public" && role === ROLES.COORDINATOR) {
       //For public visibility, return all volunteers
       return allMinistryVolunteers?.map((volunteer) => ({
         value: volunteer.id,
@@ -431,7 +431,7 @@ const NewCreateEventForm = () => {
                               <SelectContent>
                                 {assignedMinistriesLoading ? (
                                   <Loader2 className="animate-spin" />
-                                ) : role === ROLES[0] ? (
+                                ) : role === ROLES.COORDINATOR ? (
                                   // If user is coordinator
                                   assignedMinistries?.length > 0 ? (
                                     assignedMinistries?.map((ministry) => (

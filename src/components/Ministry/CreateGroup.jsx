@@ -74,24 +74,19 @@ const CreateGroup = ({ ministryId }) => {
     ministryId,
   });
 
-  const { data: coparents = [], isLoading: coparentsLoading } = useQuery({
-    queryKey: ["coparent"],
-    queryFn: async () => getUsersByRole(ROLES[3]),
-  });
-
   const { data: parishioners = [], isLoading: parishionerLoading } = useQuery({
     queryKey: ["parishioner"],
-    queryFn: async () => getUsersByRole(ROLES[2]),
+    queryFn: async () => getUsersByRole(ROLES.PARISHIONER),
   });
 
   const { data: volunteers = [], isLoading: volunteersLoading } = useQuery({
     queryKey: ["volunteer"],
-    queryFn: async () => getUsersByRole(ROLES[1]),
+    queryFn: async () => getUsersByRole(ROLES.VOLUNTEER),
   });
 
   const { data: coordinators = [], isLoading: coordinatorsLoading } = useQuery({
     queryKey: ["coordinator"],
-    queryFn: async () => getUsersByRole(ROLES[0]),
+    queryFn: async () => getUsersByRole(ROLES.COORDINATOR),
   });
 
   // Get ministry coordinator IDs in a convenient format
@@ -112,7 +107,6 @@ const CreateGroup = ({ ministryId }) => {
   }, [ministryCoordinatorsQuery.data]);
 
   const isLoadingMembers =
-    coparentsLoading ||
     parishionerLoading ||
     volunteersLoading ||
     coordinatorsLoading ||
@@ -122,7 +116,6 @@ const CreateGroup = ({ ministryId }) => {
   const filteredGroupMembers = useMemo(() => {
     // Combine all potential members
     const allMembers = [
-      ...(coparents || []),
       ...(volunteers || []),
       ...(parishioners || []),
       ...(coordinators || []),
@@ -143,7 +136,6 @@ const CreateGroup = ({ ministryId }) => {
 
     return filtered;
   }, [
-    coparents,
     volunteers,
     parishioners,
     coordinators,

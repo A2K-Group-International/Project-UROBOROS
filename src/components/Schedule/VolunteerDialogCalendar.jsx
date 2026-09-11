@@ -56,7 +56,7 @@ const VolunteerDialogCalendar = () => {
               // Filter by event visibility
               eventVisibility === "all"
                 ? true
-                : event.event_visibility === eventVisibility
+                : event.visibility === eventVisibility
             )
             .filter((event) =>
               // If "Events" is selected, show all events, else filter by event type
@@ -65,17 +65,17 @@ const VolunteerDialogCalendar = () => {
                 : event.event_type === eventType
             )
             .map((event) => {
-              const startDateTime = `${event.event_date}T${event.event_time}`;
-              const endDateTime = `${event.event_date}T${event.event_time}`;
+              const startDateTime = `${event.date}T${event.time}`;
+              const endDateTime = `${event.date}T${event.time}`;
 
               return {
-                title: event.event_name,
+                title: event.name,
                 start: startDateTime,
                 end: endDateTime,
                 backgroundColor:
-                  event.event_visibility === "private" ? "#FF5733" : "#33FF57",
+                  event.visibility === "private" ? "#FF5733" : "#33FF57",
                 borderColor:
-                  event.event_visibility === "private" ? "#FF5733" : "#33FF57",
+                  event.visibility === "private" ? "#FF5733" : "#33FF57",
                 textColor: "#FFFFFF",
                 extendedProps: { ...event },
               };
@@ -108,7 +108,7 @@ const VolunteerDialogCalendar = () => {
     setSelectedEvent({
       title,
       start,
-      description: extendedProps.event_description,
+      description: extendedProps.description,
     });
     setDialogOpen(true); // Open the EventInfoDialog
   };

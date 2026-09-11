@@ -59,7 +59,7 @@ const UsersList = ({ role, onRowEdit }) => {
                     {row.email}
                   </TableCell>
                   <TableCell className="w-[300px] text-center">
-                    {row.contact_number}
+                    {row.mobile_number}
                   </TableCell>
 
                   <TableCell className="w-[300px] rounded-r-lg text-center">

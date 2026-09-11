@@ -149,11 +149,11 @@ const CreateEvent = ({
     if (
       allMinistryVolunteersLoading &&
       watchVisibility === "public" &&
-      userData?.role === ROLES[0]
+      userData?.role === ROLES.COORDINATOR
     ) {
       return [{ value: "", label: "Loading volunteers...", isDisabled: true }];
     }
-    if (watchVisibility === "public" && userData?.role === ROLES[0]) {
+    if (watchVisibility === "public" && userData?.role === ROLES.COORDINATOR) {
       //For public visibility, return all volunteers
       return allMinistryVolunteers?.map((volunteer) => ({
         value: volunteer.id,
@@ -190,21 +190,21 @@ const CreateEvent = ({
   const eventForm = useForm({
     resolver: zodResolver(eventData ? updateEventSchema : createEventSchema),
     defaultValues: {
-      eventName: eventData?.event_name || "",
-      eventCategory: eventData?.event_category || "",
+      eventName: eventData?.name || "",
+      eventCategory: eventData?.category || "",
       eventVisibility:
-        eventData?.event_visibility ||
-        (userData?.role === ROLES[0] ? "private" : "public"),
+        eventData?.visibility ||
+        (userData?.role === ROLES.COORDINATOR ? "private" : "public"),
       ministry:
         eventData?.ministry_id ||
         (coordinatorMinistry?.length === 1 ? coordinatorMinistry[0] : ""),
-      eventDate: eventData?.event_date
-        ? new Date(`${eventData?.event_date}T${eventData?.event_time}`)
+      eventDate: eventData?.date
+        ? new Date(`${eventData?.date}T${eventData?.time}`)
         : null,
-      eventTime: eventData?.event_time
-        ? new Date(`${eventData?.event_date}T${eventData?.event_time}`)
+      eventTime: eventData?.time
+        ? new Date(`${eventData?.date}T${eventData?.time}`)
         : "",
-      eventDescription: eventData?.event_description || "",
+      eventDescription: eventData?.description || "",
       assignVolunteer:
         eventData?.event_volunteers.map(
           (volunteer) => volunteer.volunteer_id
@@ -426,7 +426,7 @@ const CreateEvent = ({
                       <SelectContent>
                         {assignedMinistriesLoading ? (
                           <Loader2 />
-                        ) : userData?.role === ROLES[0] ? (
+                        ) : userData?.role === ROLES.COORDINATOR ? (
                           // If user is coordinator
                           assignedMinistries?.length > 0 ? (
                             assignedMinistries.map((ministry) => (

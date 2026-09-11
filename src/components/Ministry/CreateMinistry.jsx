@@ -49,13 +49,13 @@ const CreateMinistry = ({
   // Get coordinator options - only needed for create mode
   const { data: coordinators, isLoading: coordinatorLoading } = useQuery({
     queryKey: ["coordinators"],
-    queryFn: async () => getUsersByRole(ROLES[0]),
+    queryFn: async () => getUsersByRole(ROLES.COORDINATOR),
     enabled: !isEditMode, // Only fetch coordinators when creating, not editing
   });
 
   const { data: volunteers, isLoading: volunteersLoading } = useQuery({
     queryKey: ["volunteers"],
-    queryFn: async () => getUsersByRole(ROLES[1]),
+    queryFn: async () => getUsersByRole(ROLES.VOLUNTEER),
     enabled: !isEditMode, // Only fetch volunteers when creating, not editing
   });
 

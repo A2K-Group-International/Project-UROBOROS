@@ -81,7 +81,7 @@ export const getConfirmationRegistrations = async (page = 1, perPage = 10) => {
       users (
         first_name, 
         last_name, 
-        contact_number, 
+        mobile_number, 
         email
       )
     `

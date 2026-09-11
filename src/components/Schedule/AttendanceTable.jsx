@@ -116,7 +116,7 @@ const AttendanceTable = ({
 
                   {attendee.attendee_type === "parents" && (
                     <TableCell className="py-1 md:p-4">
-                      <p>{attendee.contact_number ?? "N/A"}</p>
+                      <p>{attendee.mobile_number ?? "N/A"}</p>
                     </TableCell>
                   )}
                   <TableCell className="flex gap-2 py-1">
@@ -151,7 +151,7 @@ AttendanceTable.propTypes = {
       last_name: PropTypes.string.isRequired,
       attended: PropTypes.bool,
       time_attended: PropTypes.instanceOf(Date),
-      contact_number: PropTypes.string,
+      mobile_number: PropTypes.string,
     })
   ).isRequired,
   disableSchedule: PropTypes.bool,

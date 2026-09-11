@@ -57,11 +57,11 @@ const Sidebar = () => {
   return (
     <div className="hidden lg:my-9 lg:flex lg:w-64 lg:flex-col">
       <Title className="mb-12 ml-9 max-w-[201px] lg:block">
-        {userData?.role === ROLES[0] && "Coordinator Management Centre"}
-        {userData?.role === ROLES[1] && "Volunteer Management Centre"}
-        {(userData?.role === ROLES[2] || userData?.role === ROLES[3]) &&
+        {userData?.role === ROLES.COORDINATOR && "Coordinator Management Centre"}
+        {userData?.role === ROLES.VOLUNTEER && "Volunteer Management Centre"}
+        {userData?.role === ROLES.PARISHIONER &&
           `Welcome, ${userData?.first_name ?? ""} ${userData?.last_name ?? ""}`}
-        {userData?.role === ROLES[4] && `Parish Management Centre`}
+        {userData?.role === ROLES.ADMIN && `Parish Management Centre`}
       </Title>
       <div className="no-scrollbar mb-2 flex flex-1 justify-between overflow-x-scroll md:overflow-x-visible lg:mb-0 lg:flex-col">
         <ul className="flex w-full min-w-96 items-center justify-evenly gap-0 pt-1 sm:gap-2 lg:ml-4 lg:mr-8 lg:flex-col lg:items-start">
@@ -219,7 +219,7 @@ const SidebarProfile = ({
               {role.label}
             </DropdownMenuItem>
           ))}
-          {userData?.role !== ROLES[2] && <DropdownMenuSeparator />} */}
+          {userData?.role !== ROLES.PARISHIONER && <DropdownMenuSeparator />} */}
           <Link
             to="/send-feedback"
             className="flex w-full items-center gap-2 hover:cursor-pointer"

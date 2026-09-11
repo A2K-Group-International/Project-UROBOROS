@@ -221,13 +221,19 @@ const paginate = async ({
 
 /**
  * Gets first initial of a name.
- * @returns {string} The initial of a name.
+ *
+ * Returns "" rather than throwing when there is no usable name. A blank or
+ * whitespace-leading value used to split into an empty first segment, so
+ * indexing its first character gave undefined and .toUpperCase() threw —
+ * enough to take down the whole page, since nothing here is wrapped in an
+ * error boundary.
+ *
+ * @param {string} [name] The name to take the initial from.
+ * @returns {string} The uppercased initial, or "" if there isn't one.
  */
 const getInitial = (name) => {
-  return name
-    ?.split(" ")
-    .map((word) => word[0])[0]
-    .toUpperCase();
+  const firstWord = typeof name === "string" ? name.trim().split(/\s+/)[0] : "";
+  return firstWord ? firstWord[0].toUpperCase() : "";
 };
 
 const downloadExcel = (event, eventvolunteers, attendance, attendanceCount) => {
@@ -242,9 +248,9 @@ const downloadExcel = (event, eventvolunteers, attendance, attendanceCount) => {
     : [];
 
   const headings = [
-    ["Event Name", event?.event_name || "Unknown Event"],
-    ["Event Date", event?.event_date || "Unknown Date"],
-    ["Event Category", event?.event_category || "Unknown Category"],
+    ["Event Name", event?.name || "Unknown Event"],
+    ["Event Date", event?.date || "Unknown Date"],
+    ["Event Category", event?.category || "Unknown Category"],
     ["Total Attended", attendanceCount?.attended || "Unknown"],
     ["Assigned Volunteers", volunteerList.join(", ") || "No Volunteers"],
     [],
@@ -271,7 +277,9 @@ const downloadExcel = (event, eventvolunteers, attendance, attendanceCount) => {
           [
             family?.family_surname ? `Family Surname:  ` : "Registered by: ",
             family?.family_surname ??
-              `${family.registered_by.first_name} ${family.registered_by.last_name}`,
+              `${family.registered_by?.first_name ?? ""} ${
+                family.registered_by?.last_name ?? ""
+              }`.trim(),
           ],
           ...(attendedParents.length > 0
             ? [
@@ -279,7 +287,7 @@ const downloadExcel = (event, eventvolunteers, attendance, attendanceCount) => {
                 ...attendedParents.map((parent) => [
                   "",
                   `${parent?.first_name} ${parent?.last_name}`,
-                  `${parent?.contact_number}`,
+                  `${parent?.mobile_number}`,
                   new Date(parent.time_attended).toLocaleTimeString("en-GB", {
                     hour: "2-digit",
                     minute: "2-digit",
@@ -294,7 +302,7 @@ const downloadExcel = (event, eventvolunteers, attendance, attendanceCount) => {
                 ...attendedChildren.map((child) => [
                   "",
                   `${child?.first_name} ${child?.last_name}`,
-                  `${child?.contact_number ?? "N/A"}`,
+                  `${child?.mobile_number ?? "N/A"}`,
                   new Date(child.time_attended).toLocaleTimeString("en-GB", {
                     hour: "2-digit",
                     minute: "2-digit",
@@ -318,7 +326,7 @@ const downloadExcel = (event, eventvolunteers, attendance, attendanceCount) => {
   XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
 
   // Writes workbook to file
-  XLSX.writeFile(workbook, `${event?.event_name}.xlsx`);
+  XLSX.writeFile(workbook, `${event?.name}.xlsx`);
 };
 
 const exportAttendanceList = (
@@ -331,10 +339,10 @@ const exportAttendanceList = (
 
   // Add Title
   doc.setFontSize(18);
-  doc.text(`Event Name: ${event.event_name}`, 10, 10);
+  doc.text(`Event Name: ${event.name}`, 10, 10);
 
   // Format Event Date
-  const eventDate = new Date(event.event_date);
+  const eventDate = new Date(event.date);
   const formattedDate = eventDate.toLocaleDateString("en-US", {
     day: "2-digit",
     month: "long",
@@ -384,7 +392,9 @@ const exportAttendanceList = (
     doc.text(
       family?.family_surname
         ? `Family Surname ${family?.family_surname}`
-        : `Registered by ${family.registered_by.first_name} ${family.registered_by.last_name}`,
+        : `Registered by ${family.registered_by?.first_name ?? ""} ${
+            family.registered_by?.last_name ?? ""
+          }`.trim(),
       10,
       currentY
     );
@@ -399,7 +409,7 @@ const exportAttendanceList = (
         head: [["Parents/Guardians", "Contact", "Status"]],
         body: attendedParents.map((parent) => [
           `${parent.first_name} ${parent.last_name}`,
-          parent.contact_number || "N/A",
+          parent.mobile_number || "N/A",
           "Attended",
         ]),
         theme: "striped",
@@ -427,7 +437,7 @@ const exportAttendanceList = (
   });
 
   // Save the PDF
-  doc.save(`${event.event_name}-${formattedDate}.pdf`);
+  doc.save(`${event.name}-${formattedDate}.pdf`);
 };
 
 const formatEventDate = (date) => {

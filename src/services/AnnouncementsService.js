@@ -44,7 +44,7 @@ export const createAnnouncements = async ({
   );
 
   const { data: fetchData, error } = await supabase
-    .from("announcement")
+    .from("announcements")
     .insert([
       {
         title: data.title,
@@ -88,9 +88,9 @@ export const fetchSingleAnnouncement = async (announcementId) => {
     }
 
     const { data: announcement, error } = await supabase
-      .from("announcement")
+      .from("announcements")
       .select(
-        "*, users(first_name, last_name, role), announcement_files(id, url, name, type)"
+        "*, users:profiles(first_name, last_name, role), announcement_files(id, url, name, type)"
       )
       .eq("id", announcementId)
       .single(); // Use single() as we expect one announcement
@@ -157,7 +157,7 @@ export const fetchAnnouncementsV2 = async (
 ) => {
   try {
     const select =
-      "*, users(first_name,last_name,role), announcement_files(url,name,type)";
+      "*, users:profiles(first_name,last_name,role), announcement_files(url,name,type)";
     const order = [{ column: "created_at", ascending: false }];
 
     const query = {};
@@ -171,7 +171,7 @@ export const fetchAnnouncementsV2 = async (
     }
 
     const paginatedData = await paginate({
-      key: "announcement",
+      key: "announcements",
       page,
       pageSize,
       query,
@@ -279,7 +279,7 @@ export const editAnnouncement = async ({ data, announcementId }) => {
 
   // Update announcement details
   const { error: updateError } = await supabase
-    .from("announcement")
+    .from("announcements")
     .update({
       title: data.title,
       content: data.content,
@@ -363,7 +363,7 @@ export const deleteAnnouncement = async ({ announcement_id, filePaths }) => {
 
   // Check if announcement exists before deletion
   const { data, error: existenceError } = await supabase
-    .from("announcement")
+    .from("announcements")
     .select("id")
     .eq("id", announcement_id)
     .single();
@@ -387,7 +387,7 @@ export const deleteAnnouncement = async ({ announcement_id, filePaths }) => {
 
   // Delete the announcement from the database
   const { error: deleteError } = await supabase
-    .from("announcement")
+    .from("announcements")
     .delete()
     .eq("id", data.id);
 
@@ -418,9 +418,9 @@ export const getAnnouncementMinistryId = async (announcement_id) => {
 
 export const getAnnouncementByComment = async (commentId) => {
   const { data, error } = await supabase
-    .from("comment_data")
+    .from("comments")
     .select(
-      "announcement(id, title, content, created_at, visibility, users(first_name, last_name, role), announcement_files(id, url, name, type))"
+      "announcement:announcements(id, title, content, created_at, visibility, users:profiles(first_name, last_name, role), announcement_files(id, url, name, type))"
     )
     .eq("id", commentId)
     .single();

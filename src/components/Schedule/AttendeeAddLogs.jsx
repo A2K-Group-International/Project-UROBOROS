@@ -72,7 +72,7 @@ import {
                       >
                         <TableCell>{log?.first_name}</TableCell>
                         <TableCell>{log?.last_name}</TableCell>
-                        <TableCell>{log?.contact_number}</TableCell>
+                        <TableCell>{log?.mobile_number}</TableCell>
                         <TableCell>
                           {new Date(log?.updated_at).toLocaleDateString()}
                         </TableCell>
