@@ -13,7 +13,7 @@ const Home = () => {
   const navigate = useNavigate();
   const currentYear = new Date().getFullYear();
   const [showVideo, setShowVideo] = useState(false);
-  // True while a sign-up code is being verified, before the profile rows exist
+  // True while login or sign-up verification runs initialize_user, before the profile is ready
   const isInitializingUser = useRef(false);
 
   const videoUrl = getTrainingVideo();
@@ -38,7 +38,7 @@ const Home = () => {
           navigate("/reset-password");
           return;
         }
-        // Sign-up verification redirects on its own once the profile is created
+        // Login and sign-up verification redirect on their own once the profile is ready
         if (isInitializingUser.current) return;
 
         if (event === "SIGNED_IN" || session) {
@@ -81,7 +81,7 @@ const Home = () => {
           {/* <div className="order-2 mx-auto max-w-xl justify-center rounded-[1.8rem] bg-white/60 backdrop-blur-sm sm:flex sm:space-x-3 sm:rounded-full md:order-1 md:col-span-2"> */}
           <div className="grid grid-cols-2 gap-2 p-2">
             <ParishionerRegister initializingUserRef={isInitializingUser} />
-            <Login />
+            <Login initializingUserRef={isInitializingUser} />
             {/* <WalkInRegistration />
               <EditRegistration /> */}
             {/* </div> */}

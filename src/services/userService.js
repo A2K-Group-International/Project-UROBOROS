@@ -696,6 +696,9 @@ const loginService = async (credentials) => {
     );
     if (loginError) throw loginError;
 
+    // Create or complete the user's profile from their sign-up details
+    await supabase.rpc("initialize_user");
+
     // Fetch the full user data logic can be added here if needed in future
     // For now we just return true to indicate success or the user object
     const {
