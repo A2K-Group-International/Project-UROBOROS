@@ -576,116 +576,28 @@ const completeOAuthRegistration = async ({
   contactNumber,
 }) => {
   try {
-    const { data: { user }, error: sessionError } = await supabase.auth.getUser();
+    // Save the profile details on the auth user so initialize_user can use them
+    const {
+      data: { user },
+      error: updateError,
+    } = await supabase.auth.updateUser({
+      data: {
+        first_name: firstName,
+        last_name: lastName,
+        mobile_number: contactNumber.replace(/\s+/g, ""),
+      },
+    });
 
-    if (sessionError) throw new Error(`Session error: ${sessionError.message}`);
+    if (updateError) throw updateError;
 
-    if (!user) throw new Error("No authenticated user found.");
+    // Create the user's profile, family group and parent record
+    await supabase.rpc("initialize_user");
 
-    // Step 1: Create/verify user profile
-    const profile = await createUserProfile(user, { firstName, lastName, contactNumber });
-    
-    // Step 2: Create family group
-    const familyGroup = await createFamilyGroup(user.id);
-    
-    // Step 3: Create parent record
-    await createParentRecord(user.id, { firstName, lastName, contactNumber }, familyGroup.id);
-    
-    return profile;
-
+    return await getUser(user.id);
   } catch (error) {
     // Return a more specific error object instead of re-throwing
     throw new Error(`Registration failed: ${error.message}`);
   }
-};
-
-// Helper function: Create user profile with idempotency
-const createUserProfile = async (user, { firstName, lastName, contactNumber }) => {
-  const { data: existingProfile, error: checkError } = await supabase
-    .from("users")
-    .select("*")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (checkError) throw new Error(`Profile check failed: ${checkError.message}`);
-
-  if (existingProfile) {
-    return existingProfile;
-  }
-
-  const { data: newProfile, error: insertError } = await supabase
-    .from("users")
-    .insert({
-      id: user.id,
-      email: user.email,
-      first_name: firstName,
-      last_name: lastName,
-      mobile_number: contactNumber,
-      role: "parishioner",
-      is_confirmed: false,
-    })
-    .select()
-    .single();
-
-  if (insertError) throw new Error(`Profile creation failed: ${insertError.message}`);
-  
-  return newProfile;
-};
-
-// Helper function: Create family group with idempotency
-const createFamilyGroup = async (userId) => {
-  // First check if one exists
-  const { data: existingGroup, error: fetchError } = await supabase
-    .from("family_group")
-    .select("*")
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (fetchError)
-    throw new Error(`Family group check failed: ${fetchError.message}`);
-
-  if (existingGroup) {
-    return existingGroup;
-  }
-
-  // If not, create one
-  const { data: familyGroup, error: familyError } = await supabase
-    .from("family_group")
-    .insert([{ user_id: userId }])
-    .select()
-    .single();
-
-  if (familyError)
-    throw new Error(`Family group creation failed: ${familyError.message}`);
-
-  return familyGroup;
-};
-
-// Helper function: Create parent record with idempotency
-const createParentRecord = async (userId, { firstName, lastName, contactNumber }, familyId) => {
-  const { data: existingParent, error: checkError } = await supabase
-    .from("parents")
-    .select("id")
-    .eq("parishioner_id", userId)
-    .maybeSingle();
-
-  if (checkError) throw new Error(`Parent check failed: ${checkError.message}`);
-
-  if (existingParent) {
-    return existingParent;
-  }
-
-  const { error: insertError } = await supabase
-    .from("parents")
-    .insert({
-      parishioner_id: userId,
-      first_name: firstName,
-      last_name: lastName,
-      mobile_number: contactNumber,
-      family_id: familyId,
-    });
-
-  if (insertError) throw new Error(`Parent record creation failed: ${insertError.message}`);
 };
 
 // Login Service
