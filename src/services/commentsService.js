@@ -1,45 +1,16 @@
 import { paginate } from "@/lib/utils";
 import { supabase } from "./supabaseClient";
 
-export const addComment = async ({
-  comment,
-  user_id,
-  announcement_id,
-  file,
-}) => {
+export const addComment = async ({ comment, user_id, announcement_id }) => {
   if (!user_id || !announcement_id) {
     throw new Error("User ID and Post ID are required!");
   }
 
-  let file_url, file_type, file_name;
-
-  if (file) {
-    const fileName = `${file.name.split(".")[0]}-${Date.now()}`;
-    const fileExt = file.name.split(".")[1];
-
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("Uroboros")
-      .upload(`comments/${fileName}.${fileExt}`, file);
-
-    if (uploadError) {
-      throw new Error(
-        `Error uploading file: ${uploadError.message || "Unknown Error."}`
-      );
-    }
-
-    file_url = uploadData.path;
-    file_type = file.type;
-    file_name = file.name;
-  }
-
-  const { error } = await supabase.from("comment_data").insert([
+  const { error } = await supabase.from("comments").insert([
     {
-      comment_content: comment,
+      content: comment,
       user_id,
-      entity_id: announcement_id,
-      file_url,
-      file_type,
-      file_name,
+      announcement_id,
     },
   ]);
 
@@ -54,20 +25,17 @@ export const fetchComments = async (page, pageSize, announcement_id) => {
     throw new Error("announcement_id is required!");
   }
 
-  const select = " *, users(id,first_name, last_name)";
+  const select = " *, users:profiles(id,first_name, last_name)";
   const order = [{ column: "created_at", ascending: false }];
 
   const filters = {
-    eq: [{ column: "entity_id", value: announcement_id }],
-    is: {
-      parent_id: null, // Use .is() for NULL values
-    },
+    eq: [{ column: "announcement_id", value: announcement_id }],
   };
 
   // With the updated paginate, `query` (for .match) and `filters` (for .eq, etc.)
   // will both be applied to the count and data queries.
-  const data = await paginate({
-    key: "comment_data",
+  return await paginate({
+    key: "comments",
     page,
     pageSize,
     query: {},
@@ -75,16 +43,6 @@ export const fetchComments = async (page, pageSize, announcement_id) => {
     order,
     select,
   });
-
-  data.items = data.items.map((item) => ({
-    ...item,
-    file_url: item.file_url
-      ? supabase.storage.from("Uroboros").getPublicUrl(item.file_url).data
-          .publicUrl
-      : null,
-  }));
-
-  return data;
 };
 
 export const deleteComment = async (comment_id) => {
@@ -93,7 +51,7 @@ export const deleteComment = async (comment_id) => {
   }
 
   const { error } = await supabase
-    .from("comment_data")
+    .from("comments")
     .delete()
     .eq("id", comment_id);
 
@@ -103,229 +61,21 @@ export const deleteComment = async (comment_id) => {
   }
 };
 
-export const updateComment = async ({ file, comment, comment_id }) => {
+export const updateComment = async ({ comment, comment_id }) => {
   if (!comment_id) {
     throw new Error("comment_id is required!");
   }
 
-  const { data: existingComment, error: fetchError } = await supabase
-    .from("comment_data")
-    .select("file_url, file_type, file_name")
-    .eq("id", comment_id)
-    .maybeSingle();
-
-  if (fetchError) {
-    throw new Error`Error fetching existing comment: ${fetchError.message || "Unknown Error."}`();
-  }
-
-  const { error: deleteFileError } = await supabase.storage
-    .from("Uroboros")
-    .remove([existingComment.file_url]);
-
-  if (deleteFileError) {
-    throw new Error`Error deleting existing file: ${deleteFileError.message || "Unknown Error."}`();
-  }
-
-  let file_url = null,
-    file_type = null,
-    file_name = null;
-
-  if (file) {
-    const fileName = `${file.name.split(".")[0]}-${Date.now()}`;
-    const fileExt = file.name.split(".")[1];
-
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("Uroboros")
-      .upload(`comments/${fileName}.${fileExt}`, file);
-
-    if (uploadError) {
-      throw new Error(
-        `Error uploading file: ${uploadError.message || "Unknown Error."}`
-      );
-    }
-
-    file_url = uploadData.path;
-    file_type = file.type;
-    file_name = file.name;
-  }
-
   const { error } = await supabase
-    .from("comment_data")
+    .from("comments")
     .update({
-      comment_content: comment,
-      file_url,
-      file_type,
-      file_name,
+      content: comment,
       edited: true,
     })
     .eq("id", comment_id);
 
   if (error) {
     console.error("Supabase error:", error);
-    throw new Error(error.message || "Unknown Error.");
-  }
-};
-export const addReply = async ({
-  reply,
-  user_id,
-  comment_id,
-  announcement_id,
-  file,
-}) => {
-  if (!user_id || !comment_id) {
-    throw new Error("User ID and comment ID are required!");
-  }
-
-  let file_url = null,
-    file_type = null,
-    file_name = null;
-
-  if (file) {
-    const fileName = `${file.name.split(".")[0]}-${Date.now()}`;
-    const fileExt = file.name.split(".")[1];
-
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("Uroboros")
-      .upload(`replies/${fileName}.${fileExt}`, file);
-
-    if (uploadError) {
-      throw new Error(
-        `Error uploading file: ${uploadError.message || "Unknown Error."}`
-      );
-    }
-
-    file_url = uploadData.path;
-    file_type = file.type;
-    file_name = file.name;
-  }
-
-  const { error: insertError } = await supabase.from("comment_data").insert([
-    {
-      entity_id: announcement_id,
-      comment_content: reply,
-      user_id,
-      parent_id: comment_id,
-      file_url,
-      file_type,
-      file_name,
-    },
-  ]);
-
-  if (insertError) {
-    console.error("Supabase insert error:", insertError);
-    throw new Error(insertError.message || "Unknown Error.");
-  }
-
-  const { data: commentData, error: fetchError } = await supabase
-    .from("comment_data")
-    .select("reply_count")
-    .eq("id", comment_id)
-    .single();
-
-  if (fetchError) {
-    console.error("Supabase fetch error:", fetchError);
-    throw new Error(fetchError.message || "Unknown Error.");
-  }
-
-  const newReplyCount = (commentData?.reply_count || 0) + 1;
-
-  const { error: updateError } = await supabase
-    .from("comment_data")
-    .update({ reply_count: newReplyCount })
-    .eq("id", comment_id);
-
-  if (updateError) {
-    console.error("Supabase update error:", updateError);
-    throw new Error(updateError.message || "Unknown Error.");
-  }
-};
-
-export const fetchNestedReplies = async (comment_id) => {
-  if (!comment_id) {
-    throw new Error("CommentID is required!");
-  }
-
-  const fetchReplies = async (id) => {
-    const { data, error } = await supabase
-      .from("comment_data")
-      .select("*, users(*)")
-      .eq("parent_id", id)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      // console.error("Supabase error:", error);
-      throw new Error(error.message || "Unknown Error.");
-    }
-
-    const replies = await Promise.all(
-      data.map(async (reply) => {
-        const nestedReplies = await fetchReplies(reply.id);
-        // Append current reply and nested replies
-        reply.file_url = reply.file_url
-          ? supabase.storage.from("Uroboros").getPublicUrl(reply.file_url).data
-              .publicUrl
-          : null;
-
-        return [reply, ...nestedReplies];
-      })
-    );
-
-    // Flatten the nested arrays into a single array
-    return replies.flat();
-  };
-
-  return fetchReplies(comment_id);
-};
-
-export const deleteReply = async (comment_id) => {
-  if (!comment_id) {
-    throw new Error("comment_id is required!");
-  }
-
-  const { data: commentData, error: fetchError } = await supabase
-    .from("comment_data")
-    .select("reply_count, parent_id")
-    .eq("id", comment_id)
-    .single();
-
-  if (fetchError) {
-    // console.error("Supabase fetch error:", fetchError);
-    throw new Error(fetchError.message || "Unknown Error.");
-  }
-
-  const parentId = commentData.parent_id;
-
-  const { data: parentComment, error: parentFetchError } = await supabase
-    .from("comment_data")
-    .select("reply_count")
-    .eq("id", parentId)
-    .single();
-
-  if (parentFetchError) {
-    console.error("Supabase fetch error for parent comment:", parentFetchError);
-    throw new Error(parentFetchError.message || "Unknown Error.");
-  }
-
-  const newReplyCount =
-    parentComment.reply_count > 0 ? parseInt(parentComment.reply_count) - 1 : 0;
-
-  const { error: updateError } = await supabase
-    .from("comment_data")
-    .update({ reply_count: newReplyCount })
-    .eq("id", commentData.parent_id);
-
-  if (updateError) {
-    console.error("Supabase update error:", updateError);
-    throw new Error(updateError.message || "Unknown Error.");
-  }
-
-  const { error } = await supabase
-    .from("comment_data")
-    .delete()
-    .eq("id", comment_id);
-
-  if (error) {
-    console.error("Supabase delete error:", error);
     throw new Error(error.message || "Unknown Error.");
   }
 };
@@ -498,8 +248,8 @@ export const fetchComment = async (comment_id) => {
   }
 
   const { data, error } = await supabase
-    .from("comment_data")
-    .select("*, users(first_name, last_name)")
+    .from("comments")
+    .select("*, users:profiles(first_name, last_name)")
     .eq("id", comment_id)
     .single();
 

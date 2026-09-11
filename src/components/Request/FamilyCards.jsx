@@ -155,7 +155,7 @@ const FamilyCards = () => {
                         <p>{`${family?.users?.first_name} ${family?.users?.last_name}`}</p>
                       </TableCell>
                       <TableCell>
-                        <p>{`${family?.users?.contact_number}`}</p>
+                        <p>{`${family?.users?.mobile_number}`}</p>
                       </TableCell>
                     </TableRow> */}
                       {family?.parents?.map((parent, i) => (
@@ -171,7 +171,7 @@ const FamilyCards = () => {
                             <p>{`${parent.first_name} ${parent.last_name}`}</p>
                           </TableCell>
                           <TableCell className="text-nowrap rounded-r-lg py-1 md:p-4">
-                            <p>{`${parent.contact_number}`}</p>
+                            <p>{`${parent.mobile_number}`}</p>
                           </TableCell>
                         </TableRow>
                       ))}

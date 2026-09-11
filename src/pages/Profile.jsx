@@ -34,7 +34,7 @@ import { Loader2 } from "lucide-react";
 
 import useProfile from "@/hooks/useProfile";
 import { Icon } from "@iconify/react";
-import { Switch } from "@/components/ui/switch";
+// import { Switch } from "@/components/ui/switch";
 import ChangeProfile from "@/components/ChangeProfile";
 import { Link } from "react-router-dom";
 import {
@@ -166,18 +166,21 @@ const Profile = () => {
             </div>
             <Label className="text-sm font-bold text-accent/75">Contact</Label>
             <div className="flex items-center justify-between rounded-xl bg-[#FDFBFA] px-6 py-5 font-semibold text-accent">
-              <p>{data?.contact_number}</p>
-              <ContactForm userId={data?.id} />
+              <p>{data?.mobile_number}</p>
+              <ContactForm
+                userId={data?.id}
+                contactNumber={data?.mobile_number}
+              />
             </div>
-            <Label className="text-sm font-bold text-accent/75">
+            {/* <Label className="text-sm font-bold text-accent/75">
               Notification
-            </Label>
-            <div className="rounded-xl bg-[#FDFBFA] px-6 py-5 font-semibold text-accent">
+            </Label> */}
+            {/* <div className="rounded-xl bg-[#FDFBFA] px-6 py-5 font-semibold text-accent">
               <EmailNotification
                 userId={data?.id}
                 isEmailNotificationEnabled={data?.email_notifications_enabled}
               />
-            </div>
+            </div> */}
             <div className="mt-4 flex justify-end">
               <ChangePasswordButton userId={data?.id} />
             </div>
@@ -435,7 +438,7 @@ EditEmailForm.propTypes = {
   userId: PropTypes.string,
 };
 
-const ContactForm = ({ userId }) => {
+const ContactForm = ({ userId, contactNumber }) => {
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
 
   const { updateContactMutation } = useProfile({
@@ -445,9 +448,16 @@ const ContactForm = ({ userId }) => {
   const form = useForm({
     resolver: zodResolver(contactSchema),
     defaultValues: {
-      contactNumber: "",
+      contactNumber: contactNumber || "",
     },
   });
+
+  // Update the form value when the saved contact number loads or changes
+  useEffect(() => {
+    form.reset({
+      contactNumber: contactNumber || "",
+    });
+  }, [contactNumber, form]);
 
   const handleUpdateContact = (data) => {
     updateContactMutation.mutate(
@@ -466,7 +476,13 @@ const ContactForm = ({ userId }) => {
   return (
     <AlertDialog
       open={isContactDialogOpen}
-      onOpenChange={setIsContactDialogOpen}
+      onOpenChange={(open) => {
+        setIsContactDialogOpen(open);
+
+        if (!open) {
+          form.reset();
+        }
+      }}
     >
       <AlertDialogTrigger>Edit</AlertDialogTrigger>
       <AlertDialogContent>
@@ -512,50 +528,51 @@ const ContactForm = ({ userId }) => {
 
 ContactForm.propTypes = {
   userId: PropTypes.string,
+  contactNumber: PropTypes.string,
 };
 
-const EmailNotification = ({ userId, isEmailNotificationEnabled }) => {
-  // Create local state to track the toggle value
-  const [isEnabled, setIsEnabled] = useState(isEmailNotificationEnabled);
+// const EmailNotification = ({ userId, isEmailNotificationEnabled }) => {
+//   // Create local state to track the toggle value
+//   const [isEnabled, setIsEnabled] = useState(isEmailNotificationEnabled);
 
-  const { toggleEmailNotificationMutation } = useProfile({ user_id: userId });
+//   const { toggleEmailNotificationMutation } = useProfile({ user_id: userId });
 
-  // Update local state when prop changes (e.g., initial load)
-  useEffect(() => {
-    setIsEnabled(isEmailNotificationEnabled);
-  }, [isEmailNotificationEnabled]);
+//   // Update local state when prop changes (e.g., initial load)
+//   useEffect(() => {
+//     setIsEnabled(isEmailNotificationEnabled);
+//   }, [isEmailNotificationEnabled]);
 
-  const toggleNotification = async (newValue) => {
-    // Optimistically update the UI immediately
-    setIsEnabled(newValue);
+//   const toggleNotification = async (newValue) => {
+//     // Optimistically update the UI immediately
+//     setIsEnabled(newValue);
 
-    // Send request to the server
-    toggleEmailNotificationMutation.mutate(
-      {
-        userId,
-        isReceivingNotification: newValue,
-      },
-      {
-        // If the server request fails, revert the UI to the previous state
-        onError: () => {
-          setIsEnabled(!newValue);
-        },
-      }
-    );
-  };
+//     // Send request to the server
+//     toggleEmailNotificationMutation.mutate(
+//       {
+//         userId,
+//         isReceivingNotification: newValue,
+//       },
+//       {
+//         // If the server request fails, revert the UI to the previous state
+//         onError: () => {
+//           setIsEnabled(!newValue);
+//         },
+//       }
+//     );
+//   };
 
-  return (
-    <div className="flex items-center justify-between">
-      <p>Email Notification</p>
-      <Switch checked={isEnabled} onCheckedChange={toggleNotification} />
-    </div>
-  );
-};
+//   return (
+//     <div className="flex items-center justify-between">
+//       <p>Email Notification</p>
+//       <Switch checked={isEnabled} onCheckedChange={toggleNotification} />
+//     </div>
+//   );
+// };
 
-EmailNotification.propTypes = {
-  userId: PropTypes.string.isRequired,
-  isEmailNotificationEnabled: PropTypes.bool.isRequired,
-};
+// EmailNotification.propTypes = {
+//   userId: PropTypes.string.isRequired,
+//   isEmailNotificationEnabled: PropTypes.bool.isRequired,
+// };
 
 const ChangePasswordButton = ({ userId }) => {
   const [changePasswordDialogOpen, setChangePasswordDialogOpen] =

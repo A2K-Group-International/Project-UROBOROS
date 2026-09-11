@@ -11,16 +11,30 @@ const publicCreateFeedback = async (data) => {
     }))
   );
 
-  const { data: id, error } = await supabase.rpc("submit_feedback", {
-    p_name: name,
-    p_email: email,
-    p_subject: subject,
-    p_description: description,
-    p_files: files,
-  });
+  // The submit_feedback RPC was dropped, so the insert happens here. `status`
+  // has no default on feedbacks, so it has to be supplied.
+  const { data: feedback, error } = await supabase
+    .from("feedbacks")
+    .insert({ name, email, subject, description, status: "pending" })
+    .select("id")
+    .single();
 
   if (error) throw new Error(error.message || "Failed to submit feedback");
-  return { success: true, message: "Feedback submitted successfully", details: { id } };
+
+  if (files.length > 0) {
+    const { error: filesError } = await supabase
+      .from("feedback_files")
+      .insert(files.map((file) => ({ ...file, feedback_id: feedback.id })));
+
+    if (filesError)
+      throw new Error(filesError.message || "Failed to attach feedback files");
+  }
+
+  return {
+    success: true,
+    message: "Feedback submitted successfully",
+    details: { id: feedback.id },
+  };
 };
 
 const getAllFeedback = async ({ page = 1, status = "all" }) => {

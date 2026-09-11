@@ -201,7 +201,7 @@ TimeOutDialog.propTypes = {
     ticket_id: PropTypes.string,
     first_name: PropTypes.string,
     last_name: PropTypes.string,
-    contact_number: PropTypes.string,
+    mobile_number: PropTypes.string,
     family_id: PropTypes.string,
     registration_code: PropTypes.string,
     created_at: PropTypes.string,

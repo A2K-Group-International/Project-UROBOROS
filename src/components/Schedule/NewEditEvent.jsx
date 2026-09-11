@@ -114,19 +114,19 @@ const NewEditEvent = ({
   const form = useForm({
     resolver: zodResolver(editEventSchema),
     defaultValues: {
-      eventName: initialEventData?.event_name || "",
+      eventName: initialEventData?.name || "",
       eventDescription: initialEventData?.description || "",
-      eventVisibility: initialEventData?.event_visibility || "",
+      eventVisibility: initialEventData?.visibility || "",
       eventObservation: initialEventData?.requires_attendance,
-      eventTime: initialEventData?.event_time
-        ? convertTimeStringToDate(initialEventData?.event_time)
+      eventTime: initialEventData?.time
+        ? convertTimeStringToDate(initialEventData?.time)
         : null,
-      eventDate: initialEventData?.event_date
-        ? new Date(initialEventData?.event_date)
+      eventDate: initialEventData?.date
+        ? new Date(initialEventData?.date)
         : null,
       eventPosterImage: initialEventData?.image_url || null,
       ministry: initialEventData?.ministry_id || "",
-      eventCategory: initialEventData?.event_category,
+      eventCategory: initialEventData?.category,
     },
   });
 
@@ -374,7 +374,7 @@ const NewEditEvent = ({
                               <SelectContent>
                                 {assignedMinistriesLoading ? (
                                   <Loader2 className="animate-spin" />
-                                ) : role === ROLES[0] ? (
+                                ) : role === ROLES.COORDINATOR ? (
                                   // If user is coordinator
                                   assignedMinistries?.length > 0 ? (
                                     assignedMinistries?.map((ministry) => (

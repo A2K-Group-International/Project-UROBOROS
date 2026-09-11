@@ -177,7 +177,7 @@ export const getMeetings = async ({
 
     // If the user is not an admin, fetch meetings they are assigned to
     let nonAdminMeetingIds = [];
-    if (user && user.role !== ROLES[4]) {
+    if (user && user.role !== ROLES.ADMIN) {
       const { data: participantMeetings, error: participantError } =
         await supabase
           .from("meeting_participants")

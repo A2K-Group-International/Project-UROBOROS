@@ -77,7 +77,7 @@ const addPoll = async ({
       poll_id: poll.id,
     }));
     const { error: addPollGroup } = await supabase
-      .from("poll_groups")
+      .from("poll_group")
       .insert(groupsToInsert);
     if (addPollGroup) {
       console.error(`Error adding groups to poll: ${addPollGroup.message}`);
@@ -199,7 +199,7 @@ const editPolls = async ({
   }
   if (shareMode === "group") {
     const { error: deletePollGroups } = await supabase
-      .from("poll_groups")
+      .from("poll_group")
       .delete()
       .eq("poll_id", poll.id);
 
@@ -218,7 +218,7 @@ const editPolls = async ({
     }));
 
     const { error: addPollGroupError } = await supabase
-      .from("poll_groups")
+      .from("poll_group")
       .insert(groupsToInsert);
 
     if (addPollGroupError) {
@@ -850,7 +850,7 @@ const fetchPollMinistries = async (poll_id) => {
 
 const fetchPollGroups = async (poll_id) => {
   const { data: groups, error } = await supabase
-    .from("poll_groups")
+    .from("poll_group")
     .select("id, groups(id, name, ministries(ministry_name))")
     .eq("poll_id", poll_id);
 

@@ -295,8 +295,8 @@ const ScheduleDetails = () => {
   //If public event show all volunteers, coordinators and admins role
   //If private event show only the coordinator and member in volunteer group to the ministry
   const getVolunteerOptionsForRole = () => {
-    if (role === ROLES[4]) {
-      return event?.event_visibility === "public"
+    if (role === ROLES.ADMIN) {
+      return event?.visibility === "public"
         ? allVolunteersRole
         : ministryVolunteerOptions;
     }
@@ -304,8 +304,8 @@ const ScheduleDetails = () => {
     //Coordinator role
     //If public event show all members in volunteer group and their coordinator in their ministry
     //If private event show only volunteers in their volunteer group
-    if (role === ROLES[0] || role === ROLES[1]) {
-      return event?.event_visibility === "public"
+    if (role === ROLES.COORDINATOR || role === ROLES.VOLUNTEER) {
+      return event?.visibility === "public"
         ? ministriesVolunteers
         : ministryVolunteerOptions;
     }
@@ -407,8 +407,8 @@ const ScheduleDetails = () => {
       return;
     }
 
-    const eventDate = event?.event_date;
-    const eventTime = event?.event_time || "12:00:00";
+    const eventDate = event?.date;
+    const eventTime = event?.time || "12:00:00";
 
     const eventDateTime = new Date(`${eventDate}T${eventTime}Z`);
     const currentDateTime = new Date();
@@ -513,13 +513,13 @@ const ScheduleDetails = () => {
         <div>
           <Title className="text-2xl">
             {event.requires_attendance
-              ? `${event.event_name}, ${formatEventTimeCompact(event.event_time)}`
-              : event.event_name}
+              ? `${event.name}, ${formatEventTimeCompact(event.time)}`
+              : event.name}
           </Title>
           <Label className="text-xl text-primary-text">
-            Date: {formatEventDate(event?.event_date)}
+            Date: {formatEventDate(event?.date)}
           </Label>
-          <Description>{event?.event_description}</Description>
+          <Description>{event?.description}</Description>
         </div>
         <div className="flex">
           <div className="flex flex-col gap-1 md:flex-row">
@@ -574,8 +574,8 @@ const ScheduleDetails = () => {
                     setDeleteDialogOpen(isOpen);
                   }}
                 >
-                  {((!disableSchedule && role === ROLES[4]) ||
-                    (!disableSchedule && role === ROLES[0])) && (
+                  {((!disableSchedule && role === ROLES.ADMIN) ||
+                    (!disableSchedule && role === ROLES.COORDINATOR)) && (
                     <DialogTrigger asChild>
                       <Button className="rounded-xl px-3 py-3">
                         <Icon icon={"mingcute:delete-3-line"} />
@@ -696,7 +696,7 @@ const ScheduleDetails = () => {
                   admins={admins}
                   oldVolunteerId={volunteer?.volunteer_id}
                   eventId={eventId}
-                  eventVisibility={event?.event_visibility}
+                  eventVisibility={event?.visibility}
                   volunteers={volunteers}
                   volunteerOptions={getVolunteerOptionsForRole()}
                   newreplacement_id={volunteer?.replacedby_id}

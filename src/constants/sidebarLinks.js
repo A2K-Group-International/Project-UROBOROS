@@ -86,13 +86,6 @@ export const SIDEBAR_LINKS = Object.freeze({
     // COMMON_LINKS.family,
     COMMON_LINKS.poll_list,
   ],
-  coparent: [
-    COMMON_LINKS.announcements,
-    COMMON_LINKS.events,
-    COMMON_LINKS.family,
-    COMMON_LINKS.ministries,
-    COMMON_LINKS.poll_list,
-  ],
   admin: [
     COMMON_LINKS.dashboard,
     COMMON_LINKS.announcements,

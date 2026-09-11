@@ -13,10 +13,8 @@ const queryClient = new QueryClient();
  * The full application, wrapped in QueryClientProvider, UserProvider and the
  * React Query Devtools.
  *
- * This lives outside main.jsx so it can be loaded dynamically: while the site
- * is in maintenance mode nothing in this module tree is imported, which keeps
- * the Supabase client (created at module scope in @/services/supabaseClient)
- * from booting and refreshing auth tokens behind the maintenance screen.
+ * Kept separate from main.jsx so the entry point stays a bare mount and the
+ * whole provider tree lives in one place.
  */
 const AppRoot = () => (
   <QueryClientProvider client={queryClient}>

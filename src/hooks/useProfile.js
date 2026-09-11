@@ -48,7 +48,7 @@ const useProfile = ({ user_id }) => {
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries(["fetchUser", user_id]);
+      queryClient.invalidateQueries({ queryKey: ["fetchUser", user_id] });
     },
   });
 
@@ -71,7 +71,7 @@ const useProfile = ({ user_id }) => {
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries(["fetchUser", user_id]);
+      queryClient.invalidateQueries({ queryKey: ["fetchUser", user_id] });
     },
   });
 
@@ -93,7 +93,7 @@ const useProfile = ({ user_id }) => {
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries(["fetchUser", user_id]);
+      queryClient.invalidateQueries({ queryKey: ["fetchUser", user_id] });
     },
   });
   // Update contact number mutation
@@ -115,7 +115,7 @@ const useProfile = ({ user_id }) => {
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries(["fetchUser", user_id]);
+      queryClient.invalidateQueries({ queryKey: ["fetchUser", user_id] });
     },
   });
   // Update password mutation
@@ -155,7 +155,7 @@ const useProfile = ({ user_id }) => {
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries(["fetchUser", user_id]);
+      queryClient.invalidateQueries({ queryKey: ["fetchUser", user_id] });
     },
   });
 
@@ -178,7 +178,7 @@ const useProfile = ({ user_id }) => {
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries(["fetchUser", user_id]);
+      queryClient.invalidateQueries({ queryKey: ["fetchUser", user_id] });
     },
   });
 
@@ -202,7 +202,7 @@ const useProfile = ({ user_id }) => {
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries(["fetchUser", user_id]);
+      queryClient.invalidateQueries({ queryKey: ["fetchUser", user_id] });
     },
   });
 

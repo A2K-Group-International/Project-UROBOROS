@@ -48,6 +48,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 import { useLocation, useSearchParams } from "react-router-dom";
+import { ROLES } from "@/constants/roles";
 import AutoLinkText from "@/lib/AutoLinkText";
 import ImageLoader from "@/lib/ImageLoader";
 
@@ -55,6 +56,7 @@ const Announcement = ({
   announcement,
   deleteAnnouncementMutation,
   isModal = false,
+  isMinistryCoordinator = false,
 }) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState();
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -67,6 +69,28 @@ const Announcement = ({
     params.set("announcementId", announcementId);
     setParams(params);
   };
+
+  const isOwner = userData?.id === announcement?.user_id;
+
+  // "General" announcements are the unscoped public feed. Ministry, group and
+  // subgroup posts stay with their author.
+  const isGeneral =
+    announcement?.visibility === "public" &&
+    !announcement?.group_id &&
+    !announcement?.subgroup_id;
+
+  const isGroupScoped = Boolean(
+    announcement?.group_id || announcement?.subgroup_id
+  );
+
+  // Admins moderate the general feed, coordinators moderate the groups and
+  // subgroups of the ministries they run, and everyone else manages only their
+  // own. This is a UI gate only - editAnnouncement/deleteAnnouncement take no
+  // owner argument and check nothing, so RLS is what actually enforces this.
+  const canManage =
+    isOwner ||
+    (userData?.role === ROLES.ADMIN && isGeneral) ||
+    (isMinistryCoordinator && isGroupScoped);
 
   return (
     <div>
@@ -106,7 +130,7 @@ const Announcement = ({
           </div>
         </div>
 
-        {userData?.id === announcement?.user_id && !isModal && (
+        {canManage && !isModal && (
           <Popover>
             <PopoverTrigger>
               <KebabIcon className="h-6 w-6 text-accent" />
@@ -336,6 +360,8 @@ Announcement.propTypes = {
     visibility: PropTypes.string.isRequired,
 
     ministry_id: PropTypes.string,
+    group_id: PropTypes.string,
+    subgroup_id: PropTypes.string,
     user_id: PropTypes.string.isRequired,
     announcement_files: PropTypes.arrayOf(
       PropTypes.shape({
@@ -363,6 +389,7 @@ Announcement.propTypes = {
     })
   ),
   isModal: PropTypes.bool,
+  isMinistryCoordinator: PropTypes.bool,
 };
 
 export default Announcement;

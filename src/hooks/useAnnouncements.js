@@ -14,8 +14,20 @@ import { toast } from "./use-toast";
 const useAnnouncements = ({ group_id, subgroup_id }) => {
   const queryClient = useQueryClient();
 
-  // Create a unique query key that includes both group_id and subgroup_id
-  const queryKey = ["announcements", group_id, subgroup_id];
+  // Create a unique query key that includes both group_id and subgroup_id.
+  // The ids arrive in two shapes: an omitted prop is undefined, while
+  // searchParams.get() returns null. React Query compares keys structurally and
+  // does not treat those as equal, so normalise before they reach the key or
+  // the same feed ends up cached under two different entries.
+  const queryKey = ["announcements", group_id ?? null, subgroup_id ?? null];
+
+  // Mutations invalidate every announcement feed rather than just this hook's
+  // own key. AnnouncementForm builds its own useAnnouncements instance from URL
+  // params, but the edit form is rendered by Announcement.jsx without the group
+  // ids, so its key does not match the list that rendered the post and an exact
+  // invalidation silently matches nothing.
+  const invalidateAllFeeds = () =>
+    queryClient.invalidateQueries({ queryKey: ["announcements"] });
 
   const { data, hasNextPage, fetchNextPage, isLoading } = useInfiniteQuery({
     queryKey,
@@ -44,8 +56,6 @@ const useAnnouncements = ({ group_id, subgroup_id }) => {
         title: "Success",
         description: "Announcement created.",
       });
-      // Invalidate the query with both parameters
-      queryClient.invalidateQueries({ queryKey: ["announcements"] });
     },
 
     onError: (error, context) => {
@@ -60,9 +70,7 @@ const useAnnouncements = ({ group_id, subgroup_id }) => {
       });
     },
 
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey });
-    },
+    onSettled: invalidateAllFeeds,
   });
 
   const editAnnouncementMutation = useMutation({
@@ -83,9 +91,7 @@ const useAnnouncements = ({ group_id, subgroup_id }) => {
         description: `${error.message}`,
       });
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey });
-    },
+    onSettled: invalidateAllFeeds,
   });
 
   const deleteAnnouncementMutation = useMutation({
@@ -107,9 +113,7 @@ const useAnnouncements = ({ group_id, subgroup_id }) => {
         description: `${error.message}`,
       });
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey });
-    },
+    onSettled: invalidateAllFeeds,
   });
 
   return {

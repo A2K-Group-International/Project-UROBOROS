@@ -281,9 +281,9 @@ const NotificationContent = ({
         markAsRead(notificationId);
         break;
       case "event_created":
-        if (!location.pathname.startsWith("/events") && role != ROLES[2]) {
+        if (!location.pathname.startsWith("/events") && role != ROLES.PARISHIONER) {
           setIsDialogOpen(true);
-          setRoleToSwitch(ROLES[2]);
+          setRoleToSwitch(ROLES.PARISHIONER);
           setLink(`/events?id=${entity_id}`);
           setNotificationId(notificationId);
         } else {
@@ -295,9 +295,9 @@ const NotificationContent = ({
       case "event_assigned":
       case "event_volunteer_replaced":
       case "event_volunteer_removed":
-        if (!location.pathname.startsWith("/schedule") && role != ROLES[1]) {
+        if (!location.pathname.startsWith("/schedule") && role != ROLES.VOLUNTEER) {
           setIsDialogOpen(true);
-          setRoleToSwitch(ROLES[1]);
+          setRoleToSwitch(ROLES.VOLUNTEER);
           setLink(`/schedule?event=${entity_id}`);
           setNotificationId(notificationId);
         } else {
@@ -311,9 +311,9 @@ const NotificationContent = ({
         break;
       case "ministry_assigned":
       case "ministry_coordinator_removed":
-        if (!location.pathname.startsWith("/ministries") && role != ROLES[0]) {
+        if (!location.pathname.startsWith("/ministries") && role != ROLES.COORDINATOR) {
           setIsDialogOpen(true);
-          setRoleToSwitch(ROLES[0]);
+          setRoleToSwitch(ROLES.COORDINATOR);
           setLink(`/ministries`);
           setNotificationId(notificationId);
         } else {
@@ -330,12 +330,10 @@ const NotificationContent = ({
           // Determine which role to switch to (prefer Admin if available)
           let roleToUse;
 
-          if (userRoles.includes(ROLES[4])) {
-            // ROLES[0] is Admin
-            roleToUse = ROLES[4];
-          } else if (userRoles.includes(ROLES[0])) {
-            // ROLES[3] is Coordinator
-            roleToUse = ROLES[0];
+          if (userRoles.includes(ROLES.ADMIN)) {
+            roleToUse = ROLES.ADMIN;
+          } else if (userRoles.includes(ROLES.COORDINATOR)) {
+            roleToUse = ROLES.COORDINATOR;
           } else {
             // Handle case where user doesn't have either role
             alert("You don't have permission to view polls.");

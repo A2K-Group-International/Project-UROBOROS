@@ -49,7 +49,7 @@ const EditMinistry = ({
 
   // const { data } = useQuery({
   //   queryKey: ["admins"],
-  //   queryFn: async () => getUsersByRole(ROLES[0]),
+  //   queryFn: async () => getUsersByRole(ROLES.COORDINATOR),
   // });
 
   // const adminOptions = data?.map((admin) => ({

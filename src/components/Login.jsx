@@ -1,4 +1,6 @@
 import { useState } from "react";
+import PropTypes from "prop-types";
+import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Icon } from "@iconify/react";
@@ -29,12 +31,13 @@ import { Input } from "@/components/ui/input";
 
 import ForgotPassword from "./ForgotPassword";
 
-const Login = () => {
+const Login = ({ initializingUserRef }) => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const { login, loading } = useUser();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const form = useForm({
     resolver: zodResolver(loginSchema),
@@ -49,14 +52,17 @@ const Login = () => {
   };
 
   const handleLogin = async (data) => {
+    // Keep Home's auth listener from redirecting before initialize_user finishes
+    if (initializingUserRef) initializingUserRef.current = true;
     try {
       await login(data);
       setIsDialogOpen(false);
-      // navigate(loc?.state?.from || "/announcements", { replace: true });
       toast({
         title: "Login Successfully",
       });
+      navigate("/announcements");
     } catch (error) {
+      if (initializingUserRef) initializingUserRef.current = false;
       toast({
         title: error.message,
         variant: "destructive",
@@ -218,6 +224,10 @@ const Login = () => {
       </DialogContent>
     </Dialog>
   );
+};
+
+Login.propTypes = {
+  initializingUserRef: PropTypes.shape({ current: PropTypes.bool }),
 };
 
 export default Login;

@@ -88,11 +88,11 @@ const QrScannerEvents = ({ eventData }) => {
           <>
             <div className="text-primary-text">
               <h2 className="text-center text-2xl font-bold md:text-start">
-                {eventDetails.event_name}
+                {eventDetails.name}
               </h2>
               <p className="text-center text-lg font-medium md:text-start">
                 {new Date(
-                  `${eventDetails.event_date}T${eventDetails.event_time}`
+                  `${eventDetails.date}T${eventDetails.time}`
                 ).toDateTime()}
               </p>
               <div className="flex items-center justify-center gap-x-1 text-primary-text sm:justify-start">

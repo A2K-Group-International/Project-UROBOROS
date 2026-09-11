@@ -87,10 +87,10 @@ const Events = () => {
             <EventCard
               key={event.id}
               eventId={event.id}
-              eventName={event.event_name}
+              eventName={event.name}
               eventDescription={event.description}
-              eventDate={event.event_date}
-              eventTime={event.event_time}
+              eventDate={event.date}
+              eventTime={event.time}
               eventImage={event.image_url}
               requireAttendance={event.requires_attendance}
             />

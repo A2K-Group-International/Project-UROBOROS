@@ -11,7 +11,7 @@ import {
 } from "@/services/commentsService";
 import { useToast } from "./use-toast";
 
-const useComment = (announcement_id, comment_id) => {
+const useComment = (announcement_id) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -74,9 +74,6 @@ const useComment = (announcement_id, comment_id) => {
     onSettled: () => {
       queryClient.invalidateQueries({
         queryKey: ["comments", announcement_id],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["replies", comment_id],
       });
     },
   });

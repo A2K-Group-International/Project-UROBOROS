@@ -20,7 +20,6 @@ import {
   // DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -149,31 +148,20 @@ const Requests = () => {
 
             <Separator orientation="vertical" />
             <Dialog open={open} onOpenChange={onDialogStateChange}>
-              <DialogTrigger className="rounded-3xl" asChild>
-                <Button>
-                  <Icon
-                    className="h-4 w-4 text-white"
-                    icon="mingcute:user-add-fill"
-                  ></Icon>
-                  Add User
-                </Button>
-              </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>
-                    {!selectedRow ? "Create New Profile" : "Update Profile"}
-                  </DialogTitle>
+                  <DialogTitle>Update Profile</DialogTitle>
                   <DialogDescription>
-                    {!selectedRow
-                      ? "Create a new user profile"
-                      : "Update existing user profile"}
+                    Update existing user profile
                   </DialogDescription>
                 </DialogHeader>
-                <NewProfileForm
-                  user={selectedRow}
-                  onClose={() => setOpen(false)}
-                />
-              </DialogContent>{" "}
+                {selectedRow && (
+                  <NewProfileForm
+                    user={selectedRow}
+                    onClose={() => setOpen(false)}
+                  />
+                )}
+              </DialogContent>
             </Dialog>
           </div>
         )}

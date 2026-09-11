@@ -53,11 +53,11 @@ const MainLayout = () => {
         >
           <div className="z-50 flex items-center justify-between gap-3 lg:hidden">
             <div className="text-xl font-bold text-accent">
-              {userData?.role === ROLES[0] && "Coordinator Management Centre"}
-              {userData?.role === ROLES[1] && "Volunteer Management Centre"}
-              {(userData?.role === ROLES[2] || userData?.role === ROLES[3]) &&
+              {userData?.role === ROLES.COORDINATOR && "Coordinator Management Centre"}
+              {userData?.role === ROLES.VOLUNTEER && "Volunteer Management Centre"}
+              {userData?.role === ROLES.PARISHIONER &&
                 `Welcome, ${userData?.first_name ?? ""} ${userData?.last_name ?? ""}`}
-              {userData?.role === ROLES[4] && `Parish Management Centre`}
+              {userData?.role === ROLES.ADMIN && `Parish Management Centre`}
             </div>
             <div className="flex items-center gap-4">
               <Notification isMobile={true} />

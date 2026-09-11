@@ -41,17 +41,17 @@ const AddCoordinators = ({ ministryId, userId }) => {
 
   const { data: coordinators, isLoading: coordinatorLoading } = useQuery({
     queryKey: ["coordinators"],
-    queryFn: async () => getUsersByRole(ROLES[0]),
+    queryFn: async () => getUsersByRole(ROLES.COORDINATOR),
   });
 
   const { data: volunteers, isLoading: volunteersLoading } = useQuery({
     queryKey: ["volunteer"],
-    queryFn: async () => getUsersByRole(ROLES[1]),
+    queryFn: async () => getUsersByRole(ROLES.VOLUNTEER),
   });
 
   const { data: admins, isLoading: adminsLoading } = useQuery({
     queryKey: ["admin"],
-    queryFn: async () => getUsersByRole(ROLES[4]),
+    queryFn: async () => getUsersByRole(ROLES.ADMIN),
   });
 
   const adminsCoordinators = useMemo(() => {

@@ -64,7 +64,7 @@ const EditAttendeeDialog = ({ attendee, disableSchedule }) => {
       time_out: formatTime(attendee.time_out),
     };
     if (attendee.attendee_type === "parents") {
-      attendeeData.contact_number = attendee.contact_number;
+      attendeeData.mobile_number = attendee.mobile_number;
     }
 
     // Compare submitted data with attendee data
@@ -108,7 +108,7 @@ const EditAttendeeDialog = ({ attendee, disableSchedule }) => {
 
   const schema =
     attendee.attendee_type === "children"
-      ? parentSchema.omit({ contact_number: true })
+      ? parentSchema.omit({ mobile_number: true })
       : parentSchema;
 
   const form = useForm({
@@ -118,7 +118,7 @@ const EditAttendeeDialog = ({ attendee, disableSchedule }) => {
       time_attended: formatTime(attendee.time_attended),
       first_name: attendee.first_name,
       last_name: attendee.last_name,
-      contact_number: attendee.contact_number,
+      mobile_number: attendee.mobile_number,
     },
   });
 
@@ -193,7 +193,7 @@ const EditAttendeeDialog = ({ attendee, disableSchedule }) => {
             {attendee.attendee_type !== "children" && (
               <FormField
                 control={form.control}
-                name="contact_number"
+                name="mobile_number"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Contact</FormLabel>
@@ -263,7 +263,7 @@ EditAttendeeDialog.propTypes = {
     id: PropTypes.string.isRequired,
     first_name: PropTypes.string.isRequired,
     last_name: PropTypes.string.isRequired,
-    contact_number: PropTypes.string,
+    mobile_number: PropTypes.string,
     attendee_type: PropTypes.string.isRequired,
     time_out: PropTypes.instanceOf(Date),
     time_attended: PropTypes.instanceOf(Date),
