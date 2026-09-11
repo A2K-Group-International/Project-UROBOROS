@@ -2,6 +2,7 @@ import axios from "axios";
 import { supabase } from "./supabaseClient"; // Supabase client import
 import { paginate } from "@/lib/utils";
 import { getAuthToken } from "./emailService";
+import { updateProfileFields } from "./profileService";
 
 /**
  * This function will fetch for user information from the database.
@@ -361,6 +362,14 @@ const updateUser = async (id, payload) => {
 
     if (error) throw error;
 
+    const { first_name, last_name, mobile_number, role } = payload;
+    await updateProfileFields(id, {
+      first_name,
+      last_name,
+      mobile_number,
+      role,
+    });
+
     return user;
   } catch (error) {
     console.error("Error updating user", error.message);
@@ -517,6 +526,8 @@ const updateName = async ({ user_id, first_name, last_name }) => {
   if (error) {
     throw new Error("Error updating name!", error.message);
   }
+
+  await updateProfileFields(user_id, { first_name, last_name });
 
   const { error: parentError } = await supabase
     .from("parents")

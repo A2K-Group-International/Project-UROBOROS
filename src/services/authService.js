@@ -1,4 +1,5 @@
 import { supabase } from "./supabaseClient"; // Supabase client import
+import { updateProfileFields } from "./profileService";
 
 // Update user's contact number
 const updateContact = async (userId, newContactNumber) => {
@@ -15,6 +16,8 @@ const updateContact = async (userId, newContactNumber) => {
     if (!userData?.length) {
       throw new Error("Contact number could not be updated.");
     }
+
+    await updateProfileFields(userId, { mobile_number: newContactNumber });
 
     const { data: parentData, error: parentError } = await supabase
       .from("parents")
@@ -137,6 +140,8 @@ const uploadProfilePicture = async (userId, imageFile) => {
 
     if (updateError) throw updateError;
 
+    await updateProfileFields(userId, { profile_picture_url: publicUrl });
+
     return publicUrl;
   } catch (error) {
     console.error("Error uploading profile picture:", error);
@@ -181,6 +186,8 @@ const removeProfilePicture = async (userId) => {
       .eq("id", userId);
 
     if (updateError) throw updateError;
+
+    await updateProfileFields(userId, { profile_picture_url: null });
 
     return true;
   } catch (error) {

@@ -1,5 +1,6 @@
 import { paginate } from "@/lib/utils";
 import { supabase } from "./supabaseClient";
+import { updateProfileFields } from "./profileService";
 
 // Check for duplicate names of all family members
 export const checkDuplicatedFamilyMember = async (familyId, firstName) => {
@@ -269,6 +270,12 @@ export const updateParent = async (parentId, data, parentUserId) => {
     if (userError) {
       throw new Error(`Error updating user: ${userError.message}`);
     }
+
+    await updateProfileFields(parentUserId, {
+      first_name: firstName,
+      last_name: lastName,
+      mobile_number: contactNumber,
+    });
   }
 
   return updatedParent; // Return the updated child data
