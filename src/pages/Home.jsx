@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import ParishionerRegister from "@/components/Home/Profile-Registration/ParishionerRegister";
 import Login from "@/components/Login";
@@ -13,6 +13,8 @@ const Home = () => {
   const navigate = useNavigate();
   const currentYear = new Date().getFullYear();
   const [showVideo, setShowVideo] = useState(false);
+  // True while a sign-up code is being verified, before the profile rows exist
+  const isInitializingUser = useRef(false);
 
   const videoUrl = getTrainingVideo();
 
@@ -36,6 +38,9 @@ const Home = () => {
           navigate("/reset-password");
           return;
         }
+        // Sign-up verification redirects on its own once the profile is created
+        if (isInitializingUser.current) return;
+
         if (event === "SIGNED_IN" || session) {
           // Check if user exists in public.users
           const { data: userProfile } = await supabase
@@ -75,7 +80,7 @@ const Home = () => {
         <div className="absolute top-10 z-50 lg:right-20">
           {/* <div className="order-2 mx-auto max-w-xl justify-center rounded-[1.8rem] bg-white/60 backdrop-blur-sm sm:flex sm:space-x-3 sm:rounded-full md:order-1 md:col-span-2"> */}
           <div className="grid grid-cols-2 gap-2 p-2">
-            <ParishionerRegister />
+            <ParishionerRegister initializingUserRef={isInitializingUser} />
             <Login />
             {/* <WalkInRegistration />
               <EditRegistration /> */}

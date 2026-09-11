@@ -708,90 +708,6 @@ const loginService = async (credentials) => {
   }
 };
 
-// Register Service
-const registerService = async ({
-  firstName,
-  lastName,
-  email,
-  password,
-  contactNumber,
-}) => {
-  try {
-    // Check if the email already exists in the users table
-    const { data: existingUser, error: emailCheckError } = await supabase
-      .from("users")
-      .select("*")
-      .eq("email", email)
-      .maybeSingle();
-
-    if (emailCheckError) throw emailCheckError;
-
-    // If email already exists, throw an error
-    if (existingUser) {
-      throw new Error("Email already registered. Please use a different one.");
-    }
-
-    // Proceed with the signup process if the email does not exist
-    const { data: user, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-
-    if (signUpError) throw signUpError;
-
-    const { error: insertError } = await supabase.from("users").insert([
-      {
-        id: user.user.id,
-        email: user.user.email,
-        first_name: firstName,
-        last_name: lastName,
-        mobile_number: contactNumber,
-        role: "parishioner",
-        is_confirmed: false,
-      },
-    ]);
-
-    if (insertError) throw insertError;
-
-    const { data: newUserFamily, error: familyError } = await supabase
-      .from("family_group")
-      .upsert([
-        {
-          user_id: user.user.id,
-        },
-      ])
-      .select();
-
-    if (familyError) throw familyError;
-
-    // Insert the user data into the 'parents' table
-    const { error: parentsInsertError } = await supabase
-      .from("parents")
-      .insert([
-        {
-          parishioner_id: user.user.id,
-          first_name: firstName,
-          last_name: lastName,
-          mobile_number: contactNumber,
-          family_id: newUserFamily[0].id,
-        },
-      ]);
-
-    if (parentsInsertError) throw parentsInsertError;
-
-    return {
-      id: user.user.id,
-      firstName,
-      lastName,
-      mobile_number: contactNumber,
-      familyId: newUserFamily[0].id,
-    };
-  } catch (error) {
-    console.error("Registration failed:", error.message);
-    throw error;
-  }
-};
-
 // Logout Service
 const logoutService = async () => {
   try {
@@ -830,7 +746,6 @@ export {
   loginWithMicrosoft,
   completeOAuthRegistration,
   loginService,
-  registerService,
   logoutService,
 };
 

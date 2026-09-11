@@ -174,19 +174,52 @@ const fetchUserById = async (userId) => {
   }
 };
 
-const resendEmailConfirmation = async (email) => {
-  const { error } = await supabase.auth.resend({
-    type: "signup",
-    email,
+// Sign up a parishioner. Supabase emails a 6-digit code to verify the account.
+const signUp = async ({
+  email,
+  password,
+  firstName,
+  lastName,
+  contactNumber,
+}) => {
+  const { data, error } = await supabase.auth.signUp({
+    email: email.trim(),
+    password,
     options: {
-      emailRedirectTo: "https://portal.saintlaurence.org.uk",
+      data: {
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        mobile_number: contactNumber.replace(/\s+/g, ""),
+      },
     },
   });
-  if (error) {
-    throw new Error(`Error resending email confirmation: ${error.message}`);
-  }
+  if (error) throw error;
 
-  return { success: true };
+  // An already-registered email returns no error and no identities, and no code is sent
+  if (data.user?.identities?.length === 0) {
+    throw new Error("Email already registered. Please use a different one.");
+  }
+};
+
+const verifySignUpOtp = async (email, token) => {
+  const { data, error } = await supabase.auth.verifyOtp({
+    email: email.trim(),
+    token,
+    type: "signup",
+  });
+  if (error) throw error;
+
+  await supabase.rpc("initialize_user");
+
+  return data;
+};
+
+const resendSignUpOtp = async (email) => {
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email: email.trim(),
+  });
+  if (error) throw error;
 };
 
 /**
@@ -346,7 +379,9 @@ export {
   updateContact,
   fetchUserById,
   registerCoParent,
-  resendEmailConfirmation,
+  signUp,
+  verifySignUpOtp,
+  resendSignUpOtp,
   uploadProfilePicture,
   removeProfilePicture,
   updateProfilePicture,

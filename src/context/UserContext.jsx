@@ -3,7 +3,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   completeOAuthRegistration as completeOAuthRegistrationService,
   loginService,
-  registerService,
   logoutService,
 } from "@/services/userService";
 import PropTypes from "prop-types";
@@ -12,7 +11,6 @@ const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
   const [userData, setUserData] = useState(null);
-  const [regData, setRegData] = useState(null);
   const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
 
@@ -25,21 +23,6 @@ export const UserProvider = ({ children }) => {
       return user;
     } catch (error) {
       console.error("Login failed:", error.message);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Register function
-  const register = async (data) => {
-    setLoading(true);
-    try {
-      const result = await registerService(data);
-      setRegData(result);
-      return result;
-    } catch (error) {
-      console.error("Registration failed:", error.message);
       throw error;
     } finally {
       setLoading(false);
@@ -92,12 +75,10 @@ export const UserProvider = ({ children }) => {
     <UserContext.Provider
       value={{
         userData,
-        regData,
         setUserData,
 
         loading,
         login,
-        register,
         completeOAuthRegistration,
         logout,
       }}

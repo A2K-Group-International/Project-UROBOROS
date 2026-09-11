@@ -7,10 +7,8 @@ import UserContext from "./UserContext";
  *
  * This hook provides access to the following user context values:
  * - `userData`: Contains the current logged-in user data (or null if not logged in).
- * - `regData`: Contains data used for registration (null if not available).
  * - `loading`: A boolean that indicates if a login, registration, or logout operation is in progress.
  * - `login`: Function to trigger user login with credentials (email & password).
- * - `register`: Function to trigger user registration with details (first name, last name, email, password, and contact number).
  * - `logout`: Function to trigger user logout.
  *
  * Usage:
