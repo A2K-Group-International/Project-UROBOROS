@@ -72,9 +72,15 @@ const updateContact = async (userId, newContactNumber) => {
     const { data: userData, error: userError } = await supabase
       .from("users")
       .update({ mobile_number: newContactNumber })
-      .eq("id", userId);
+      .eq("id", userId)
+      .select();
 
     if (userError) throw userError;
+
+    // An update blocked by row-level security returns no error, just no rows
+    if (!userData?.length) {
+      throw new Error("Contact number could not be updated.");
+    }
 
     const { data: parentData, error: parentError } = await supabase
       .from("parents")
@@ -86,6 +92,7 @@ const updateContact = async (userId, newContactNumber) => {
     return { userData, parentData };
   } catch (error) {
     console.error("Error updating contact:", error);
+    throw error;
   }
 };
 
