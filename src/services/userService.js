@@ -370,6 +370,14 @@ const updateUser = async (id, payload) => {
       role,
     });
 
+    // Keep the user's own parent record in their family in step
+    const { error: parentError } = await supabase
+      .from("parents")
+      .update({ first_name, last_name, mobile_number })
+      .eq("parishioner_id", id);
+
+    if (parentError) throw parentError;
+
     return user;
   } catch (error) {
     console.error("Error updating user", error.message);

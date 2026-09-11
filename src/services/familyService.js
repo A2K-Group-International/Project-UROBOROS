@@ -251,10 +251,17 @@ export const updateParent = async (parentId, data, parentUserId) => {
     })
     .eq("id", parentId)
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) {
     throw new Error(error.message); // Throw an error to be caught by the mutation
+  }
+
+  // An update blocked by row-level security returns no error, just no row
+  if (!updatedParent) {
+    throw new Error(
+      "This record could not be updated. You may not have permission to edit it."
+    );
   }
   // Update user details in the 'users' table if userId is provided
   if (parentUserId) {
@@ -359,10 +366,17 @@ export const updateChild = async (childId, data) => {
     .update({ first_name: firstName, last_name: lastName })
     .eq("id", childId)
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) {
     throw new Error(error.message); // Throw an error to be caught by the mutation
+  }
+
+  // An update blocked by row-level security returns no error, just no row
+  if (!updatedChild) {
+    throw new Error(
+      "This record could not be updated. You may not have permission to edit it."
+    );
   }
 
   return updatedChild; // Return the updated child data
@@ -388,7 +402,7 @@ export const fetchFamilies = async ({ page, pageSize, search }) => {
   const select = `
     id,
     users(id, first_name, last_name, mobile_number),
-    parents(id, first_name, last_name, mobile_number),
+    parents(id, first_name, last_name, mobile_number, parishioner_id),
     children(id, first_name, last_name)
   `;
 

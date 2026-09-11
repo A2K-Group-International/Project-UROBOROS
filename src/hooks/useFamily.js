@@ -104,7 +104,8 @@ const useEditParent = () => {
       console.error("Error updating guardian:", error.message);
 
       toast({
-        title: "Error updating child",
+        title: "Error updating guardian",
+        description: error.message,
         variant: "destructive",
       });
     },
@@ -159,6 +160,7 @@ const useEditChild = () => {
 
       toast({
         title: "Error updating child",
+        description: error.message,
         variant: "destructive",
       });
     },

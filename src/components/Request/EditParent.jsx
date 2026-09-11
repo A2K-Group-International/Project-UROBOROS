@@ -56,7 +56,7 @@ const EditParent = ({ parent }) => {
       {
         parentId: parent.id,
         data: values,
-        parentUserId: parent.users?.id, // Pass user ID if linked to a user account
+        parentUserId: parent.parishioner_id, // Pass user ID if linked to a user account
       },
       {
         onSuccess: () => {
@@ -151,9 +151,7 @@ EditParent.propTypes = {
     first_name: PropTypes.string,
     last_name: PropTypes.string,
     mobile_number: PropTypes.string,
-    users: PropTypes.shape({
-      id: PropTypes.string,
-    }),
+    parishioner_id: PropTypes.string,
   }).isRequired,
 };
 
