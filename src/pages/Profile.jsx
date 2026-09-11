@@ -167,7 +167,10 @@ const Profile = () => {
             <Label className="text-sm font-bold text-accent/75">Contact</Label>
             <div className="flex items-center justify-between rounded-xl bg-[#FDFBFA] px-6 py-5 font-semibold text-accent">
               <p>{data?.mobile_number}</p>
-              <ContactForm userId={data?.id} />
+              <ContactForm
+                userId={data?.id}
+                contactNumber={data?.mobile_number}
+              />
             </div>
             {/* <Label className="text-sm font-bold text-accent/75">
               Notification
@@ -435,7 +438,7 @@ EditEmailForm.propTypes = {
   userId: PropTypes.string,
 };
 
-const ContactForm = ({ userId }) => {
+const ContactForm = ({ userId, contactNumber }) => {
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
 
   const { updateContactMutation } = useProfile({
@@ -445,9 +448,16 @@ const ContactForm = ({ userId }) => {
   const form = useForm({
     resolver: zodResolver(contactSchema),
     defaultValues: {
-      contactNumber: "",
+      contactNumber: contactNumber || "",
     },
   });
+
+  // Update the form value when the saved contact number loads or changes
+  useEffect(() => {
+    form.reset({
+      contactNumber: contactNumber || "",
+    });
+  }, [contactNumber, form]);
 
   const handleUpdateContact = (data) => {
     updateContactMutation.mutate(
@@ -466,7 +476,13 @@ const ContactForm = ({ userId }) => {
   return (
     <AlertDialog
       open={isContactDialogOpen}
-      onOpenChange={setIsContactDialogOpen}
+      onOpenChange={(open) => {
+        setIsContactDialogOpen(open);
+
+        if (!open) {
+          form.reset();
+        }
+      }}
     >
       <AlertDialogTrigger>Edit</AlertDialogTrigger>
       <AlertDialogContent>
@@ -512,6 +528,7 @@ const ContactForm = ({ userId }) => {
 
 ContactForm.propTypes = {
   userId: PropTypes.string,
+  contactNumber: PropTypes.string,
 };
 
 // const EmailNotification = ({ userId, isEmailNotificationEnabled }) => {
