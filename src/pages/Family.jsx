@@ -24,13 +24,11 @@ import { useFamilyData } from "@/hooks/useFamilyData";
 import { useDeleteChild } from "@/hooks/useFamily";
 import EditChild from "@/components/Family/EditChild";
 import EditParent from "@/components/Family/EditParent";
-import NewCoParent from "@/components/Family/NewCoParent";
 import { useUser } from "@/context/useUser";
 import DeleteParent from "@/components/Family/DeleteParent";
 import InviteFamily from "@/components/Family/InviteFamily";
 
 const Family = () => {
-  const [editParentForm, setEditParentForm] = useState(null);
   const [deleteParentForm, setDeleteParentForm] = useState(null);
 
   const userData = useUser();
@@ -45,11 +43,6 @@ const Family = () => {
     await deleteChild(childId);
   };
 
-  // Show Edit Form
-  const handleOpenDialog = (parentId) => {
-    setEditParentForm(parentId);
-  };
-
   // Show Delete form
   const showDeleteParentForm = (parentId) => {
     setDeleteParentForm(parentId);
@@ -57,7 +50,6 @@ const Family = () => {
 
   // Close the form
   const handleCloseDialog = () => {
-    setEditParentForm(null);
     setDeleteParentForm(null);
   };
 
@@ -123,12 +115,6 @@ const Family = () => {
                               <ThreeDotsIcon />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
-                              <DropdownMenuItem
-                                onSelect={() => handleOpenDialog(parent.id)}
-                                disabled={parent.parishioner_id !== null}
-                              >
-                                Set up Parent/Guardian Account
-                              </DropdownMenuItem>
                               <DropdownMenuItem asChild>
                                 <EditParent
                                   parentId={parent.id}
@@ -145,17 +131,6 @@ const Family = () => {
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                          {/* Show Edit Parent Form */}
-                          {editParentForm === parent.id && (
-                            <NewCoParent
-                              parentId={parent.id}
-                              parentFirstName={parent.first_name}
-                              parentLastName={parent.last_name}
-                              parentContactNumber={parent.mobile_number}
-                              openModal={true}
-                              onClose={handleCloseDialog}
-                            />
-                          )}
                           {/* Show Delete Parent */}
                           {deleteParentForm === parent.id && (
                             <DeleteParent

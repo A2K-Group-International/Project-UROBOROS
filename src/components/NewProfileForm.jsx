@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 import PropTypes from "prop-types";
 
 import {
@@ -11,7 +9,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "./ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -22,14 +19,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { Label } from "./ui/label";
 import useManageUsers from "@/hooks/Request/useManageUser";
 import { DialogClose, DialogFooter } from "./ui/dialog";
 import { Button } from "./ui/button";
 
 const NewProfileForm = ({ id = "new-user-form", user, onClose }) => {
-  const [showPassword, setShowPassword] = useState(false);
-
   const { form, onSubmit, isPending } = useManageUsers({
     user,
     onSuccessCallback: onClose,
@@ -109,80 +103,12 @@ const NewProfileForm = ({ id = "new-user-form", user, onClose }) => {
             </FormItem>
           )}
         />
-        {!user && (
-          <FormField
-            control={form.control}
-            name="email"
-            type="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g john@email.com" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
-
-        {!user && (
-          <div className="flex gap-3">
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem className="grow">
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Enter Password"
-                      type={showPassword ? "text" : "password"}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="confirm_password"
-              render={({ field }) => (
-                <FormItem className="grow">
-                  <FormLabel>Confirm Password</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Confirm Password"
-                      type={showPassword ? "text" : "password"}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        )}
-        {!user && (
-          <div className="flex items-center justify-end gap-x-2">
-            <Checkbox
-              checked={showPassword}
-              onCheckedChange={setShowPassword}
-            />
-            <Label>Show Password</Label>
-          </div>
-        )}
         <DialogFooter>
           <DialogClose asChild>
             <Button variant="outline">Cancel</Button>
           </DialogClose>
           <Button type="submit" disabled={isPending}>
-            {isPending
-              ? "Saving..."
-              : !user
-                ? "Create Profile"
-                : "Update Profile"}
+            {isPending ? "Saving..." : "Update Profile"}
           </Button>
         </DialogFooter>
       </form>
@@ -192,7 +118,7 @@ const NewProfileForm = ({ id = "new-user-form", user, onClose }) => {
 
 NewProfileForm.propTypes = {
   id: PropTypes.string,
-  user: PropTypes.object,
+  user: PropTypes.object.isRequired,
   onClose: PropTypes.func,
 };
 
